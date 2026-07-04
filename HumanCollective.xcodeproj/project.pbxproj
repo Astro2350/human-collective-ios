@@ -18,6 +18,7 @@
 		2C9A61DF4C0312796128F236 /* ArchiveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 130069A13FCAD0CBC493D3C0 /* ArchiveViewModel.swift */; };
 		2F4F8A16A121A0766541EC5E /* MockCultureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E96E4A0897F9C7601B89E71 /* MockCultureRepository.swift */; };
 		32C83D5BFCA2EE65C96DB580 /* CultureCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E671BD8C225B072164844DC /* CultureCard.swift */; };
+		34D3F87A6C5312A0E0DA289B /* CultureCardPressStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* CultureCardPressStyle.swift */; };
 		36FBE47AC1ABCD93ED419376 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9855EA0A77831F0C6D0A52 /* SavedView.swift */; };
 		387DB2986C0FE79E6AB1E666 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC44A67DABC0510B24FB588 /* ArchiveView.swift */; };
 		5C93E495827C6687B9E68DD7 /* SavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889D9A9000397E54FEF42AFC /* SavedViewModel.swift */; };
@@ -28,6 +29,7 @@
 		9BFED04CEECFF22B087C0992 /* CultureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89A8C720A860B1D112D4413 /* CultureRepository.swift */; };
 		9CDB9BFEB680C2D0F65BA9B0 /* CultureCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D75CA4160E25047A4FBE0AF /* CultureCategory.swift */; };
 		9FA383626626B38E1307749B /* SupabaseCultureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7902881242FEC9D27AB2ADCB /* SupabaseCultureRepository.swift */; };
+		A4B5C6D7E8F90123456789AB /* CultureImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* CultureImageCache.swift */; };
 		A859AAC85972C9F7D64F4FC7 /* HumanCollectiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */; };
 		CBD7C8FE53DCFF8DFFF6A444 /* ArchivePackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C937F3B666E3F6D47711596A /* ArchivePackView.swift */; };
 		D11746FE49A534473E04859F /* AdminSeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5830EAF77E6B8E977013D391 /* AdminSeedData.swift */; };
@@ -65,6 +67,8 @@
 		8F382C3C5410CEBAC4E7D31C /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		90E9A187C521B71ECA621BD4 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		9908F427626AC60AE9B4FAFB /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* CultureCardPressStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCardPressStyle.swift; sourceTree = "<group>"; };
+		B2C3D4E5F60718293A4B5C6D /* CultureImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureImageCache.swift; sourceTree = "<group>"; };
 		BE03FC3E3515C807DD20F426 /* PackStateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackStateViews.swift; sourceTree = "<group>"; };
 		C34BD70A4C4C8E0A36D211BB /* CultureFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureFormatters.swift; sourceTree = "<group>"; };
 		C937F3B666E3F6D47711596A /* ArchivePackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePackView.swift; sourceTree = "<group>"; };
@@ -157,6 +161,8 @@
 				64A55F8D2CFC135A64A3A59A /* CategoryChip.swift */,
 				3D0A86A1CAC4505FF035A77E /* CultureAsyncImage.swift */,
 				5E671BD8C225B072164844DC /* CultureCard.swift */,
+				A1B2C3D4E5F60718293A4B5C /* CultureCardPressStyle.swift */,
+				B2C3D4E5F60718293A4B5C6D /* CultureImageCache.swift */,
 				02CAD0648B9DE195E175A281 /* FeaturedCultureCard.swift */,
 				BE03FC3E3515C807DD20F426 /* PackStateViews.swift */,
 				DA4B59E81572A9ED069653A6 /* ZoomableImageViewer.swift */,
@@ -310,12 +316,14 @@
 				F55A2F8BC2ADBF05400853CC /* ContentSource.swift in Sources */,
 				26A610622BF3BA0A9E7194A2 /* CultureAsyncImage.swift in Sources */,
 				32C83D5BFCA2EE65C96DB580 /* CultureCard.swift in Sources */,
+				34D3F87A6C5312A0E0DA289B /* CultureCardPressStyle.swift in Sources */,
 				9CDB9BFEB680C2D0F65BA9B0 /* CultureCategory.swift in Sources */,
 				676284443BC65B5608F11C2D /* CultureDetailView.swift in Sources */,
 				02C08223D03045E8485AAE46 /* CultureDetailViewModel.swift in Sources */,
 				067EF476CFFE013BB50FD50A /* CultureFormatters.swift in Sources */,
 				D88841D4F2A8960DE4C8BA81 /* CultureItem.swift in Sources */,
 				1C59887AA38F56982B968E36 /* CultureItemDraft.swift in Sources */,
+				A4B5C6D7E8F90123456789AB /* CultureImageCache.swift in Sources */,
 				E07075711317FAEADBEAC5A4 /* CulturePack.swift in Sources */,
 				9BFED04CEECFF22B087C0992 /* CultureRepository.swift in Sources */,
 				14E90CFABC4C41DE84CD90D9 /* Date+CultureWeek.swift in Sources */,

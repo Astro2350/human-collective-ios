@@ -4,10 +4,15 @@ struct CultureCard: View {
     let item: CultureItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            CultureAsyncImage(imageURL: item.imageURL, aspectRatio: HCTheme.feedImageAspectRatio, cornerRadius: 7)
+        VStack(alignment: .leading, spacing: 0) {
+            CultureAsyncImage(
+                imageURL: item.imageURL,
+                aspectRatio: HCTheme.feedImageAspectRatio,
+                cornerRadius: 0,
+                accessibilityLabel: item.title
+            )
 
-            VStack(alignment: .leading, spacing: 9) {
+            VStack(alignment: .leading, spacing: 10) {
                 CategoryChip(category: item.category)
 
                 Text(item.title)
@@ -26,10 +31,10 @@ struct CultureCard: View {
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 4)
-            .padding(.bottom, 2)
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+            .padding(.bottom, 16)
         }
-        .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))

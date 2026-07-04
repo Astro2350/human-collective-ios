@@ -60,7 +60,8 @@ struct SupabaseCultureRepository: CultureRepository {
             queryItems: [
                 URLQueryItem(name: "select", value: "*"),
                 URLQueryItem(name: "end_date", value: "lt.\(today)"),
-                URLQueryItem(name: "order", value: "start_date.desc")
+                URLQueryItem(name: "order", value: "start_date.desc"),
+                URLQueryItem(name: "limit", value: "12")
             ]
         )
 

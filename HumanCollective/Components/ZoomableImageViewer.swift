@@ -4,34 +4,67 @@ import UIKit
 struct ZoomableImageViewer: View {
     let imageURL: String
     let title: String
+    let onDismiss: () -> Void
 
-    @Environment(\.dismiss) private var dismiss
+    @State private var dragOffset: CGSize = .zero
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
+        GeometryReader { proxy in
+            ZStack(alignment: .topTrailing) {
+                Color.black.ignoresSafeArea()
 
-            ZoomableRemoteImage(url: CultureAsyncImage.normalizedImageURL(from: imageURL))
-                .ignoresSafeArea()
-                .accessibilityLabel(title)
+                ZoomableRemoteImage(url: CultureAsyncImage.normalizedImageURL(from: imageURL))
+                    .ignoresSafeArea()
+                    .accessibilityLabel(title)
 
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 42, height: 42)
-                    .background(.black.opacity(0.48), in: Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(.white.opacity(0.22), lineWidth: 0.75)
-                    }
+                Button {
+                    onDismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(.black.opacity(0.48), in: Circle())
+                        .overlay {
+                            Circle()
+                                .stroke(.white.opacity(0.22), lineWidth: 0.75)
+                        }
+                }
+                .padding(.top, max(proxy.safeAreaInsets.top + 10, 18))
+                .padding(.trailing, 18)
+                .accessibilityLabel("Close image")
             }
-            .padding(.top, 18)
-            .padding(.trailing, 18)
-            .accessibilityLabel("Close image")
         }
+        .offset(y: max(dragOffset.height, 0))
+        .opacity(viewerOpacity)
+        .simultaneousGesture(dismissDrag)
+        .accessibilityAction(.escape, onDismiss)
+    }
+
+    private var viewerOpacity: Double {
+        let progress = min(max(dragOffset.height / 220, 0), 1)
+        return 1 - (progress * 0.36)
+    }
+
+    private var dismissDrag: some Gesture {
+        DragGesture(minimumDistance: 18)
+            .onChanged { value in
+                guard value.translation.height > 0 else { return }
+                dragOffset = value.translation
+            }
+            .onEnded { value in
+                let shouldDismiss = value.translation.height > 110 || value.predictedEndTranslation.height > 220
+
+                if shouldDismiss, abs(value.translation.width) < 120 {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        onDismiss()
+                    }
+                } else {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        dragOffset = .zero
+                    }
+                }
+            }
     }
 }
 
@@ -86,14 +119,22 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
 
         guard let url else { return }
 
-        context.coordinator.task = URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data, let image = UIImage(data: data) else { return }
+        context.coordinator.task = Task {
+            do {
+                let data = try await CultureImageCache.shared.data(for: url)
+                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
 
-            DispatchQueue.main.async {
-                context.coordinator.imageView?.image = image
+                await MainActor.run {
+                    context.coordinator.imageView?.image = image
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    context.coordinator.imageView?.image = nil
+                }
             }
         }
-        context.coordinator.task?.resume()
     }
 
     static func dismantleUIView(_ uiView: UIScrollView, coordinator: Coordinator) {
@@ -103,7 +144,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
     final class Coordinator: NSObject, UIScrollViewDelegate {
         weak var imageView: UIImageView?
         weak var scrollView: UIScrollView?
-        var task: URLSessionDataTask?
+        var task: Task<Void, Never>?
         var currentURL: URL?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {

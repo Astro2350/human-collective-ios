@@ -4,20 +4,23 @@ struct ThisWeekView: View {
     let savedStore: SavedStore
 
     @State private var viewModel: ThisWeekViewModel
+    @Binding private var selectedTab: AppTab
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
         self.savedStore = savedStore
+        _selectedTab = selectedTab
         _viewModel = State(initialValue: ThisWeekViewModel(repository: repository))
     }
 
     var body: some View {
         content
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(HCTheme.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
             .task {
                 await loadIfNeeded()
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: $selectedTab)
             }
     }
 
@@ -28,8 +31,9 @@ struct ThisWeekView: View {
             CultureLoadingView()
         case .empty:
             CultureEmptyStateView(
-                title: "This week's pack is empty.",
-                subtitle: "Check Supabase data or use the bundled mock repository."
+                title: "This week's pack is not ready.",
+                subtitle: "There is no published selection for the current week yet.",
+                systemImage: "tray"
             )
         case .failed(let message):
             CultureErrorView(message: message) {
@@ -45,7 +49,7 @@ struct ThisWeekView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
+                LazyVStack(alignment: .leading, spacing: 28) {
                     header(for: pack)
 
                     if let featuredItem = pack.featuredItem {
@@ -55,27 +59,31 @@ struct ThisWeekView: View {
                             FeaturedCultureCard(item: featuredItem)
                                 .frame(width: contentWidth, alignment: .leading)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.cultureCard)
                     }
 
-                    VStack(alignment: .leading, spacing: 18) {
+                    if pack.items.count > 1 {
                         SectionRule(title: "Also this week")
 
-                        ForEach(Array(pack.items.dropFirst())) { item in
+                        ForEach(pack.items.dropFirst()) { item in
                             NavigationLink {
                                 CultureDetailView(item: item, savedStore: savedStore)
                             } label: {
                                 CultureCard(item: item)
                                     .frame(width: contentWidth, alignment: .leading)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.cultureCard)
                         }
                     }
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
+                .padding(.bottom, 12)
             }
             .background(HCTheme.background)
+            .task(id: pack.id) {
+                await prefetchImages(in: pack)
+            }
         }
         .background(HCTheme.background)
     }
@@ -107,6 +115,14 @@ struct ThisWeekView: View {
         if case .idle = viewModel.state {
             await viewModel.load()
         }
+    }
+
+    private func prefetchImages(in pack: CulturePack) async {
+        let urls = pack.items.compactMap { item in
+            CultureAsyncImage.normalizedImageURL(from: item.imageURL)
+        }
+
+        await CultureImageCache.shared.prefetch(urls)
     }
 }
 

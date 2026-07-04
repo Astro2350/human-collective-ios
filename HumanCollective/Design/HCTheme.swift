@@ -15,9 +15,10 @@ enum HCTheme {
     static let editorGold = Color(red: 0.725, green: 0.545, blue: 0.245)
 
     static let cardRadius: CGFloat = 8
-    static let pagePadding: CGFloat = 20
+    static let pagePadding: CGFloat = 18
     static let hairline: CGFloat = 0.75
-    static let feedImageAspectRatio: CGFloat = 1.28
+    static let feedImageAspectRatio: CGFloat = 1.18
+    static let featuredImageAspectRatio: CGFloat = 1.02
     static let detailImageAspectRatio: CGFloat = 1.03
 }
 

@@ -15,9 +15,16 @@ struct CultureDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Button {
-                        isShowingImageViewer = true
+                        withAnimation(.easeInOut(duration: 0.22)) {
+                            isShowingImageViewer = true
+                        }
                     } label: {
-                        CultureAsyncImage(imageURL: item.imageURL, aspectRatio: HCTheme.detailImageAspectRatio, cornerRadius: 0)
+                        CultureAsyncImage(
+                            imageURL: item.imageURL,
+                            aspectRatio: HCTheme.detailImageAspectRatio,
+                            cornerRadius: 0,
+                            accessibilityLabel: item.title
+                        )
                             .clipShape(Rectangle())
                             .overlay(alignment: .bottomLeading) {
                                 CategoryChip(category: item.category)
@@ -34,6 +41,7 @@ struct CultureDetailView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Open image")
+                    .accessibilityHint("Opens a full screen viewer with zoom controls")
 
                     VStack(alignment: .leading, spacing: 28) {
                         articleHeader(item)
@@ -50,22 +58,38 @@ struct CultureDetailView: View {
                 .frame(width: proxy.size.width, alignment: .leading)
             }
         }
+        .allowsHitTesting(!isShowingImageViewer)
+        .accessibilityHidden(isShowingImageViewer)
         .background(HCTheme.background)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(HCTheme.background, for: .navigationBar)
+        .toolbar(isShowingImageViewer ? .hidden : .visible, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
+        .statusBarHidden(isShowingImageViewer)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.toggleSaved()
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        viewModel.toggleSaved()
+                    }
                 } label: {
                     Image(systemName: viewModel.isSaved ? "bookmark.fill" : "bookmark")
+                        .contentTransition(.symbolEffect(.replace))
                 }
                 .accessibilityLabel(viewModel.isSaved ? "Unsave" : "Save")
             }
         }
-        .fullScreenCover(isPresented: $isShowingImageViewer) {
-            ZoomableImageViewer(imageURL: item.imageURL, title: item.title)
+        .overlay {
+            if isShowingImageViewer {
+                ZoomableImageViewer(imageURL: item.imageURL, title: item.title) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isShowingImageViewer = false
+                    }
+                }
+                .ignoresSafeArea()
+                .transition(.opacity.combined(with: .scale(scale: 0.985)))
+                .zIndex(10)
+            }
         }
     }
 
@@ -107,12 +131,16 @@ struct CultureDetailView: View {
     private func actionRow(_ item: CultureItem) -> some View {
         VStack(spacing: 11) {
             Button {
-                viewModel.toggleSaved()
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    viewModel.toggleSaved()
+                }
             } label: {
                 Label(viewModel.isSaved ? "Saved" : "Save", systemImage: viewModel.isSaved ? "bookmark.fill" : "bookmark")
                     .frame(maxWidth: .infinity)
+                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .tint(HCTheme.blueStone)
 
             HStack(spacing: 11) {
@@ -121,6 +149,7 @@ struct CultureDetailView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
                 .tint(HCTheme.blueStone)
 
                 if let url = URL(string: item.sourceURL) {
@@ -129,6 +158,7 @@ struct CultureDetailView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .tint(HCTheme.blueStone)
                 } else {
                     Button {} label: {
@@ -136,6 +166,7 @@ struct CultureDetailView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .tint(HCTheme.blueStone)
                     .disabled(true)
                 }

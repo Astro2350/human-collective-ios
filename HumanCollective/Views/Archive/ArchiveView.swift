@@ -4,21 +4,23 @@ struct ArchiveView: View {
     let savedStore: SavedStore
 
     @State private var viewModel: ArchiveViewModel
+    @Binding private var selectedTab: AppTab
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
         self.savedStore = savedStore
+        _selectedTab = selectedTab
         _viewModel = State(initialValue: ArchiveViewModel(repository: repository))
     }
 
     var body: some View {
         content
-            .navigationTitle("Archive")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(HCTheme.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
             .task {
                 await loadIfNeeded()
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: $selectedTab)
             }
     }
 
@@ -30,7 +32,8 @@ struct ArchiveView: View {
         case .empty:
             CultureEmptyStateView(
                 title: "No archived packs yet.",
-                subtitle: nil
+                subtitle: "Earlier weekly selections will appear here after they close.",
+                systemImage: "books.vertical"
             )
         case .failed(let message):
             CultureErrorView(message: message) {
@@ -46,9 +49,9 @@ struct ArchiveView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                LazyVStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Past weeks")
+                        Text("Archive")
                             .font(.cultureTitle(34))
                             .foregroundStyle(HCTheme.ink)
 
@@ -66,11 +69,12 @@ struct ArchiveView: View {
                             ArchiveWeekCard(pack: pack)
                                 .frame(width: contentWidth, alignment: .leading)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.cultureCard)
                     }
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
+                .padding(.bottom, 12)
             }
             .background(HCTheme.background)
         }
@@ -91,7 +95,12 @@ private struct ArchiveWeekCard: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 ForEach(Array(pack.items.prefix(3))) { item in
-                    CultureAsyncImage(imageURL: item.imageURL, aspectRatio: 1.0, cornerRadius: 6)
+                    CultureAsyncImage(
+                        imageURL: item.imageURL,
+                        aspectRatio: 1.0,
+                        cornerRadius: 6,
+                        accessibilityLabel: item.title
+                    )
                 }
             }
 

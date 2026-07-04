@@ -9,7 +9,7 @@ struct ArchivePackView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                LazyVStack(alignment: .leading, spacing: 22) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(CultureFormatters.weekRange(startDate: pack.startDate, endDate: pack.endDate))
                             .font(.cultureKicker())
@@ -36,11 +36,12 @@ struct ArchivePackView: View {
                             CultureCard(item: item)
                                 .frame(width: contentWidth, alignment: .leading)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.cultureCard)
                     }
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
+                .padding(.bottom, 12)
             }
             .background(HCTheme.background)
         }

@@ -4,16 +4,22 @@ struct SavedView: View {
     let savedStore: SavedStore
 
     @State private var viewModel = SavedViewModel()
+    @Binding private var selectedTab: AppTab
+
+    init(savedStore: SavedStore, selectedTab: Binding<AppTab>) {
+        self.savedStore = savedStore
+        _selectedTab = selectedTab
+    }
 
     var body: some View {
         content
-            .navigationTitle("Saved")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(HCTheme.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
             .task(id: savedStore.revision) {
                 viewModel.load(from: savedStore)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CustomTabBar(selectedTab: $selectedTab)
             }
     }
 
@@ -25,7 +31,8 @@ struct SavedView: View {
         case .empty:
             CultureEmptyStateView(
                 title: "Saved pieces will live here.",
-                subtitle: nil
+                subtitle: "Use the bookmark on any piece you want to revisit.",
+                systemImage: "bookmark"
             )
         case .failed(let message):
             CultureErrorView(message: message) {}
@@ -39,7 +46,7 @@ struct SavedView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                LazyVStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Saved pieces")
                             .font(.cultureTitle(34))
@@ -58,11 +65,13 @@ struct SavedView: View {
                             } label: {
                                 SavedItemCard(item: item)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.cultureCard)
 
                             Button {
-                                savedStore.unsave(item)
-                                viewModel.load(from: savedStore)
+                                withAnimation(.easeInOut(duration: 0.18)) {
+                                    savedStore.unsave(item)
+                                    viewModel.load(from: savedStore)
+                                }
                             } label: {
                                 Image(systemName: "bookmark.slash")
                                     .font(.system(size: 17, weight: .medium))
@@ -81,6 +90,7 @@ struct SavedView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
+                .padding(.bottom, 12)
             }
             .background(HCTheme.background)
         }
@@ -93,7 +103,12 @@ private struct SavedItemCard: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            CultureAsyncImage(imageURL: item.imageURL, aspectRatio: 1.0, cornerRadius: 6)
+            CultureAsyncImage(
+                imageURL: item.imageURL,
+                aspectRatio: 1.0,
+                cornerRadius: 6,
+                accessibilityLabel: item.title
+            )
                 .frame(width: 96)
 
             VStack(alignment: .leading, spacing: 7) {
