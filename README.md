@@ -1,6 +1,6 @@
-# Human Culture
+# Human Collective
 
-Human Culture is a calm SwiftUI MVP for a weekly pack of human-made culture: objects, places, artworks, textiles, manuscripts, maps, and artifacts from open-access or public-domain style sources.
+Human Collective is a calm SwiftUI MVP for a weekly pack of human-made culture: objects, places, artworks, textiles, manuscripts, maps, and artifacts from open-access or public-domain style sources.
 
 ## Requirements
 
@@ -12,17 +12,17 @@ Human Culture is a calm SwiftUI MVP for a weekly pack of human-made culture: obj
 
 ```bash
 xcodegen generate
-open HumanCulture.xcodeproj
+open HumanCollective.xcodeproj
 ```
 
-Select the `HumanCulture` scheme and run on an iOS simulator. The app compiles and runs without Supabase credentials by using `MockCultureRepository`.
+Select the `HumanCollective` scheme and run on an iOS simulator. The app compiles and runs without Supabase credentials by using `MockCultureRepository`.
 
 ## Supabase Setup
 
 The app looks for Supabase values in:
 
-- `HumanCulture/Config/Debug.xcconfig`
-- `HumanCulture/Config/Release.xcconfig`
+- `HumanCollective/Config/Debug.xcconfig`
+- `HumanCollective/Config/Release.xcconfig`
 
 Set:
 
@@ -41,13 +41,13 @@ supabase_schema.sql
 
 ## Structure
 
-- `HumanCulture/App` - app entry point, onboarding gate, tab shell
-- `HumanCulture/Models` - `CultureItem`, `CulturePack`, `CultureCategory`
-- `HumanCulture/Repositories` - repository protocol, mock data, Supabase REST stub
-- `HumanCulture/Persistence` - local saved-item persistence using `UserDefaults`
-- `HumanCulture/ViewModels` - async loading and detail/saved state
-- `HumanCulture/Views` - onboarding, this week, archive, saved, detail
-- `HumanCulture/Components` - reusable image, card, chip, and state views
+- `HumanCollective/App` - app entry point, onboarding gate, tab shell
+- `HumanCollective/Models` - `CultureItem`, `CulturePack`, `CultureCategory`
+- `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST stub
+- `HumanCollective/Persistence` - local saved-item persistence using `UserDefaults`
+- `HumanCollective/ViewModels` - async loading and detail/saved state
+- `HumanCollective/Views` - onboarding, this week, archive, saved, detail
+- `HumanCollective/Components` - reusable image, card, chip, and state views
 
 ## Notes
 
@@ -55,3 +55,10 @@ supabase_schema.sql
 - Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`.
 - Mock content includes seven curated sample items plus two previous archive packs.
 - No audio, video, performance clips, social features, likes, comments, or infinite feed are included.
+
+## Content Pipeline
+
+- Manual curation guide: `docs/content-pipeline.md`
+- Sample admin seed payload: `Content/admin_seed_sample.json`
+
+The seed format is a foundation for later Supabase import scripts or a private admin tool. It does not add scraping or public admin writes to the iOS app.

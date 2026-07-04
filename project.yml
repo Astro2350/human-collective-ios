@@ -1,4 +1,4 @@
-name: HumanCulture
+name: HumanCollective
 options:
   bundleIdPrefix: com.sam
   createIntermediateGroups: true
@@ -14,26 +14,25 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
 targets:
-  HumanCulture:
+  HumanCollective:
     type: application
     platform: iOS
     sources:
-      - path: HumanCulture
+      - path: HumanCollective
         excludes:
           - Config
           - Resources
     resources:
-      - path: HumanCulture/Resources
+      - path: HumanCollective/Resources
     configFiles:
-      Debug: HumanCulture/Config/Debug.xcconfig
-      Release: HumanCulture/Config/Release.xcconfig
+      Debug: HumanCollective/Config/Debug.xcconfig
+      Release: HumanCollective/Config/Release.xcconfig
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.sam.HumanCulture
-        PRODUCT_NAME: Human Culture
-        INFOPLIST_FILE: HumanCulture/Resources/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.sam.HumanCollective
+        PRODUCT_NAME: Human Collective
+        INFOPLIST_FILE: HumanCollective/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
         GENERATE_INFOPLIST_FILE: NO
-
