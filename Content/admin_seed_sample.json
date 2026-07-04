@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-07-04T00:00:00Z",
-  "notes": "Manual seed data for Human Collective. Drafts can be added before curation; curated_items are ready to map into culture_items and weekly_packs maps pack membership.",
+  "notes": "Manual seed data for Human Culture. Drafts can be added before curation; curated_items are ready to map into culture_items and weekly_packs maps pack membership.",
   "content_sources": [
     {
       "id": "met-open-access",
@@ -83,7 +83,44 @@
       "longitude": 30.83,
       "primary_week_key": "2026-W27",
       "tags": ["egypt", "faience", "afterlife", "river"],
-      "curator_note": "Strong lead image and approachable first object."
+      "curator_note": "Strong lead image and approachable first object.",
+      "guided_scenes": [
+        {
+          "id": "hippo-body",
+          "title": "A River Animal, Held in the Hand",
+          "body": "This small hippopotamus was made for a tomb, but its rounded body and vivid blue surface still feel startlingly present.",
+          "focus_x": 0.50,
+          "focus_y": 0.50,
+          "zoom": 1.18,
+          "highlight_x": 0.52,
+          "highlight_y": 0.46,
+          "highlight_radius": 0.18,
+          "callout": "Blue faience body",
+          "scene_index": 0
+        },
+        {
+          "id": "hippo-marsh",
+          "title": "A Marsh Painted on Its Back",
+          "body": "Lotus and river plants turn the animal into a tiny Nile landscape, suggesting water, growth, and renewal.",
+          "focus_x": 0.37,
+          "focus_y": 0.28,
+          "zoom": 2.05,
+          "highlight_x": 0.34,
+          "highlight_y": 0.25,
+          "highlight_radius": 0.14,
+          "callout": "Painted marsh plants",
+          "scene_index": 1
+        },
+        {
+          "id": "hippo-whole-form",
+          "title": "A Companion for Renewal",
+          "body": "Pulled back, the whole object becomes a hopeful companion: craft, belief, animal power, and affection in one handmade form.",
+          "focus_x": 0.50,
+          "focus_y": 0.50,
+          "zoom": 1.05,
+          "scene_index": 2
+        }
+      ]
     },
     {
       "id": "noh-hannya-mask",
@@ -107,7 +144,44 @@
       "longitude": 139.65,
       "primary_week_key": "2026-W27",
       "tags": ["japan", "theater", "mask", "performance"],
-      "curator_note": "Use after an object with quiet material beauty."
+      "curator_note": "Use after an object with quiet material beauty.",
+      "guided_scenes": [
+        {
+          "id": "noh-mask-horns",
+          "title": "Small Horns, Large Feeling",
+          "body": "The horns push the face beyond ordinary portraiture, making transformation visible before the actor begins to move.",
+          "focus_x": 0.50,
+          "focus_y": 0.18,
+          "zoom": 2.15,
+          "highlight_x": 0.50,
+          "highlight_y": 0.15,
+          "highlight_radius": 0.16,
+          "callout": "Transforming silhouette",
+          "scene_index": 0
+        },
+        {
+          "id": "noh-mask-eyes",
+          "title": "Emotion by Restraint",
+          "body": "The eyes are not exaggerated, but a tiny change in tilt can make the expression feel wounded, severe, or watchful.",
+          "focus_x": 0.50,
+          "focus_y": 0.40,
+          "zoom": 2.35,
+          "highlight_x": 0.50,
+          "highlight_y": 0.40,
+          "highlight_radius": 0.14,
+          "callout": "Restrained eyes",
+          "scene_index": 1
+        },
+        {
+          "id": "noh-mask-handwork",
+          "title": "Wood, Paint, and Patience",
+          "body": "The mask's force comes from carved wood, painted surface, and generations of performers learning how little motion is enough.",
+          "focus_x": 0.50,
+          "focus_y": 0.50,
+          "zoom": 1.32,
+          "scene_index": 2
+        }
+      ]
     },
     {
       "id": "moroccan-zellige-tilework",
@@ -546,7 +620,7 @@
     {
       "id": "pack-2026-W27",
       "week_key": "2026-W27",
-      "title": "This Week in Human Collective",
+      "title": "This Week in Human Culture",
       "subtitle": "Seven quiet works made by hands, memory, and place.",
       "start_date": "2026-06-29",
       "end_date": "2026-07-05",

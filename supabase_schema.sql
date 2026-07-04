@@ -19,6 +19,7 @@ create table if not exists public.culture_items (
   latitude double precision,
   longitude double precision,
   week_key text,
+  guided_scenes jsonb not null default '[]'::jsonb,
   created_at timestamp with time zone default now()
 );
 
@@ -83,4 +84,3 @@ grant usage on schema public to anon, authenticated;
 grant select on public.culture_items to anon, authenticated;
 grant select on public.culture_packs to anon, authenticated;
 grant select on public.culture_pack_items to anon, authenticated;
-

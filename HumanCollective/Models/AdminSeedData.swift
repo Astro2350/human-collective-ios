@@ -43,6 +43,7 @@ struct AdminSeedCultureItem: Identifiable, Codable, Hashable, Sendable {
     let primaryWeekKey: String?
     let tags: [String]
     let curatorNote: String?
+    let guidedScenes: [GuidedCultureScene]?
 
     func cultureItem(weekKey: String? = nil) -> CultureItem {
         CultureItem(
@@ -63,7 +64,8 @@ struct AdminSeedCultureItem: Identifiable, Codable, Hashable, Sendable {
             whyItMatters: whyItMatters,
             latitude: latitude,
             longitude: longitude,
-            weekKey: weekKey ?? primaryWeekKey ?? ""
+            weekKey: weekKey ?? primaryWeekKey ?? "",
+            guidedScenes: guidedScenes ?? []
         )
     }
 
@@ -90,6 +92,7 @@ struct AdminSeedCultureItem: Identifiable, Codable, Hashable, Sendable {
         case primaryWeekKey = "primary_week_key"
         case tags
         case curatorNote = "curator_note"
+        case guidedScenes = "guided_scenes"
     }
 }
 

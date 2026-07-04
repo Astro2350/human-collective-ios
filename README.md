@@ -1,12 +1,14 @@
-# Human Collective
+# Human Culture
 
-Human Collective is a calm SwiftUI MVP for a weekly pack of human-made culture: objects, places, artworks, textiles, manuscripts, maps, and artifacts from open-access or public-domain style sources.
+Human Culture is a calm SwiftUI iOS app for a weekly editorial pack of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world.
+
+The app is intentionally simple. It does not include social features, likes, comments, recommendations, gamification, or an infinite feed.
 
 ## Requirements
 
 - Xcode 26 or later
 - iOS 17+
-- XcodeGen (`brew install xcodegen`) if you need to regenerate the project
+- XcodeGen (`brew install xcodegen`) only if you need to regenerate the Xcode project from `project.yml`
 
 ## Run Locally
 
@@ -15,11 +17,11 @@ xcodegen generate
 open HumanCollective.xcodeproj
 ```
 
-Select the `HumanCollective` scheme and run on an iOS simulator. The app compiles and runs without Supabase credentials by using `MockCultureRepository`.
+Select the `HumanCollective` scheme and run on an iPhone simulator or a signed physical iPhone target. The internal project and target names are still `HumanCollective`; the user-facing app name is Human Culture.
 
 ## Supabase Setup
 
-The app looks for Supabase values in:
+The app reads Supabase values from:
 
 - `HumanCollective/Config/Debug.xcconfig`
 - `HumanCollective/Config/Release.xcconfig`
@@ -31,7 +33,13 @@ SUPABASE_URL = https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY = your-anon-or-publishable-key
 ```
 
-Leave them blank to keep using mock data. The optional `SupabaseCultureRepository` uses the Supabase REST API against `culture_packs`, `culture_pack_items`, and `culture_items`.
+If either value is blank or still contains an unresolved build placeholder, the app automatically uses `MockCultureRepository`. This keeps local development and TestFlight smoke checks working without Supabase credentials.
+
+The optional `SupabaseCultureRepository` uses the Supabase REST API against:
+
+- `culture_packs`
+- `culture_pack_items`
+- `culture_items`
 
 Apply the suggested public read schema from:
 
@@ -39,26 +47,41 @@ Apply the suggested public read schema from:
 supabase_schema.sql
 ```
 
-## Structure
+## Weekly Culture Packs
+
+Weekly packs are curated manually. Each pack should contain a small set of cultural items with:
+
+- title and short hook
+- story and "why it matters" text
+- category
+- country, culture, region, date, and maker when known
+- image URL
+- source archive or museum
+- source link
+- license
+- optional `guided_scenes` for immersive close-looking moments
+
+Mock content lives in `HumanCollective/Repositories/MockCultureRepository.swift`. A larger sample seed payload lives in `Content/admin_seed_sample.json`.
+
+The manual curation workflow is documented in `docs/content-pipeline.md`.
+
+## App Structure
 
 - `HumanCollective/App` - app entry point, onboarding gate, tab shell
 - `HumanCollective/Models` - `CultureItem`, `CulturePack`, `CultureCategory`
-- `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST stub
+- `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST repository
 - `HumanCollective/Persistence` - local saved-item persistence using `UserDefaults`
 - `HumanCollective/ViewModels` - async loading and detail/saved state
-- `HumanCollective/Views` - onboarding, this week, archive, saved, detail
-- `HumanCollective/Components` - reusable image, card, chip, and state views
+- `HumanCollective/Views` - onboarding, this week, archive, saved, detail, guided close-looking view
+- `HumanCollective/Components` - reusable images, cards, chips, state views, and image viewer
 
-## Notes
+## Persistence
 
-- Onboarding completion persists with `@AppStorage`.
-- Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`.
-- Mock content includes seven curated sample items plus two previous archive packs.
-- No audio, video, performance clips, social features, likes, comments, or infinite feed are included.
+Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`. On load, the Saved tab tries to refresh saved items by ID from the active repository, then falls back to the local snapshots when offline or unavailable.
 
-## Content Pipeline
+## Known Limitations
 
-- Manual curation guide: `docs/content-pipeline.md`
-- Sample admin seed payload: `Content/admin_seed_sample.json`
-
-The seed format is a foundation for later Supabase import scripts or a private admin tool. It does not add scraping or public admin writes to the iOS app.
+- Supabase writes and admin tooling are intentionally outside the app.
+- Archive loading is capped to recent packs for the MVP.
+- Full real-device gesture QA should still be repeated on signed TestFlight builds, especially pinch zoom, double tap zoom, and memory behavior with very large source images.
+- The app currently targets portrait-first iPhone usage.

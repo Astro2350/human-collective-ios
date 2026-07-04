@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct CultureCardPressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .scaleEffect(!reduceMotion && configuration.isPressed ? 0.985 : 1)
             .opacity(configuration.isPressed ? 0.92 : 1)
-            .animation(.easeInOut(duration: 0.16), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: configuration.isPressed)
     }
 }
 

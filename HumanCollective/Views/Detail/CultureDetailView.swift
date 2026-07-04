@@ -3,6 +3,7 @@ import SwiftUI
 struct CultureDetailView: View {
     @State private var viewModel: CultureDetailViewModel
     @State private var isShowingImageViewer = false
+    @State private var isShowingGuidedView = false
 
     init(item: CultureItem, savedStore: SavedStore) {
         _viewModel = State(initialValue: CultureDetailViewModel(item: item, savedStore: savedStore))
@@ -45,6 +46,7 @@ struct CultureDetailView: View {
 
                     VStack(alignment: .leading, spacing: 28) {
                         articleHeader(item)
+                        guidedViewButton(item)
                         factStrip(item)
                         actionRow(item)
                         storySection(item)
@@ -91,6 +93,10 @@ struct CultureDetailView: View {
                 .zIndex(10)
             }
         }
+        .fullScreenCover(isPresented: $isShowingGuidedView) {
+            GuidedCultureView(item: item, guidedScenes: item.guidedScenes)
+        }
+        .sensoryFeedback(.selection, trigger: viewModel.isSaved)
     }
 
     private func articleHeader(_ item: CultureItem) -> some View {
@@ -110,21 +116,68 @@ struct CultureDetailView: View {
         }
     }
 
-    private func factStrip(_ item: CultureItem) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.7))
-                .frame(height: HCTheme.hairline)
+    @ViewBuilder
+    private func guidedViewButton(_ item: CultureItem) -> some View {
+        if !item.guidedScenes.isEmpty {
+            Button {
+                isShowingGuidedView = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "sparkle.magnifyingglass")
+                        .font(.system(size: 18, weight: .semibold))
+                        .frame(width: 32, height: 32)
+                        .background(HCTheme.surfaceRaised, in: Circle())
 
-            VStack(alignment: .leading, spacing: 12) {
-                DetailFact(label: "Origin", value: item.placeDisplay)
-                DetailFact(label: "Made", value: item.dateDisplay)
-                DetailFact(label: "Maker", value: item.makerDisplay)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Explore the Details")
+                            .font(.headline.weight(.semibold))
+
+                        Text("\(item.guidedScenes.count) guided moments")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(HCTheme.mutedInk)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(HCTheme.mutedInk)
+                }
+                .foregroundStyle(HCTheme.ink)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                        .stroke(HCTheme.editorGold.opacity(0.5), lineWidth: 1)
+                }
             }
+            .buttonStyle(.cultureCard)
+            .accessibilityLabel("Explore the details")
+            .accessibilityHint("Opens a guided view of this object")
+        }
+    }
 
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.7))
-                .frame(height: HCTheme.hairline)
+    @ViewBuilder
+    private func factStrip(_ item: CultureItem) -> some View {
+        let facts = detailFacts(for: item)
+
+        if !facts.isEmpty {
+            VStack(alignment: .leading, spacing: 14) {
+                Rectangle()
+                    .fill(HCTheme.line.opacity(0.7))
+                    .frame(height: HCTheme.hairline)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(facts) { fact in
+                        DetailFact(label: fact.label, value: fact.value)
+                    }
+                }
+
+                Rectangle()
+                    .fill(HCTheme.line.opacity(0.7))
+                    .frame(height: HCTheme.hairline)
+            }
         }
     }
 
@@ -152,7 +205,7 @@ struct CultureDetailView: View {
                 .controlSize(.large)
                 .tint(HCTheme.blueStone)
 
-                if let url = URL(string: item.sourceURL) {
+                if let url = sourceURL(for: item) {
                     Link(destination: url) {
                         Label("Source", systemImage: "link")
                             .frame(maxWidth: .infinity)
@@ -169,45 +222,52 @@ struct CultureDetailView: View {
                     .controlSize(.large)
                     .tint(HCTheme.blueStone)
                     .disabled(true)
+                    .accessibilityLabel("Source unavailable")
                 }
             }
         }
     }
 
+    @ViewBuilder
     private func storySection(_ item: CultureItem) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Story")
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
+        if let story = cleanedText(item.story) {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Story")
+                    .font(.cultureKicker())
+                    .textCase(.uppercase)
+                    .foregroundStyle(HCTheme.clay)
 
-            Text(item.story)
-                .font(.system(size: 17, weight: .regular, design: .serif))
-                .foregroundStyle(HCTheme.secondaryInk)
-                .lineSpacing(7)
-                .fixedSize(horizontal: false, vertical: true)
+                Text(story)
+                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .foregroundStyle(HCTheme.secondaryInk)
+                    .lineSpacing(7)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
+    @ViewBuilder
     private func whyItMattersSection(_ item: CultureItem) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Why it matters")
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
+        if let whyItMatters = cleanedText(item.whyItMatters) {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Why it matters")
+                    .font(.cultureKicker())
+                    .textCase(.uppercase)
+                    .foregroundStyle(HCTheme.clay)
 
-            HStack(alignment: .top, spacing: 14) {
-                Rectangle()
-                    .fill(HCTheme.clay.opacity(0.75))
-                    .frame(width: 2)
+                HStack(alignment: .top, spacing: 14) {
+                    Rectangle()
+                        .fill(HCTheme.clay.opacity(0.75))
+                        .frame(width: 2)
 
-                Text(item.whyItMatters)
-                    .font(.cultureTitle(21, weight: .regular))
-                    .foregroundStyle(HCTheme.ink)
-                    .lineSpacing(5)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(whyItMatters)
+                        .font(.cultureTitle(21, weight: .regular))
+                        .foregroundStyle(HCTheme.ink)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
         }
     }
 
@@ -222,7 +282,7 @@ struct CultureDetailView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(HCTheme.clay)
 
-            Text("\(item.sourceName). \(item.license).")
+            Text(sourceSummary(for: item))
                 .font(.footnote)
                 .foregroundStyle(HCTheme.mutedInk)
                 .lineSpacing(3)
@@ -231,7 +291,80 @@ struct CultureDetailView: View {
     }
 
     private func shareText(for item: CultureItem) -> String {
-        "\(item.title) - \(item.placeDisplay). Source: \(item.sourceURL)"
+        var parts = [item.title]
+        if let place = cleanedText(item.placeDisplay) {
+            parts.append(place)
+        }
+        if let sourceURL = cleanedURLString(item.sourceURL) {
+            parts.append("Source: \(sourceURL)")
+        }
+        return parts.joined(separator: " - ")
+    }
+
+    private func detailFacts(for item: CultureItem) -> [DetailFactModel] {
+        [
+            cleanedText(item.placeDisplay).map { DetailFactModel(label: "Origin", value: $0) },
+            cleanedText(item.dateDisplay).map { DetailFactModel(label: "Made", value: $0) },
+            cleanedText(item.maker).map { DetailFactModel(label: "Maker", value: $0) }
+        ]
+        .compactMap { $0 }
+    }
+
+    private func sourceSummary(for item: CultureItem) -> String {
+        let sourceName = cleanedText(item.sourceName)
+        let license = cleanedText(item.license)
+
+        switch (sourceName, license) {
+        case let (source?, license?):
+            return "\(source). \(license)."
+        case let (source?, nil):
+            return "\(source). License details are not provided."
+        case let (nil, license?):
+            return "Source archive not provided. \(license)."
+        case (nil, nil):
+            return "Source and license details are not provided."
+        }
+    }
+
+    private func cleanedURLString(_ value: String) -> String? {
+        guard let cleaned = cleanedText(value), URL(string: cleaned) != nil else { return nil }
+        return cleaned
+    }
+
+    private func sourceURL(for item: CultureItem) -> URL? {
+        guard let cleaned = cleanedText(item.sourceURL),
+              let url = URL(string: cleaned),
+              url.scheme != nil else {
+            return nil
+        }
+
+        return url
+    }
+
+    private func cleanedText(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty else { return nil }
+
+        let lowercase = cleaned.lowercased()
+        guard lowercase != "unknown",
+              lowercase != "maker unknown",
+              lowercase != "date unknown",
+              lowercase != "source unknown",
+              lowercase != "license unknown" else {
+            return nil
+        }
+
+        return cleaned
+    }
+}
+
+private struct DetailFactModel: Identifiable {
+    let label: String
+    let value: String
+
+    var id: String {
+        label
     }
 }
 

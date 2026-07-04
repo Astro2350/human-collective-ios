@@ -19,6 +19,49 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
     let latitude: Double?
     let longitude: Double?
     let weekKey: String
+    let guidedScenes: [GuidedCultureScene]
+
+    init(
+        id: String,
+        title: String,
+        maker: String?,
+        culture: String?,
+        country: String?,
+        region: String?,
+        dateDisplay: String,
+        category: CultureCategory,
+        imageURL: String,
+        sourceName: String,
+        sourceURL: String,
+        license: String,
+        hook: String,
+        story: String,
+        whyItMatters: String,
+        latitude: Double?,
+        longitude: Double?,
+        weekKey: String,
+        guidedScenes: [GuidedCultureScene] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.maker = maker
+        self.culture = culture
+        self.country = country
+        self.region = region
+        self.dateDisplay = dateDisplay
+        self.category = category
+        self.imageURL = imageURL
+        self.sourceName = sourceName
+        self.sourceURL = sourceURL
+        self.license = license
+        self.hook = hook
+        self.story = story
+        self.whyItMatters = whyItMatters
+        self.latitude = latitude
+        self.longitude = longitude
+        self.weekKey = weekKey
+        self.guidedScenes = guidedScenes.sorted { $0.sceneIndex < $1.sceneIndex }
+    }
 
     var placeDisplay: String {
         [culture, region, country]
@@ -65,5 +108,32 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
         case latitude
         case longitude
         case weekKey = "week_key"
+        case guidedScenes = "guided_scenes"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.init(
+            id: try container.decode(String.self, forKey: .id),
+            title: try container.decode(String.self, forKey: .title),
+            maker: try container.decodeIfPresent(String.self, forKey: .maker),
+            culture: try container.decodeIfPresent(String.self, forKey: .culture),
+            country: try container.decodeIfPresent(String.self, forKey: .country),
+            region: try container.decodeIfPresent(String.self, forKey: .region),
+            dateDisplay: try container.decode(String.self, forKey: .dateDisplay),
+            category: try container.decode(CultureCategory.self, forKey: .category),
+            imageURL: try container.decode(String.self, forKey: .imageURL),
+            sourceName: try container.decode(String.self, forKey: .sourceName),
+            sourceURL: try container.decode(String.self, forKey: .sourceURL),
+            license: try container.decode(String.self, forKey: .license),
+            hook: try container.decode(String.self, forKey: .hook),
+            story: try container.decode(String.self, forKey: .story),
+            whyItMatters: try container.decode(String.self, forKey: .whyItMatters),
+            latitude: try container.decodeIfPresent(Double.self, forKey: .latitude),
+            longitude: try container.decodeIfPresent(Double.self, forKey: .longitude),
+            weekKey: try container.decode(String.self, forKey: .weekKey),
+            guidedScenes: try container.decodeIfPresent([GuidedCultureScene].self, forKey: .guidedScenes) ?? []
+        )
     }
 }

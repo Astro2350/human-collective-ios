@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct SavedView: View {
+    let repository: any CultureRepository
     let savedStore: SavedStore
 
     @State private var viewModel = SavedViewModel()
     @Binding private var selectedTab: AppTab
 
-    init(savedStore: SavedStore, selectedTab: Binding<AppTab>) {
+    init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
+        self.repository = repository
         self.savedStore = savedStore
         _selectedTab = selectedTab
     }
@@ -16,7 +18,7 @@ struct SavedView: View {
             .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
             .task(id: savedStore.revision) {
-                viewModel.load(from: savedStore)
+                await viewModel.load(from: savedStore, repository: repository)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 CustomTabBar(selectedTab: $selectedTab)
@@ -70,13 +72,12 @@ struct SavedView: View {
                             Button {
                                 withAnimation(.easeInOut(duration: 0.18)) {
                                     savedStore.unsave(item)
-                                    viewModel.load(from: savedStore)
                                 }
                             } label: {
                                 Image(systemName: "bookmark.slash")
                                     .font(.system(size: 17, weight: .medium))
                                     .foregroundStyle(HCTheme.clay)
-                                    .frame(width: 42, height: 42)
+                                    .frame(width: 44, height: 44)
                                     .background(HCTheme.surface, in: Circle())
                                     .overlay {
                                         Circle()

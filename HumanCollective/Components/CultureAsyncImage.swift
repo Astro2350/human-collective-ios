@@ -8,6 +8,7 @@ struct CultureAsyncImage: View {
     var accessibilityLabel: String?
 
     @State private var phase: CultureImagePhase = .idle
+    @State private var isTakingLonger = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -18,6 +19,12 @@ struct CultureAsyncImage: View {
                 case .idle, .loading:
                     ImageLoadingPlaceholder()
                         .frame(width: proxy.size.width, height: proxy.size.height)
+                        .overlay {
+                            if isTakingLonger {
+                                slowLoadingMessage
+                                    .transition(.opacity)
+                            }
+                        }
                 case .success(let image):
                     Image(uiImage: image)
                         .resizable()
@@ -45,18 +52,33 @@ struct CultureAsyncImage: View {
         .task(id: resolvedURL) {
             await loadImage(from: resolvedURL)
         }
+        .task(id: phase.isLoading) {
+            guard phase.isLoading else {
+                isTakingLonger = false
+                return
+            }
+
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled, phase.isLoading else { return }
+
+            withAnimation(.easeInOut(duration: 0.18)) {
+                isTakingLonger = true
+            }
+        }
     }
 
     @MainActor
     private func loadImage(from url: URL?) async {
         guard let url else {
             phase = .failure
+            isTakingLonger = false
             return
         }
 
         if let cachedData = await CultureImageCache.shared.cachedData(for: url),
            let image = UIImage(data: cachedData) {
             phase = .success(image)
+            isTakingLonger = false
             return
         }
 
@@ -72,20 +94,41 @@ struct CultureAsyncImage: View {
 
             withAnimation(.easeInOut(duration: 0.24)) {
                 phase = .success(image)
+                isTakingLonger = false
             }
         } catch is CancellationError {
             return
         } catch {
             withAnimation(.easeInOut(duration: 0.18)) {
                 phase = .failure
+                isTakingLonger = false
             }
         }
     }
 
     private var placeholder: some View {
-        Image(systemName: "photo")
-            .font(.system(size: 30, weight: .light))
-            .foregroundStyle(HCTheme.secondaryInk.opacity(0.65))
+        VStack(spacing: 8) {
+            Image(systemName: "photo")
+                .font(.system(size: 28, weight: .light))
+
+            Text("Image unavailable")
+                .font(.caption.weight(.medium))
+        }
+        .foregroundStyle(HCTheme.secondaryInk.opacity(0.72))
+        .multilineTextAlignment(.center)
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var slowLoadingMessage: some View {
+        Text("This image is taking a little longer than usual.")
+            .font(.caption.weight(.medium))
+            .foregroundStyle(HCTheme.secondaryInk)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(HCTheme.surface.opacity(0.88), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .padding(18)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -117,6 +160,15 @@ private enum CultureImagePhase {
     case loading
     case success(UIImage)
     case failure
+
+    var isLoading: Bool {
+        switch self {
+        case .idle, .loading:
+            true
+        case .success, .failure:
+            false
+        }
+    }
 }
 
 private struct ImageLoadingPlaceholder: View {

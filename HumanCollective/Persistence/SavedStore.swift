@@ -48,6 +48,12 @@ final class SavedStore {
         }
     }
 
+    func replaceSavedItems(_ items: [CultureItem]) {
+        guard savedItems != items else { return }
+        savedItems = items
+        persist()
+    }
+
     private func persist() {
         if let data = try? JSONEncoder().encode(savedItems) {
             defaults.set(data, forKey: key)
@@ -55,4 +61,3 @@ final class SavedStore {
         revision += 1
     }
 }
-

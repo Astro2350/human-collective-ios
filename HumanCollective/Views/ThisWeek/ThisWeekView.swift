@@ -91,7 +91,7 @@ struct ThisWeekView: View {
     private func header(for pack: CulturePack) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
-                Text("This Week in\nHuman Collective")
+                Text("This Week in\nHuman Culture")
                     .font(.cultureTitle(32))
                     .foregroundStyle(HCTheme.ink)
                     .lineSpacing(2)

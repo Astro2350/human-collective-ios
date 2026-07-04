@@ -39,12 +39,13 @@ private struct MainTabView: View {
                 }
             case .saved:
                 NavigationStack {
-                    SavedView(savedStore: savedStore, selectedTab: $selectedTab)
+                    SavedView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
                 }
             }
         }
         .background(HCTheme.background)
         .tint(.black)
+        .sensoryFeedback(.selection, trigger: selectedTab)
     }
 }
 
@@ -77,7 +78,7 @@ struct CustomTabBar: View {
         HStack(spacing: 8) {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.18)) {
+                    withAnimation(.easeInOut(duration: 0.16)) {
                         selectedTab = tab
                     }
                 } label: {

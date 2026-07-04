@@ -134,7 +134,7 @@ struct CultureErrorView: View {
                 .font(.system(size: 30, weight: .light))
                 .foregroundStyle(HCTheme.clay)
 
-            Text("Something did not load")
+            Text("Couldn't load")
                 .font(.cultureTitle(28))
                 .foregroundStyle(HCTheme.ink)
 

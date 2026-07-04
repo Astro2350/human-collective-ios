@@ -7,15 +7,45 @@ struct ZoomableImageViewer: View {
     let onDismiss: () -> Void
 
     @State private var dragOffset: CGSize = .zero
+    @State private var isZoomed = false
+    @State private var isLoading = true
+    @State private var didFail = false
 
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .topTrailing) {
                 Color.black.ignoresSafeArea()
 
-                ZoomableRemoteImage(url: CultureAsyncImage.normalizedImageURL(from: imageURL))
+                ZoomableRemoteImage(
+                    url: CultureAsyncImage.normalizedImageURL(from: imageURL),
+                    isZoomed: $isZoomed,
+                    isLoading: $isLoading,
+                    didFail: $didFail
+                )
                     .ignoresSafeArea()
                     .accessibilityLabel(title)
+
+                if isLoading {
+                    ProgressView()
+                        .tint(.white)
+                        .accessibilityLabel("Loading image")
+                } else if didFail {
+                    VStack(spacing: 12) {
+                        Image(systemName: "photo")
+                            .font(.system(size: 30, weight: .light))
+
+                        Text("Couldn't load this image.")
+                            .font(.headline)
+
+                        Text("Check your connection and try again.")
+                            .font(.callout)
+                            .foregroundStyle(.white.opacity(0.72))
+                    }
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(28)
+                    .accessibilityElement(children: .combine)
+                }
 
                 Button {
                     onDismiss()
@@ -23,7 +53,7 @@ struct ZoomableImageViewer: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
+                        .frame(width: 44, height: 44)
                         .background(.black.opacity(0.48), in: Circle())
                         .overlay {
                             Circle()
@@ -49,10 +79,16 @@ struct ZoomableImageViewer: View {
     private var dismissDrag: some Gesture {
         DragGesture(minimumDistance: 18)
             .onChanged { value in
+                guard !isZoomed else { return }
                 guard value.translation.height > 0 else { return }
                 dragOffset = value.translation
             }
             .onEnded { value in
+                guard !isZoomed else {
+                    dragOffset = .zero
+                    return
+                }
+
                 let shouldDismiss = value.translation.height > 110 || value.predictedEndTranslation.height > 220
 
                 if shouldDismiss, abs(value.translation.width) < 120 {
@@ -70,6 +106,9 @@ struct ZoomableImageViewer: View {
 
 private struct ZoomableRemoteImage: UIViewRepresentable {
     let url: URL?
+    @Binding var isZoomed: Bool
+    @Binding var isLoading: Bool
+    @Binding var didFail: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -110,14 +149,25 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
     }
 
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.isZoomed = $isZoomed
+        context.coordinator.isLoading = $isLoading
+        context.coordinator.didFail = $didFail
+
         guard context.coordinator.currentURL != url else { return }
 
         context.coordinator.currentURL = url
         context.coordinator.task?.cancel()
         context.coordinator.imageView?.image = nil
         scrollView.setZoomScale(1, animated: false)
+        context.coordinator.isZoomed?.wrappedValue = false
+        context.coordinator.isLoading?.wrappedValue = true
+        context.coordinator.didFail?.wrappedValue = false
 
-        guard let url else { return }
+        guard let url else {
+            context.coordinator.isLoading?.wrappedValue = false
+            context.coordinator.didFail?.wrappedValue = true
+            return
+        }
 
         context.coordinator.task = Task {
             do {
@@ -126,12 +176,16 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
 
                 await MainActor.run {
                     context.coordinator.imageView?.image = image
+                    context.coordinator.isLoading?.wrappedValue = false
+                    context.coordinator.didFail?.wrappedValue = false
                 }
             } catch is CancellationError {
                 return
             } catch {
                 await MainActor.run {
                     context.coordinator.imageView?.image = nil
+                    context.coordinator.isLoading?.wrappedValue = false
+                    context.coordinator.didFail?.wrappedValue = true
                 }
             }
         }
@@ -139,16 +193,26 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
 
     static func dismantleUIView(_ uiView: UIScrollView, coordinator: Coordinator) {
         coordinator.task?.cancel()
+        coordinator.imageView?.image = nil
+        coordinator.scrollView?.delegate = nil
+        coordinator.isZoomed?.wrappedValue = false
     }
 
     final class Coordinator: NSObject, UIScrollViewDelegate {
         weak var imageView: UIImageView?
         weak var scrollView: UIScrollView?
+        var isZoomed: Binding<Bool>?
+        var isLoading: Binding<Bool>?
+        var didFail: Binding<Bool>?
         var task: Task<Void, Never>?
         var currentURL: URL?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             imageView
+        }
+
+        func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            isZoomed?.wrappedValue = scrollView.zoomScale > scrollView.minimumZoomScale + 0.01
         }
 
         @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {

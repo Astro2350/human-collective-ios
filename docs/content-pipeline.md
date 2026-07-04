@@ -1,11 +1,12 @@
 # Content Pipeline
 
-Human Collective should stay curated, not scraped. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
+Human Culture should stay curated, not scraped. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
 
 ## Files
 
 - `HumanCollective/Models/ContentSource.swift` defines open-access archives and collection sources.
 - `HumanCollective/Models/CultureItemDraft.swift` defines pre-curation items.
+- `HumanCollective/Models/GuidedCultureScene.swift` defines optional guided close-looking scenes for a curated item.
 - `HumanCollective/Models/AdminSeedData.swift` defines the seed payload shape.
 - `Content/admin_seed_sample.json` contains sample sources, 20 curated items, and weekly pack assignments.
 
@@ -29,6 +30,7 @@ Human Collective should stay curated, not scraped. This foundation keeps manual 
    - Short story
    - Why-it-matters line
    - Tags and curator note
+   - Optional `guided_scenes` for pieces that reward close looking
 
 4. Assign items to `weekly_packs`.
    A pack should usually have 5 to 7 items. The first item is treated as the featured item in the app.
@@ -49,6 +51,27 @@ The top-level seed file uses:
 ```
 
 Use snake_case keys so the payload stays close to Supabase table columns.
+
+## Guided Scenes
+
+Use `guided_scenes` only when the image can support close inspection. Good candidates have visible details, surface texture, inscriptions, gestures, construction marks, or composition changes that can be explained in plain language.
+
+Each scene should include:
+
+- `id`
+- `title`
+- `body`
+- `focus_x` and `focus_y` from `0.0` to `1.0`
+- `zoom`, usually between `1.0` and `2.6`
+- `scene_index`
+
+Optional fields:
+
+- `highlight_x`, `highlight_y`, and `highlight_radius`
+- `callout`
+- `image_url_override`
+
+Keep scene copy short. The app sorts by `scene_index`, uses the item image unless `image_url_override` is present, and hides the guided-view entry when an item has no scenes.
 
 ## Manual Weekly Pack Workflow
 
@@ -79,6 +102,7 @@ For the current schema:
 - Insert each `curated_items` entry into `culture_items`.
 - Insert each `weekly_packs` entry into `culture_packs`.
 - For every `weekly_packs.item_ids` entry, insert a row into `culture_pack_items` with `position` starting at `1`.
+- Store `guided_scenes` as JSON on `culture_items` when present. Use an empty array when the item does not have a guided view.
 
 `content_sources` and `draft_items` are admin-side foundation data for now. Keep them in JSON until you add private admin tables or an internal CMS. Do not expose admin draft tables to public clients.
 
