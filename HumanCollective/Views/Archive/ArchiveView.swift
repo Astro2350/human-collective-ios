@@ -1,13 +1,23 @@
 import SwiftUI
 
 struct ArchiveView: View {
+    private let freeArchivePackLimit = 2
+
     let savedStore: SavedStore
+    let fullArchiveStore: FullArchiveStore
     @Binding private var rootTabBarHiddenDepth: Int
 
+    @State private var isShowingFullArchivePaywall = false
     @State private var viewModel: ArchiveViewModel
 
-    init(repository: any CultureRepository, savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
+    init(
+        repository: any CultureRepository,
+        savedStore: SavedStore,
+        fullArchiveStore: FullArchiveStore,
+        rootTabBarHiddenDepth: Binding<Int>
+    ) {
         self.savedStore = savedStore
+        self.fullArchiveStore = fullArchiveStore
         _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ArchiveViewModel(repository: repository))
     }
@@ -44,12 +54,26 @@ struct ArchiveView: View {
     private func archiveList(_ packs: [CulturePack]) -> some View {
         GeometryReader { proxy in
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
+            let visiblePacks = visibleArchivePacks(from: packs)
+            let lockedPackCount = max(packs.count - visiblePacks.count, 0)
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    ScreenHeader("Archive")
+                    VStack(alignment: .leading, spacing: 14) {
+                        ScreenHeader("Archive")
 
-                    ForEach(packs) { pack in
+                        FullArchiveCard(
+                            isUnlocked: fullArchiveStore.hasFullArchiveAccess,
+                            lockedPackCount: lockedPackCount
+                        ) {
+                            if !fullArchiveStore.hasFullArchiveAccess {
+                                isShowingFullArchivePaywall = true
+                            }
+                        }
+                            .frame(width: contentWidth, alignment: .leading)
+                    }
+
+                    ForEach(visiblePacks) { pack in
                         NavigationLink {
                             ArchivePackView(
                                 pack: pack,
@@ -69,13 +93,222 @@ struct ArchiveView: View {
                 .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
             .background(HCTheme.background)
+            .sheet(isPresented: $isShowingFullArchivePaywall) {
+                FullArchivePaywallView(fullArchiveStore: fullArchiveStore)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
         }
         .background(HCTheme.background)
+    }
+
+    private func visibleArchivePacks(from packs: [CulturePack]) -> [CulturePack] {
+        if fullArchiveStore.hasFullArchiveAccess {
+            return packs
+        }
+
+        return Array(packs.prefix(freeArchivePackLimit))
     }
 
     private func loadIfNeeded() async {
         if case .idle = viewModel.state {
             await viewModel.load()
+        }
+    }
+}
+
+private struct FullArchiveCard: View {
+    let isUnlocked: Bool
+    let lockedPackCount: Int
+    let action: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Button(action: action) {
+                HStack(alignment: .center, spacing: 10) {
+                    Image(systemName: isUnlocked ? "checkmark" : "lock")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(HCTheme.clay.opacity(0.9))
+                        .frame(width: 24, height: 24)
+                        .background(HCTheme.editorGold.opacity(0.14), in: Circle())
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(isUnlocked ? "Full Archive Unlocked" : "Full Archive")
+                            .font(.cultureKicker())
+                            .textCase(.uppercase)
+                            .foregroundStyle(HCTheme.clay.opacity(0.92))
+
+                        Text(subtitle)
+                            .font(.footnote)
+                            .foregroundStyle(HCTheme.secondaryInk)
+                            .lineSpacing(1)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    if !isUnlocked {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(HCTheme.mutedInk.opacity(0.72))
+                    }
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(isUnlocked)
+
+            Rectangle()
+                .fill(HCTheme.line.opacity(0.75))
+                .frame(height: HCTheme.hairline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var subtitle: String {
+        if isUnlocked {
+            return "Every archived week is available."
+        }
+
+        if lockedPackCount > 0 {
+            return "Unlock \(lockedPackCount) more weekly \(lockedPackCount == 1 ? "archive" : "archives"), maps, timelines, and creators."
+        }
+
+        return "Explore every past piece, map, timeline, and creator in one complete archive."
+    }
+
+    private var accessibilityLabel: String {
+        isUnlocked ? "Full Archive unlocked. \(subtitle)" : "Full Archive. \(subtitle)"
+    }
+}
+
+private struct FullArchivePaywallView: View {
+    let fullArchiveStore: FullArchiveStore
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 14) {
+                    Text("Full Archive")
+                        .font(.cultureTitle(38))
+                        .foregroundStyle(HCTheme.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(HCTheme.ink)
+                            .frame(width: 34, height: 34)
+                            .background(HCTheme.surfaceRaised, in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
+                }
+
+                Text("Unlock every past piece in one clean archive.")
+                    .font(.title3)
+                    .foregroundStyle(HCTheme.secondaryInk)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(alignment: .leading, spacing: 14) {
+                PaywallBenefitRow(text: "All past daily pieces and weekly collections")
+                PaywallBenefitRow(text: "Every map, timeline, creator, and source")
+                PaywallBenefitRow(text: "One-time unlock with restore anytime")
+            }
+
+            if let message = fullArchiveStore.statusMessage {
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(HCTheme.clay)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+
+            VStack(spacing: 12) {
+                Button {
+                    Task { await fullArchiveStore.purchase() }
+                } label: {
+                    HStack {
+                        if isBusy {
+                            ProgressView()
+                                .tint(.white)
+                        }
+
+                        Text(fullArchiveStore.purchaseButtonTitle)
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .background(HCTheme.blueStone, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .disabled(isBusy || fullArchiveStore.hasFullArchiveAccess)
+
+                Button {
+                    Task { await fullArchiveStore.restorePurchases() }
+                } label: {
+                    Text("Restore Purchases")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(HCTheme.secondaryInk)
+                }
+                .buttonStyle(.plain)
+                .disabled(isBusy)
+            }
+        }
+        .padding(HCTheme.pagePadding)
+        .background(HCTheme.background)
+        .task {
+            if !fullArchiveStore.hasFullArchiveAccess {
+                await fullArchiveStore.loadProducts()
+            }
+        }
+        .onChange(of: fullArchiveStore.hasFullArchiveAccess) { _, isUnlocked in
+            if isUnlocked {
+                dismiss()
+            }
+        }
+    }
+
+    private var isBusy: Bool {
+        switch fullArchiveStore.purchaseState {
+        case .loading, .purchasing, .restoring:
+            return true
+        case .idle, .unlocked, .unavailable, .failed:
+            return false
+        }
+    }
+}
+
+private struct PaywallBenefitRow: View {
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(HCTheme.clay)
+                .frame(width: 22, height: 22)
+                .background(HCTheme.editorGold.opacity(0.14), in: Circle())
+
+            Text(text)
+                .font(.callout)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

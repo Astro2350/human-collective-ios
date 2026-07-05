@@ -3,13 +3,19 @@ import SwiftUI
 struct RootView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
+    let fullArchiveStore: FullArchiveStore
 
     @AppStorage("humanCulture.hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var notificationManager = DailyNotificationManager()
 
     var body: some View {
         Group {
             if hasCompletedOnboarding {
-                MainTabView(repository: repository, savedStore: savedStore)
+                MainTabView(
+                    repository: repository,
+                    savedStore: savedStore,
+                    fullArchiveStore: fullArchiveStore
+                )
             } else {
                 OnboardingView {
                     hasCompletedOnboarding = true
@@ -17,12 +23,17 @@ struct RootView: View {
             }
         }
         .tint(HCTheme.blueStone)
+        .task(id: hasCompletedOnboarding) {
+            guard hasCompletedOnboarding else { return }
+            await notificationManager.prepareDailyReminder()
+        }
     }
 }
 
 private struct MainTabView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
+    let fullArchiveStore: FullArchiveStore
 
     @State private var selectedTab: AppTab = .today
     @State private var rootTabBarHiddenDepth = 0
@@ -43,6 +54,7 @@ private struct MainTabView: View {
                     ArchiveView(
                         repository: repository,
                         savedStore: savedStore,
+                        fullArchiveStore: fullArchiveStore,
                         rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                     )
                 }
@@ -64,6 +76,9 @@ private struct MainTabView: View {
             if rootTabBarHiddenDepth == 0 {
                 CustomTabBar(selectedTab: $selectedTab)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .humanCultureOpenToday)) { _ in
+            selectedTab = .today
         }
         .animation(.easeInOut(duration: 0.18), value: rootTabBarHiddenDepth)
         .sensoryFeedback(.selection, trigger: selectedTab)

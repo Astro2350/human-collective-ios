@@ -29,6 +29,7 @@
 		676284443BC65B5608F11C2D /* CultureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4825C20CA2E3FAA2ECD25C /* CultureDetailView.swift */; };
 		6A574280739BAF8B2635E029 /* HCTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E68B9B33CB06EE385089F7 /* HCTheme.swift */; };
 		86C0C40BC2E64D498C0FD9AE /* CultureItemArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A4D9011DF94BA3A1BE8FA0 /* CultureItemArticleView.swift */; };
+		8B1A5F5E9D34454C8E3D219A /* FullArchiveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D673946AE94DE8A96FF329 /* FullArchiveStore.swift */; };
 		906D3CA748FC9C4BAB4FD10B /* SavedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667C9E104DB831ED0F3FB74B /* SavedStore.swift */; };
 		9BFED04CEECFF22B087C0992 /* CultureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89A8C720A860B1D112D4413 /* CultureRepository.swift */; };
 		9CDB9BFEB680C2D0F65BA9B0 /* CultureCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D75CA4160E25047A4FBE0AF /* CultureCategory.swift */; };
@@ -75,6 +76,7 @@
 		9908F427626AC60AE9B4FAFB /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* CultureCardPressStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCardPressStyle.swift; sourceTree = "<group>"; };
 		B2C3D4E5F60718293A4B5C6D /* CultureImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureImageCache.swift; sourceTree = "<group>"; };
+		B7D673946AE94DE8A96FF329 /* FullArchiveStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullArchiveStore.swift; sourceTree = "<group>"; };
 		BE03FC3E3515C807DD20F426 /* PackStateViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackStateViews.swift; sourceTree = "<group>"; };
 		C34BD70A4C4C8E0A36D211BB /* CultureFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureFormatters.swift; sourceTree = "<group>"; };
 		C937F3B666E3F6D47711596A /* ArchivePackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePackView.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 		7078C4F6016E1E735DFF00FE /* App */ = {
 			isa = PBXGroup;
 			children = (
+				B7D673946AE94DE8A96FF329 /* FullArchiveStore.swift */,
 				47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */,
 				D6857811C01C14B19FA8B939 /* RootView.swift */,
 			);
@@ -360,6 +363,7 @@
 				9BFED04CEECFF22B087C0992 /* CultureRepository.swift in Sources */,
 				14E90CFABC4C41DE84CD90D9 /* Date+CultureWeek.swift in Sources */,
 				15D64E20313202947B13649C /* FeaturedCultureCard.swift in Sources */,
+				8B1A5F5E9D34454C8E3D219A /* FullArchiveStore.swift in Sources */,
 				6A574280739BAF8B2635E029 /* HCTheme.swift in Sources */,
 				A859AAC85972C9F7D64F4FC7 /* HumanCollectiveApp.swift in Sources */,
 				174CC561DB7718CBFC24C459 /* LoadState.swift in Sources */,
