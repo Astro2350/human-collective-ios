@@ -5,6 +5,7 @@ struct SavedView: View {
     let savedStore: SavedStore
 
     @State private var viewModel = SavedViewModel()
+    @State private var selectedItem: CultureItem?
     @Binding private var selectedTab: AppTab
 
     init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
@@ -49,10 +50,6 @@ struct SavedView: View {
                 Text("Saved pieces")
                     .font(.cultureTitle(34))
                     .foregroundStyle(HCTheme.ink)
-
-                Text("For pieces worth another look.")
-                    .font(.callout)
-                    .foregroundStyle(HCTheme.secondaryInk)
             }
             .padding(.top, 10)
             .listRowInsets(.init(top: 0, leading: HCTheme.pagePadding, bottom: 10, trailing: HCTheme.pagePadding))
@@ -60,8 +57,8 @@ struct SavedView: View {
             .listRowBackground(Color.clear)
 
             ForEach(items) { item in
-                NavigationLink {
-                    CultureDetailView(item: item, savedStore: savedStore)
+                Button {
+                    selectedItem = item
                 } label: {
                     SavedItemCard(item: item)
                 }
@@ -79,6 +76,9 @@ struct SavedView: View {
                     }
                 }
             }
+        }
+        .navigationDestination(item: $selectedItem) { item in
+            CultureDetailView(item: item, savedStore: savedStore)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)

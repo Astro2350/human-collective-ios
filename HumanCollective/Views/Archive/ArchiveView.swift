@@ -54,11 +54,6 @@ struct ArchiveView: View {
                         Text("Archive")
                             .font(.cultureTitle(34))
                             .foregroundStyle(HCTheme.ink)
-
-                        Text("Earlier weekly packs.")
-                            .font(.callout)
-                            .foregroundStyle(HCTheme.secondaryInk)
-                            .lineSpacing(4)
                     }
                     .padding(.top, 10)
 
