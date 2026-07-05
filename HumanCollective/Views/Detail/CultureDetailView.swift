@@ -203,7 +203,7 @@ struct CultureDetailView: View {
         let paragraphs = summaryParagraphs(for: item)
 
         if !paragraphs.isEmpty {
-            DetailSection(title: "Summary") {
+            DetailSection(title: "Detailed Summary") {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(paragraphs, id: \.self) { paragraph in
                         Text(paragraph)
@@ -271,26 +271,57 @@ struct CultureDetailView: View {
     }
 
     private func highlightTexts(for item: CultureItem) -> [String] {
-        let storyHighlights = sentences(from: item.story)
-            .prefix(4)
-            .compactMap { cleanedText($0) }
+        var highlights: [String] = []
 
-        if storyHighlights.isEmpty, let hook = cleanedText(item.hook) {
-            return [hook]
+        if let hook = cleanedText(item.hook) {
+            highlights.append(hook)
         }
 
-        return Array(storyHighlights)
+        if let context = objectContextHighlight(for: item) {
+            highlights.append(context)
+        }
+
+        if let maker = cleanedText(item.maker) {
+            highlights.append("Made by \(maker).")
+        }
+
+        if let sourceName = cleanedText(item.sourceName) {
+            highlights.append("Held or documented by \(sourceName).")
+        }
+
+        if highlights.isEmpty {
+            highlights.append("\(item.category.displayName) selected for close reading.")
+        }
+
+        return Array(highlights.prefix(4))
     }
 
     private func summaryParagraphs(for item: CultureItem) -> [String] {
-        let storySentences = sentences(from: item.story)
-            .compactMap { cleanedText($0) }
+        guard let story = cleanedText(item.story) else { return [] }
 
-        guard !storySentences.isEmpty else { return [] }
+        let storySentences = sentences(from: story)
+        guard !storySentences.isEmpty else { return [story] }
 
         return stride(from: 0, to: storySentences.count, by: 2).map { index in
             let endIndex = min(index + 2, storySentences.count)
             return storySentences[index..<endIndex].joined(separator: " ")
+        }
+    }
+
+    private func objectContextHighlight(for item: CultureItem) -> String? {
+        let place = cleanedText(item.placeDisplay)
+        let date = cleanedText(item.dateDisplay)
+        let category = item.category.displayName.lowercased()
+
+        switch (place, date) {
+        case let (place?, date?):
+            return "\(item.category.displayName) from \(place), made \(date)."
+        case let (place?, nil):
+            return "\(item.category.displayName) from \(place)."
+        case let (nil, date?):
+            return "\(category.capitalized) made \(date)."
+        case (nil, nil):
+            return nil
         }
     }
 
