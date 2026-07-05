@@ -16,6 +16,7 @@ final class FullArchiveStore {
     }
 
     static let productID = "com.sam.HumanCollective.fullArchive"
+    private static let debugAccessOverrideKey = "HCFullArchiveDebugAccessOverride"
 
     private(set) var product: Product?
     private(set) var purchaseState: PurchaseState = .idle
@@ -64,7 +65,13 @@ final class FullArchiveStore {
     }
 
     func start() {
+        applyDebugAccessOverrideFromLaunchArguments()
+
         guard transactionUpdatesTask == nil else { return }
+
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
 
         transactionUpdatesTask = Task { [weak self] in
             for await update in Transaction.updates {
@@ -80,6 +87,10 @@ final class FullArchiveStore {
     }
 
     func loadProducts() async {
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
+
         guard !hasFullArchiveAccess else {
             purchaseState = .unlocked
             return
@@ -97,6 +108,10 @@ final class FullArchiveStore {
     }
 
     func purchase() async {
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
+
         guard !hasFullArchiveAccess else {
             purchaseState = .unlocked
             return
@@ -138,6 +153,10 @@ final class FullArchiveStore {
     }
 
     func restorePurchases() async {
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
+
         purchaseState = .restoring
 
         do {
@@ -150,6 +169,10 @@ final class FullArchiveStore {
     }
 
     func refreshEntitlements() async {
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
+
         var isUnlocked = false
 
         for await entitlement in Transaction.currentEntitlements {
@@ -184,5 +207,32 @@ final class FullArchiveStore {
         case .unverified:
             return nil
         }
+    }
+
+    @discardableResult
+    private func applyDebugAccessOverrideIfNeeded() -> Bool {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: Self.debugAccessOverrideKey) {
+            hasFullArchiveAccess = true
+            purchaseState = .unlocked
+            return true
+        }
+        #endif
+
+        return false
+    }
+
+    private func applyDebugAccessOverrideFromLaunchArguments() {
+        #if DEBUG
+        let arguments = CommandLine.arguments
+
+        if arguments.contains("-HCUnlockFullArchive") {
+            UserDefaults.standard.set(true, forKey: Self.debugAccessOverrideKey)
+        } else if arguments.contains("-HCLockFullArchive") {
+            UserDefaults.standard.removeObject(forKey: Self.debugAccessOverrideKey)
+            hasFullArchiveAccess = false
+            purchaseState = .idle
+        }
+        #endif
     }
 }

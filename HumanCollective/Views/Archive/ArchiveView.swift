@@ -58,16 +58,16 @@ struct ArchiveView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         ScreenHeader("Archive")
 
-                        FullArchiveCard(
-                            isUnlocked: fullArchiveStore.hasFullArchiveAccess,
-                            lockedPackCount: lockedPackCount
-                        ) {
-                            if !fullArchiveStore.hasFullArchiveAccess {
+                        if !fullArchiveStore.hasFullArchiveAccess {
+                            FullArchiveCard(
+                                lockedPackCount: lockedPackCount
+                            ) {
                                 isShowingFullArchivePaywall = true
                             }
-                        }
                             .frame(width: contentWidth, alignment: .leading)
+                        }
                     }
+                    .zIndex(1)
 
                     if visiblePacks.isEmpty {
                         ArchiveInlineEmptyState()
@@ -80,26 +80,10 @@ struct ArchiveView: View {
                             }
                         }
 
-                        let shelves = ArchiveBrowseShelf.makeShelves(from: visiblePacks)
-                        if !shelves.isEmpty {
-                            VStack(alignment: .leading, spacing: 16) {
-                                ArchiveSectionHeader(title: "Browse")
-
-                                ForEach(shelves) { shelf in
-                                    ArchiveBrowseShelfView(
-                                        shelf: shelf,
-                                        savedStore: savedStore,
-                                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
-                                    )
-                                }
-                            }
-                            .frame(width: contentWidth, alignment: .leading)
-                        }
-
                         let earlierPacks = Array(visiblePacks.dropFirst())
                         if !earlierPacks.isEmpty {
-                            VStack(alignment: .leading, spacing: 14) {
-                                ArchiveSectionHeader(title: "Earlier weeks")
+                            VStack(alignment: .leading, spacing: 16) {
+                                ArchiveSectionHeader(title: "Past weeks")
 
                                 ForEach(earlierPacks) { pack in
                                     archivePackLink(pack) {
@@ -108,6 +92,21 @@ struct ArchiveView: View {
                                     }
                                 }
                             }
+                            .frame(width: contentWidth, alignment: .leading)
+                        }
+
+                        let shelves = ArchiveBrowseShelf.makeShelves(from: visiblePacks)
+                        if !shelves.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                ArchiveSectionHeader(title: "Explore by theme")
+
+                                ArchiveThemeGridView(
+                                    shelves: shelves,
+                                    savedStore: savedStore,
+                                    rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                                )
+                            }
+                            .frame(width: contentWidth, alignment: .leading)
                         }
                     }
                 }
@@ -158,63 +157,56 @@ struct ArchiveView: View {
 }
 
 private struct FullArchiveCard: View {
-    let isUnlocked: Bool
     let lockedPackCount: Int
     let action: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Button(action: action) {
-                HStack(alignment: .center, spacing: 10) {
-                    Image(systemName: isUnlocked ? "checkmark" : "lock")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(HCTheme.clay.opacity(0.9))
-                        .frame(width: 24, height: 24)
-                        .background(HCTheme.editorGold.opacity(0.14), in: Circle())
+            HStack(alignment: .center, spacing: 10) {
+                Image(systemName: "lock")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(HCTheme.clay.opacity(0.9))
+                    .frame(width: 24, height: 24)
+                    .background(HCTheme.editorGold.opacity(0.14), in: Circle())
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(isUnlocked ? "Full Archive Unlocked" : "Full Archive")
-                            .font(.cultureKicker())
-                            .textCase(.uppercase)
-                            .foregroundStyle(HCTheme.clay.opacity(0.92))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Full Archive")
+                        .font(.cultureKicker())
+                        .textCase(.uppercase)
+                        .foregroundStyle(HCTheme.clay.opacity(0.92))
 
-                        Text(subtitle)
-                            .font(.footnote)
-                            .foregroundStyle(HCTheme.secondaryInk)
-                            .lineSpacing(1)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    if !isUnlocked {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(HCTheme.mutedInk.opacity(0.72))
-                    }
+                    Text(subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(HCTheme.secondaryInk)
+                        .lineSpacing(1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(HCTheme.mutedInk.opacity(0.72))
             }
-            .buttonStyle(.plain)
-            .disabled(isUnlocked)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                action()
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityAddTraits(.isButton)
 
             Rectangle()
                 .fill(HCTheme.line.opacity(0.75))
                 .frame(height: HCTheme.hairline)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
     }
 
     private var subtitle: String {
-        if isUnlocked {
-            return "Every archived week is available."
-        }
-
         if lockedPackCount > 0 {
             return "Unlock \(lockedPackCount) more weekly \(lockedPackCount == 1 ? "archive" : "archives"), maps, timelines, and creators."
         }
@@ -223,7 +215,7 @@ private struct FullArchiveCard: View {
     }
 
     private var accessibilityLabel: String {
-        isUnlocked ? "Full Archive unlocked. \(subtitle)" : "Full Archive. \(subtitle)"
+        "Full Archive. \(subtitle)"
     }
 }
 
@@ -515,12 +507,13 @@ private struct ArchiveWeekCard: View {
 private struct ArchiveBrowseShelf: Identifiable {
     let id: String
     let title: String
+    let subtitle: String
     let items: [CultureItem]
 
     static func makeShelves(from packs: [CulturePack]) -> [ArchiveBrowseShelf] {
         let items = packs.flatMap(\.items)
-        let definitions: [(String, String, (CultureItem) -> Bool)] = [
-            ("creatures", "Creatures", { item in
+        let definitions: [(String, String, String, (CultureItem) -> Bool)] = [
+            ("creatures", "Creatures", "Animals, vessels, and tiny carved companions", { item in
                 let text = searchableText(for: item)
                 return text.contains("dog") ||
                     text.contains("cat") ||
@@ -529,24 +522,51 @@ private struct ArchiveBrowseShelf: Identifiable {
                     text.contains("octopus") ||
                     text.contains("turtle") ||
                     text.contains("bull") ||
+                    text.contains("frog") ||
+                    text.contains("fish") ||
+                    text.contains("owl") ||
+                    text.contains("rabbit") ||
+                    text.contains("monkey") ||
+                    text.contains("hedgehog") ||
                     text.contains("rhinoceros")
             }),
-            ("faces", "Faces and masks", { item in
-                item.category == .mask || item.title.localizedCaseInsensitiveContains("mask") || searchableText(for: item).contains("portrait")
-            }),
-            ("maps", "Maps and knowledge", { item in
-                item.category == .map || item.category == .manuscript || item.category == .tool
-            }),
-            ("small", "Small wonders", { item in
+            ("faces", "Faces and masks", "Portraits, masks, and figures with presence", { item in
                 let text = searchableText(for: item)
-                return text.contains("netsuke") || text.contains("chessmen") || text.contains("vessel")
+                return item.category == .mask ||
+                    item.title.localizedCaseInsensitiveContains("mask") ||
+                    text.contains("portrait") ||
+                    text.contains("face") ||
+                    text.contains("head") ||
+                    text.contains("figure") ||
+                    text.contains("statuette")
+            }),
+            ("knowledge", "Maps and knowledge", "Books, tools, diagrams, and ways of reading the world", { item in
+                let text = searchableText(for: item)
+                return item.category == .map ||
+                    item.category == .manuscript ||
+                    item.category == .tool ||
+                    text.contains("map") ||
+                    text.contains("book") ||
+                    text.contains("astrolabe") ||
+                    text.contains("stone") ||
+                    text.contains("law")
+            }),
+            ("small", "Small wonders", "Netsuke, jewelry, amulets, and compact objects", { item in
+                let text = searchableText(for: item)
+                return text.contains("netsuke") ||
+                    text.contains("chessmen") ||
+                    text.contains("amulet") ||
+                    text.contains("ring") ||
+                    text.contains("perfume") ||
+                    text.contains("small") ||
+                    text.contains("tiny")
             })
         ]
 
-        return definitions.compactMap { id, title, matches in
-            let sectionItems = uniqueItems(items.filter(matches)).prefix(8)
+        return definitions.compactMap { id, title, subtitle, matches in
+            let sectionItems = uniqueItems(items.filter(matches)).prefix(12)
             guard !sectionItems.isEmpty else { return nil }
-            return ArchiveBrowseShelf(id: id, title: title, items: Array(sectionItems))
+            return ArchiveBrowseShelf(id: id, title: title, subtitle: subtitle, items: Array(sectionItems))
         }
     }
 
@@ -573,60 +593,183 @@ private struct ArchiveBrowseShelf: Identifiable {
     }
 }
 
-private struct ArchiveBrowseShelfView: View {
+private struct ArchiveThemeGridView: View {
+    let shelves: [ArchiveBrowseShelf]
+    let savedStore: SavedStore
+    @Binding var rootTabBarHiddenDepth: Int
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+            ForEach(shelves) { shelf in
+                NavigationLink {
+                    ArchiveThemeView(
+                        shelf: shelf,
+                        savedStore: savedStore,
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                    )
+                    .rootTabBarHidden($rootTabBarHiddenDepth)
+                } label: {
+                    ArchiveThemeCard(shelf: shelf)
+                }
+                .buttonStyle(.cultureCard)
+            }
+        }
+    }
+}
+
+private struct ArchiveThemeCard: View {
+    let shelf: ArchiveBrowseShelf
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ArchiveThemeImageStrip(items: Array(shelf.items.prefix(3)))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(shelf.title)
+                    .font(.cultureTitle(20))
+                    .foregroundStyle(HCTheme.ink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("\(shelf.items.count) pieces")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HCTheme.clay)
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 138, alignment: .topLeading)
+        .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+        .shadow(color: .black.opacity(0.025), radius: 10, x: 0, y: 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(shelf.title), \(shelf.items.count) pieces")
+    }
+}
+
+private struct ArchiveThemeImageStrip: View {
+    let items: [CultureItem]
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(items) { item in
+                CultureAsyncImage(
+                    imageURL: item.imageURL,
+                    aspectRatio: 1.0,
+                    cornerRadius: 5,
+                    accessibilityLabel: item.title
+                )
+            }
+        }
+        .frame(height: 44)
+    }
+}
+
+private struct ArchiveThemeView: View {
     let shelf: ArchiveBrowseShelf
     let savedStore: SavedStore
     @Binding var rootTabBarHiddenDepth: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(shelf.title)
-                .font(.cultureTitle(22))
-                .foregroundStyle(HCTheme.ink)
+        GeometryReader { proxy in
+            let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 10) {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 9) {
+                        Text("Archive")
+                            .font(.cultureKicker())
+                            .textCase(.uppercase)
+                            .foregroundStyle(HCTheme.clay)
+
+                        Text(shelf.title)
+                            .font(.cultureTitle(38))
+                            .foregroundStyle(HCTheme.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text(shelf.subtitle)
+                            .font(.callout)
+                            .foregroundStyle(HCTheme.secondaryInk)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, HCTheme.screenTopPadding)
+
                     ForEach(shelf.items) { item in
                         NavigationLink {
                             CultureDetailView(item: item, savedStore: savedStore)
                                 .rootTabBarHidden($rootTabBarHiddenDepth)
                         } label: {
-                            ArchiveBrowseItemCard(item: item)
+                            ArchiveThemeItemRow(item: item)
+                                .frame(width: contentWidth, alignment: .leading)
                         }
                         .buttonStyle(.cultureCard)
                     }
                 }
-                .padding(.trailing, HCTheme.pagePadding)
+                .frame(width: contentWidth, alignment: .leading)
+                .padding(HCTheme.pagePadding)
+                .padding(.bottom, HCTheme.screenBottomPadding)
             }
-            .scrollClipDisabled()
+            .background(HCTheme.background)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .navigationTitle("Archive")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(HCTheme.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .background(HCTheme.background)
     }
 }
 
-private struct ArchiveBrowseItemCard: View {
+private struct ArchiveThemeItemRow: View {
     let item: CultureItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: 12) {
             CultureAsyncImage(
                 imageURL: item.imageURL,
-                aspectRatio: 0.82,
+                aspectRatio: 1.0,
                 cornerRadius: 6,
                 accessibilityLabel: item.title
             )
+            .frame(width: 78)
 
-            Text(item.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HCTheme.ink)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(HCTheme.ink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            Text(item.creatorDisplay)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(HCTheme.mutedInk)
-                .lineLimit(1)
+                Text(item.creatorDisplay)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HCTheme.mutedInk)
+                    .lineLimit(1)
+
+                Text(item.cardMetadataDisplay)
+                    .font(.caption)
+                    .foregroundStyle(HCTheme.secondaryInk)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 0)
         }
-        .frame(width: 124, alignment: .leading)
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+        .shadow(color: .black.opacity(0.025), radius: 10, x: 0, y: 6)
+        .accessibilityElement(children: .combine)
     }
 }
