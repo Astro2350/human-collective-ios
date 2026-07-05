@@ -13,6 +13,7 @@ xcuserdata/
 
 # Local environment
 *.xcconfig.local
+supabase/.temp/
 
 # Logs
 *.log

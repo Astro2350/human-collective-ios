@@ -22,33 +22,31 @@ enum CultureFormatters {
     }
 
     private static let monthDayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
-        return formatter
+        formatter("MMM d")
     }()
 
     private static let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
+        formatter("d")
     }()
 
     private static let yearFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy"
-        return formatter
+        formatter("yyyy")
     }()
 
     private static let fullFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter
+        formatter("MMM d, yyyy")
     }()
 
     private static let shortFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
-        return formatter
+        formatter("MMM d")
     }()
-}
 
+    private static func formatter(_ dateFormat: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = .cultureCalendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateFormat = dateFormat
+        return formatter
+    }
+}

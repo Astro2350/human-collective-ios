@@ -13,8 +13,7 @@ extension Date {
 extension Calendar {
     static var cultureCalendar: Calendar {
         var calendar = Calendar(identifier: .iso8601)
-        calendar.timeZone = .current
+        calendar.timeZone = .autoupdatingCurrent
         return calendar
     }
 }
-

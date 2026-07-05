@@ -1,3 +1,2 @@
-SUPABASE_URL =
-SUPABASE_ANON_KEY =
-
+SUPABASE_URL = https:/$()/ozymlothcduwqjcdgkpf.supabase.co
+SUPABASE_ANON_KEY = sb_publishable_A_GkRcEdWxgBeo51R3SLAg_86BMWHae
