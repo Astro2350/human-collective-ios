@@ -24,20 +24,25 @@ private struct MainTabView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @State private var selectedTab: AppTab = .thisWeek
 
     var body: some View {
-        Group {
-            switch selectedTab {
-            case .thisWeek:
+        ZStack {
+            tabLayer(.thisWeek) {
                 NavigationStack {
                     ThisWeekView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
                 }
-            case .archive:
+            }
+
+            tabLayer(.archive) {
                 NavigationStack {
                     ArchiveView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
                 }
-            case .saved:
+            }
+
+            tabLayer(.saved) {
                 NavigationStack {
                     SavedView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
                 }
@@ -45,7 +50,24 @@ private struct MainTabView: View {
         }
         .background(HCTheme.background)
         .tint(.black)
+        .animation(tabTransitionAnimation, value: selectedTab)
         .sensoryFeedback(.selection, trigger: selectedTab)
+    }
+
+    private var tabTransitionAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: 0.24)
+    }
+
+    private func tabLayer<Content: View>(_ tab: AppTab, @ViewBuilder content: () -> Content) -> some View {
+        let isSelected = selectedTab == tab
+
+        return content()
+            .opacity(isSelected ? 1 : 0)
+            .scaleEffect(isSelected ? 1 : 0.985)
+            .offset(y: isSelected ? 0 : 8)
+            .allowsHitTesting(isSelected)
+            .accessibilityHidden(!isSelected)
+            .zIndex(isSelected ? 1 : 0)
     }
 }
 
@@ -74,13 +96,14 @@ enum AppTab: CaseIterable {
 struct CustomTabBar: View {
     @Binding var selectedTab: AppTab
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var selectionNamespace
+
     var body: some View {
         HStack(spacing: 8) {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        selectedTab = tab
-                    }
+                    select(tab)
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: tab.icon)
@@ -92,7 +115,13 @@ struct CustomTabBar: View {
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
                     .frame(height: 46)
-                    .background(tab == selectedTab ? Color.black.opacity(0.06) : .clear, in: Capsule())
+                    .background {
+                        if tab == selectedTab {
+                            Capsule()
+                                .fill(Color.black.opacity(0.06))
+                                .matchedGeometryEffect(id: "selected-tab-background", in: selectionNamespace)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
@@ -107,6 +136,18 @@ struct CustomTabBar: View {
             Rectangle()
                 .fill(HCTheme.line.opacity(0.45))
                 .frame(height: HCTheme.hairline)
+        }
+    }
+
+    private var tabSelectionAnimation: Animation? {
+        reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.86)
+    }
+
+    private func select(_ tab: AppTab) {
+        guard selectedTab != tab else { return }
+
+        withAnimation(tabSelectionAnimation) {
+            selectedTab = tab
         }
     }
 }
