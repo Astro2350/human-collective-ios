@@ -47,8 +47,10 @@ struct CultureDetailView: View {
                         articleHeader(item)
                         factStrip(item)
                         actionRow(item)
-                        storySection(item)
+                        highlightsSection(item)
                         whyItMattersSection(item)
+                        significanceSection(item)
+                        summarySection(item)
                         sourceSection(item)
                     }
                     .padding(.horizontal, HCTheme.pagePadding)
@@ -182,19 +184,35 @@ struct CultureDetailView: View {
     }
 
     @ViewBuilder
-    private func storySection(_ item: CultureItem) -> some View {
-        if let story = cleanedText(item.story) {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Story")
-                    .font(.cultureKicker())
-                    .textCase(.uppercase)
-                    .foregroundStyle(HCTheme.clay)
+    private func highlightsSection(_ item: CultureItem) -> some View {
+        let highlights = highlightTexts(for: item)
 
-                Text(story)
-                    .font(.system(size: 17, weight: .regular, design: .serif))
-                    .foregroundStyle(HCTheme.secondaryInk)
-                    .lineSpacing(7)
-                    .fixedSize(horizontal: false, vertical: true)
+        if !highlights.isEmpty {
+            DetailSection(title: "Highlights") {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(highlights, id: \.self) { highlight in
+                        HighlightRow(text: highlight)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func summarySection(_ item: CultureItem) -> some View {
+        let paragraphs = summaryParagraphs(for: item)
+
+        if !paragraphs.isEmpty {
+            DetailSection(title: "Summary") {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(paragraphs, id: \.self) { paragraph in
+                        Text(paragraph)
+                            .font(.system(size: 16.5, weight: .regular, design: .serif))
+                            .foregroundStyle(HCTheme.secondaryInk)
+                            .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
             }
         }
     }
@@ -202,25 +220,14 @@ struct CultureDetailView: View {
     @ViewBuilder
     private func whyItMattersSection(_ item: CultureItem) -> some View {
         if let whyItMatters = cleanedText(item.whyItMatters) {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Why it matters")
-                    .font(.cultureKicker())
-                    .textCase(.uppercase)
-                    .foregroundStyle(HCTheme.clay)
+            InsightBlock(title: "Why it matters", text: whyItMatters, accent: HCTheme.clay)
+        }
+    }
 
-                HStack(alignment: .top, spacing: 14) {
-                    Rectangle()
-                        .fill(HCTheme.clay.opacity(0.75))
-                        .frame(width: 2)
-
-                    Text(whyItMatters)
-                        .font(.cultureTitle(21, weight: .regular))
-                        .foregroundStyle(HCTheme.ink)
-                        .lineSpacing(5)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.vertical, 4)
-            }
+    @ViewBuilder
+    private func significanceSection(_ item: CultureItem) -> some View {
+        if let significance = significanceText(for: item) {
+            InsightBlock(title: "Significance", text: significance, accent: HCTheme.moss)
         }
     }
 
@@ -261,6 +268,57 @@ struct CultureDetailView: View {
             cleanedText(item.maker).map { DetailFactModel(label: "Maker", value: $0) }
         ]
         .compactMap { $0 }
+    }
+
+    private func highlightTexts(for item: CultureItem) -> [String] {
+        let storyHighlights = sentences(from: item.story)
+            .prefix(4)
+            .compactMap { cleanedText($0) }
+
+        if storyHighlights.isEmpty, let hook = cleanedText(item.hook) {
+            return [hook]
+        }
+
+        return Array(storyHighlights)
+    }
+
+    private func summaryParagraphs(for item: CultureItem) -> [String] {
+        let storySentences = sentences(from: item.story)
+            .compactMap { cleanedText($0) }
+
+        guard !storySentences.isEmpty else { return [] }
+
+        return stride(from: 0, to: storySentences.count, by: 2).map { index in
+            let endIndex = min(index + 2, storySentences.count)
+            return storySentences[index..<endIndex].joined(separator: " ")
+        }
+    }
+
+    private func significanceText(for item: CultureItem) -> String? {
+        let context = [
+            cleanedText(item.placeDisplay),
+            cleanedText(item.dateDisplay)
+        ]
+        .compactMap { $0 }
+        .joined(separator: ", ")
+
+        guard !context.isEmpty else { return nil }
+
+        let category = item.category.displayName.lowercased()
+        return "This \(category) gives a concrete way to see \(context) through material, form, and use."
+    }
+
+    private func sentences(from text: String) -> [String] {
+        guard let text = cleanedText(text) else { return [] }
+
+        var sentences: [String] = []
+        text.enumerateSubstrings(in: text.startIndex..<text.endIndex, options: [.bySentences, .localized]) { sentence, _, _, _ in
+            if let sentence, let cleaned = cleanedText(sentence) {
+                sentences.append(cleaned)
+            }
+        }
+
+        return sentences
     }
 
     private func sourceSummary(for item: CultureItem) -> String {
@@ -309,6 +367,74 @@ struct CultureDetailView: View {
         }
 
         return cleaned
+    }
+}
+
+private struct DetailSection<Content: View>: View {
+    let title: String
+    private let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.cultureKicker())
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.clay)
+
+            content
+        }
+    }
+}
+
+private struct HighlightRow: View {
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 11) {
+            Circle()
+                .fill(HCTheme.clay.opacity(0.75))
+                .frame(width: 5, height: 5)
+                .padding(.top, 8)
+
+            Text(text)
+                .font(.callout)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private struct InsightBlock: View {
+    let title: String
+    let text: String
+    let accent: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.cultureKicker())
+                .textCase(.uppercase)
+                .foregroundStyle(accent)
+
+            HStack(alignment: .top, spacing: 14) {
+                Rectangle()
+                    .fill(accent.opacity(0.75))
+                    .frame(width: 2)
+
+                Text(text)
+                    .font(.cultureTitle(20, weight: .regular))
+                    .foregroundStyle(HCTheme.ink)
+                    .lineSpacing(5)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, 4)
+        }
     }
 }
 
