@@ -4,6 +4,8 @@ import UIKit
 struct CultureAsyncImage: View {
     let imageURL: String
     var aspectRatio: CGFloat = HCTheme.feedImageAspectRatio
+    var usesNaturalAspectRatio = false
+    var minimumAspectRatio: CGFloat?
     var cornerRadius: CGFloat = HCTheme.cardRadius
     var accessibilityLabel: String?
 
@@ -45,7 +47,7 @@ struct CultureAsyncImage: View {
             }
             .clipped()
         }
-        .aspectRatio(aspectRatio, contentMode: .fit)
+        .aspectRatio(resolvedAspectRatio, contentMode: .fit)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel ?? "Culture image")
@@ -136,6 +138,18 @@ struct CultureAsyncImage: View {
         Self.normalizedImageURL(from: imageURL)
     }
 
+    private var resolvedAspectRatio: CGFloat {
+        let baseAspectRatio: CGFloat
+        if usesNaturalAspectRatio {
+            baseAspectRatio = phase.naturalAspectRatio ?? minimumAspectRatio ?? aspectRatio
+        } else {
+            baseAspectRatio = aspectRatio
+        }
+
+        guard let minimumAspectRatio else { return baseAspectRatio }
+        return max(baseAspectRatio, minimumAspectRatio)
+    }
+
     static func normalizedImageURL(from imageURL: String) -> URL? {
         guard let url = URL(string: imageURL) else { return nil }
 
@@ -168,6 +182,14 @@ private enum CultureImagePhase {
         case .success, .failure:
             false
         }
+    }
+
+    var naturalAspectRatio: CGFloat? {
+        guard case .success(let image) = self, image.size.height > 0 else {
+            return nil
+        }
+
+        return image.size.width / image.size.height
     }
 }
 

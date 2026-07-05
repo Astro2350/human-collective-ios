@@ -7,6 +7,8 @@ struct CultureItemArticleView: View {
     var showsSaveAction = false
     var imageHorizontalPadding: CGFloat = 0
     var imageCornerRadius: CGFloat = 0
+    var imageUsesNaturalAspectRatio = false
+    var imageMinimumAspectRatio: CGFloat?
     var contentBottomPadding: CGFloat = 42
     var onToggleSaved: (() -> Void)?
 
@@ -47,6 +49,8 @@ struct CultureItemArticleView: View {
             CultureAsyncImage(
                 imageURL: item.imageURL,
                 aspectRatio: HCTheme.detailImageAspectRatio,
+                usesNaturalAspectRatio: imageUsesNaturalAspectRatio,
+                minimumAspectRatio: imageMinimumAspectRatio,
                 cornerRadius: imageCornerRadius,
                 accessibilityLabel: item.title
             )

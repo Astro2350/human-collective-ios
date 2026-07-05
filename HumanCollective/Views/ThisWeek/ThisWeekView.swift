@@ -54,6 +54,10 @@ struct TodayView: View {
 
     private func dailyPieceContent(pack: CulturePack, selection: CultureDailySelection) -> some View {
         GeometryReader { proxy in
+            let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 1)
+            let imageMaxHeight = min(max(proxy.size.height * 0.52, 320), 430)
+            let imageMinimumAspectRatio = contentWidth / imageMaxHeight
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     header(for: pack, selection: selection)
@@ -66,6 +70,8 @@ struct TodayView: View {
                         showsSaveAction: true,
                         imageHorizontalPadding: HCTheme.pagePadding,
                         imageCornerRadius: HCTheme.cardRadius,
+                        imageUsesNaturalAspectRatio: true,
+                        imageMinimumAspectRatio: imageMinimumAspectRatio,
                         contentBottomPadding: 18
                     ) {
                         savedStore.toggle(selection.item)
