@@ -82,6 +82,8 @@ struct CultureItemArticleView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            CreatorAttributionView(creator: item.creatorDisplay)
         }
     }
 
@@ -214,6 +216,7 @@ struct CultureItemArticleView: View {
 
     private func shareText(for item: CultureItem) -> String {
         var parts = [item.title]
+        parts.append("Creator: \(item.creatorDisplay)")
         if let place = cleanedText(item.placeDisplay) {
             parts.append(place)
         }
@@ -330,6 +333,7 @@ struct CultureItemArticleView: View {
         let lowercase = cleaned.lowercased()
         guard lowercase != "unknown",
               lowercase != "maker unknown",
+              lowercase != "creator unknown",
               lowercase != "date unknown",
               lowercase != "source unknown",
               lowercase != "license unknown" else {
@@ -367,6 +371,26 @@ private struct ContextValueRow: View {
             Text(value)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(HCTheme.secondaryInk)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct CreatorAttributionView: View {
+    let creator: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 9) {
+            Text("Creator")
+                .font(.cultureKicker(10))
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.clay)
+
+            Text(creator)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

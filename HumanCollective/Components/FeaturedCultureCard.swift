@@ -39,6 +39,12 @@ struct FeaturedCultureCard: View {
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
 
+                Text("Creator: \(item.creatorDisplay)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HCTheme.mutedInk)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Text(item.cardMetadataDisplay)
                     .font(.footnote.weight(.medium))
                     .foregroundStyle(HCTheme.mutedInk)

@@ -105,6 +105,11 @@ private struct SavedItemCard: View {
                     .foregroundStyle(HCTheme.ink)
                     .lineLimit(2)
 
+                Text("Creator: \(item.creatorDisplay)")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HCTheme.mutedInk)
+                    .lineLimit(2)
+
                 Text(item.placeDisplay)
                     .font(.caption)
                     .foregroundStyle(HCTheme.secondaryInk)

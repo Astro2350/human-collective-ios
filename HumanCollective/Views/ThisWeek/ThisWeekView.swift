@@ -58,6 +58,7 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     header(for: pack, selection: selection)
                         .padding(.horizontal, HCTheme.pagePadding)
+                        .padding(.top, HCTheme.pagePadding)
 
                     CultureItemArticleView(
                         item: selection.item,

@@ -70,8 +70,19 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
     }
 
     var makerDisplay: String {
-        guard let maker, !maker.isEmpty else { return "Maker unknown" }
-        return maker
+        creatorDisplay
+    }
+
+    var creatorDisplay: String {
+        if let maker = maker?.trimmingCharacters(in: .whitespacesAndNewlines), !maker.isEmpty {
+            return maker
+        }
+
+        if let culture = culture?.trimmingCharacters(in: .whitespacesAndNewlines), !culture.isEmpty {
+            return "Unknown \(culture) creator"
+        }
+
+        return "Creator unknown"
     }
 
     var cardMetadataDisplay: String {
