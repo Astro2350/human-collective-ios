@@ -44,57 +44,45 @@ struct SavedView: View {
     }
 
     private func savedList(_ items: [CultureItem]) -> some View {
-        GeometryReader { proxy in
-            let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
+        List {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Saved pieces")
+                    .font(.cultureTitle(34))
+                    .foregroundStyle(HCTheme.ink)
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Saved pieces")
-                            .font(.cultureTitle(34))
-                            .foregroundStyle(HCTheme.ink)
+                Text("For pieces worth another look.")
+                    .font(.callout)
+                    .foregroundStyle(HCTheme.secondaryInk)
+            }
+            .padding(.top, 10)
+            .listRowInsets(.init(top: 0, leading: HCTheme.pagePadding, bottom: 10, trailing: HCTheme.pagePadding))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
 
-                        Text("For pieces worth another look.")
-                            .font(.callout)
-                            .foregroundStyle(HCTheme.secondaryInk)
-                    }
-                    .padding(.top, 10)
-
-                    ForEach(items) { item in
-                        HStack(spacing: 10) {
-                            NavigationLink {
-                                CultureDetailView(item: item, savedStore: savedStore)
-                            } label: {
-                                SavedItemCard(item: item)
-                            }
-                            .buttonStyle(.cultureCard)
-
-                            Button {
-                                withAnimation(.easeInOut(duration: 0.18)) {
-                                    savedStore.unsave(item)
-                                }
-                            } label: {
-                                Image(systemName: "bookmark.slash")
-                                    .font(.system(size: 17, weight: .medium))
-                                    .foregroundStyle(HCTheme.clay)
-                                    .frame(width: 44, height: 44)
-                                    .background(HCTheme.surface, in: Circle())
-                                    .overlay {
-                                        Circle()
-                                            .stroke(HCTheme.line.opacity(0.6), lineWidth: HCTheme.hairline)
-                                    }
-                            }
-                            .accessibilityLabel("Unsave \(item.title)")
+            ForEach(items) { item in
+                NavigationLink {
+                    CultureDetailView(item: item, savedStore: savedStore)
+                } label: {
+                    SavedItemCard(item: item)
+                }
+                .buttonStyle(.plain)
+                .listRowInsets(.init(top: 8, leading: HCTheme.pagePadding, bottom: 8, trailing: HCTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            savedStore.unsave(item)
                         }
-                        .frame(width: contentWidth, alignment: .leading)
+                    } label: {
+                        Label("Unsave", systemImage: "bookmark.slash")
                     }
                 }
-                .frame(width: contentWidth, alignment: .leading)
-                .padding(HCTheme.pagePadding)
-                .padding(.bottom, 12)
             }
-            .background(HCTheme.background)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.defaultMinListRowHeight, 1)
         .background(HCTheme.background)
     }
 }
