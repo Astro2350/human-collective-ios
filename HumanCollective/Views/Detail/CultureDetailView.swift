@@ -44,14 +44,12 @@ struct CultureDetailView: View {
                     .accessibilityLabel("Open image")
                     .accessibilityHint("Opens a full screen viewer with zoom controls")
 
-                    VStack(alignment: .leading, spacing: 28) {
+                    VStack(alignment: .leading, spacing: 26) {
                         articleHeader(item)
-                        factStrip(item)
                         actionRow(item)
-                        contextSection(item)
                         highlightsSection(item)
-                        whyItMattersSection(item)
-                        significanceSection(item)
+                        contextSection(item)
+                        meaningSection(item)
                         summarySection(item)
                         sourceSection(item)
                     }
@@ -115,29 +113,6 @@ struct CultureDetailView: View {
         }
     }
 
-    @ViewBuilder
-    private func factStrip(_ item: CultureItem) -> some View {
-        let facts = detailFacts(for: item)
-
-        if !facts.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
-                Rectangle()
-                    .fill(HCTheme.line.opacity(0.7))
-                    .frame(height: HCTheme.hairline)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(facts) { fact in
-                        DetailFact(label: fact.label, value: fact.value)
-                    }
-                }
-
-                Rectangle()
-                    .fill(HCTheme.line.opacity(0.7))
-                    .frame(height: HCTheme.hairline)
-            }
-        }
-    }
-
     private func actionRow(_ item: CultureItem) -> some View {
         HStack(spacing: 11) {
             ShareLink(item: shareText(for: item)) {
@@ -198,7 +173,7 @@ struct CultureDetailView: View {
         let highlights = highlightTexts(for: item)
 
         if !highlights.isEmpty {
-            DetailSection(title: "Highlights", systemImage: "list.bullet") {
+            DetailSection(title: "Look first", systemImage: "list.bullet") {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(Array(highlights.enumerated()), id: \.offset) { index, highlight in
                         HighlightRow(index: index + 1, text: highlight)
@@ -228,19 +203,16 @@ struct CultureDetailView: View {
     }
 
     @ViewBuilder
-    private func whyItMattersSection(_ item: CultureItem) -> some View {
-        if let whyItMatters = cleanedText(item.whyItMatters) {
-            DetailSection(title: "Why it matters", systemImage: "sparkle") {
-                InsightBlock(text: whyItMatters, accent: HCTheme.clay)
-            }
-        }
-    }
+    private func meaningSection(_ item: CultureItem) -> some View {
+        let insights = meaningInsights(for: item)
 
-    @ViewBuilder
-    private func significanceSection(_ item: CultureItem) -> some View {
-        if let significance = significanceText(for: item) {
-            DetailSection(title: "Significance", systemImage: "scope") {
-                InsightBlock(text: significance, accent: HCTheme.moss)
+        if !insights.isEmpty {
+            DetailSection(title: "Meaning", systemImage: "sparkle") {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(insights) { insight in
+                        InsightBlock(label: insight.label, text: insight.text, accent: insight.accent)
+                    }
+                }
             }
         }
     }
@@ -266,22 +238,19 @@ struct CultureDetailView: View {
         return parts.joined(separator: " - ")
     }
 
-    private func detailFacts(for item: CultureItem) -> [DetailFactModel] {
-        [
-            cleanedText(item.maker).map { DetailFactModel(label: "Maker", value: $0) }
-        ]
-        .compactMap { $0 }
-    }
-
     private func highlightTexts(for item: CultureItem) -> [String] {
         var highlights: [String] = []
 
-        if let hook = cleanedText(item.hook) {
-            highlights.append(hook)
+        for sentence in sentences(from: item.story).prefix(2) {
+            highlights.append(highlightSnippet(from: sentence))
         }
 
         if let maker = cleanedText(item.maker) {
             highlights.append("Made by \(maker).")
+        }
+
+        if highlights.isEmpty, let hook = cleanedText(item.hook) {
+            highlights.append(hook)
         }
 
         if highlights.isEmpty {
@@ -289,6 +258,25 @@ struct CultureDetailView: View {
         }
 
         return Array(highlights.prefix(4))
+    }
+
+    private func highlightSnippet(from sentence: String) -> String {
+        let cleaned = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard cleaned.count > 150,
+              let separator = cleaned.firstIndex(of: ":") else {
+            return cleaned
+        }
+
+        let suffix = cleaned[cleaned.index(after: separator)...]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard suffix.count >= 40 else { return cleaned }
+
+        return capitalizedFirstLetter(suffix)
+    }
+
+    private func capitalizedFirstLetter(_ text: String) -> String {
+        guard let first = text.first else { return text }
+        return first.uppercased() + String(text.dropFirst())
     }
 
     private func summaryParagraphs(for item: CultureItem) -> [String] {
@@ -303,9 +291,18 @@ struct CultureDetailView: View {
         }
     }
 
-    private func significanceText(for item: CultureItem) -> String? {
+    private func meaningInsights(for item: CultureItem) -> [MeaningInsight] {
+        var insights: [MeaningInsight] = []
+
+        if let whyItMatters = cleanedText(item.whyItMatters) {
+            insights.append(MeaningInsight(label: "Why it matters", text: whyItMatters, accent: HCTheme.clay))
+        }
+
         let category = item.category.displayName.lowercased()
-        return "This \(category) turns material, form, and use into evidence, making a larger cultural world easier to study through one concrete example."
+        let significance = "This \(category) turns material, form, and use into evidence, making a larger cultural world easier to study through one concrete example."
+        insights.append(MeaningInsight(label: "Significance", text: significance, accent: HCTheme.moss))
+
+        return insights
     }
 
     private func timelinePlacement(for dateDisplay: String) -> TimelinePlacement? {
@@ -415,6 +412,16 @@ struct CultureDetailView: View {
 
 private struct TimelinePlacement {
     let year: Double
+}
+
+private struct MeaningInsight: Identifiable {
+    let label: String
+    let text: String
+    let accent: Color
+
+    var id: String {
+        label
+    }
 }
 
 private struct ContextValueRow: View {
@@ -582,52 +589,29 @@ private struct HighlightRow: View {
 }
 
 private struct InsightBlock: View {
+    let label: String
     let text: String
     let accent: Color
 
     var body: some View {
-        HStack(alignment: .top, spacing: 13) {
-            Rectangle()
-                .fill(accent.opacity(0.72))
-                .frame(width: 2)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.cultureKicker(10))
+                .textCase(.uppercase)
+                .foregroundStyle(accent)
 
-            Text(text)
-                .font(.body)
-                .foregroundStyle(HCTheme.secondaryInk)
-                .lineSpacing(4)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .top, spacing: 13) {
+                Rectangle()
+                    .fill(accent.opacity(0.72))
+                    .frame(width: 2)
+
+                Text(text)
+                    .font(.body)
+                    .foregroundStyle(HCTheme.secondaryInk)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding(.vertical, 2)
-    }
-}
-
-private struct DetailFactModel: Identifiable {
-    let label: String
-    let value: String
-
-    var id: String {
-        label
-    }
-}
-
-private struct DetailFact: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 14) {
-            Text(label)
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.mutedInk)
-                .frame(width: 60, alignment: .leading)
-
-            Text(value.isEmpty ? "Unknown" : value)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(HCTheme.secondaryInk)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: 0)
-        }
     }
 }
