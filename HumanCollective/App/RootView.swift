@@ -86,7 +86,7 @@ enum AppTab: CaseIterable {
 
     var icon: String {
         switch self {
-        case .thisWeek: "sun.max"
+        case .thisWeek: "clock.arrow.circlepath"
         case .archive: "books.vertical"
         case .saved: "bookmark"
         }
