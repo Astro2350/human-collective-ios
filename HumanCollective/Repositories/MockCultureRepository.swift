@@ -38,20 +38,20 @@ struct MockCultureRepository: CultureRepository {
         [
             makePack(
                 weekOffset: 0,
-                title: "This Week in Human Culture",
-                subtitle: "A blue hippo, a Noh mask, a world map, tiny puppies, and worried chess pieces.",
+                title: "Daily Human Culture",
+                subtitle: "Seven daily pieces: animals, maps, faces, games, and ancient craft.",
                 items: currentItems
             ),
             makePack(
                 weekOffset: -1,
                 title: "Creature Features",
-                subtitle: "Dogs, cats, horses, an octopus, and a rhinoceros with armor.",
+                subtitle: "Dogs, cats, horses, octopus forms, a rhinoceros, and one famous stone.",
                 items: previousItemsOne
             ),
             makePack(
                 weekOffset: -2,
                 title: "Tiny Legends",
-                subtitle: "A turtle vessel, a bull cup, a famous wave, a glowing page, and a portrait pot.",
+                subtitle: "Small vessels, famous images, gold, instruments, and handmade pages.",
                 items: previousItemsTwo
             )
         ]
@@ -87,7 +87,9 @@ struct MockCultureRepository: CultureRepository {
             hannyaMask(weekKey: weekKey),
             waldseemullerMap(weekKey: weekKey),
             puppiesNetsuke(weekKey: weekKey),
-            lewisChessmen(weekKey: weekKey)
+            lewisChessmen(weekKey: weekKey),
+            terracottaWarriors(weekKey: weekKey),
+            mochePortraitVessel(weekKey: weekKey)
         ]
     }
 
@@ -97,7 +99,9 @@ struct MockCultureRepository: CultureRepository {
             bastetCat(weekKey: weekKey),
             octopusJar(weekKey: weekKey),
             haniwaHorse(weekKey: weekKey),
-            durerRhinoceros(weekKey: weekKey)
+            durerRhinoceros(weekKey: weekKey),
+            minoanOctopusVase(weekKey: weekKey),
+            rosettaStone(weekKey: weekKey)
         ]
     }
 
@@ -107,7 +111,9 @@ struct MockCultureRepository: CultureRepository {
             bullRhyton(weekKey: weekKey),
             greatWave(weekKey: weekKey),
             bookOfKells(weekKey: weekKey),
-            mocheHeadVessel(weekKey: weekKey)
+            mocheHeadVessel(weekKey: weekKey),
+            maskOfAgamemnon(weekKey: weekKey),
+            persianAstrolabe(weekKey: weekKey)
         ]
     }
 
@@ -232,6 +238,56 @@ struct MockCultureRepository: CultureRepository {
             whyItMatters: "They show play as a carrier of politics, trade, humor, and imagination across medieval Europe.",
             latitude: 58.2130,
             longitude: -6.3880,
+            weekKey: weekKey
+        )
+    }
+
+    private static func terracottaWarriors(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-terracotta-warriors",
+            title: "Terracotta Warriors",
+            maker: "Imperial Qin workshops",
+            culture: "Chinese",
+            country: "China",
+            region: "Shaanxi",
+            dateDisplay: "c. 210 BCE",
+            category: .sculpture,
+            imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Terracotta_warriors.jpg?width=900",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Terracotta_warriors.jpg",
+            license: "Open access image; verify file license before production import",
+            hook: "An army made from earth, rank, repetition, and individual faces.",
+            story: """
+            The Terracotta Warriors were made for the tomb of Qin Shi Huang, but they do not feel like anonymous background decoration. Their power comes from scale and variation working together: rows of bodies repeat, while faces, armor, hair, and posture keep pulling attention back to individuals. Clay becomes military order, political theater, and a kind of afterlife infrastructure. The cool part is that the figures are massive as a group, but the details still reward close looking. They make empire visible through thousands of crafted human forms.
+            """,
+            whyItMatters: "It shows state power through craft, repetition, and individuality rather than size alone.",
+            latitude: 34.3853,
+            longitude: 109.2732,
+            weekKey: weekKey
+        )
+    }
+
+    private static func mochePortraitVessel(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-moche-portrait-vessel",
+            title: "Moche Portrait Vessel",
+            maker: "Unknown Moche artist",
+            culture: "Moche",
+            country: "Peru",
+            region: "North Coast",
+            dateDisplay: "100 BCE-500 CE",
+            category: .pottery,
+            imageURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Portrait_Vessel_of_a_Ruler%2C_100_BC_-_500_AD%2C_Moche%2C_north_coast_of_Peru%2C_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG/960px-Portrait_Vessel_of_a_Ruler%2C_100_BC_-_500_AD%2C_Moche%2C_north_coast_of_Peru%2C_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Portrait_Vessel_of_a_Ruler,_100_BC_-_500_AD,_Moche,_north_coast_of_Peru,_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG",
+            license: "Open access image; verify file license before production import",
+            hook: "A vessel that treats the human face as a place worth studying.",
+            story: """
+            Moche portrait vessels make looking at a face feel like the main event. The object is a container, but it is also a likeness shaped around cheeks, brow, mouth, and bearing. That combination makes it feel different from a flat portrait: the person becomes volume, surface, and use all at once. These vessels show how carefully Moche artists observed human presence, status, and expression. It belongs in a daily slot because it is instantly readable, but the longer you sit with it, the stranger and more impressive the format becomes.
+            """,
+            whyItMatters: "It shows portraiture outside the frame, shaped into something held and used.",
+            latitude: -8.1116,
+            longitude: -79.0288,
             weekKey: weekKey
         )
     }
@@ -361,6 +417,56 @@ struct MockCultureRepository: CultureRepository {
         )
     }
 
+    private static func minoanOctopusVase(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-minoan-octopus-vase",
+            title: "Minoan Octopus Vase",
+            maker: nil,
+            culture: "Minoan",
+            country: "Greece",
+            region: "Crete",
+            dateDisplay: "c. 1500 BCE",
+            category: .pottery,
+            imageURL: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Minoan_vase_with_octopus_motif_-_DPLA_-_07d764d5ed7063fed136ae3969ef190d.jpg",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Minoan_vase_with_octopus_motif_-_DPLA_-_07d764d5ed7063fed136ae3969ef190d.jpg",
+            license: "Open access image; verify file license before production import",
+            hook: "A sea creature wraps itself around a vessel made for human hands.",
+            story: """
+            This octopus does not sit politely inside a border. It stretches around the vase, using the round surface like water and making the vessel feel alive. The design works because animal, pattern, and object shape are all solving the same visual problem. Arms become movement, the body becomes a center, and the pot becomes an underwater space. It is one of those objects that feels modern because the decoration understands the form so completely.
+            """,
+            whyItMatters: "It shows decoration becoming structure, fitted exactly to the object that carries it.",
+            latitude: 35.2401,
+            longitude: 24.8093,
+            weekKey: weekKey
+        )
+    }
+
+    private static func rosettaStone(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-rosetta-stone",
+            title: "Rosetta Stone",
+            maker: nil,
+            culture: "Ptolemaic Egyptian",
+            country: "Egypt",
+            region: "Rashid / Rosetta",
+            dateDisplay: "196 BCE",
+            category: .artifact,
+            imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Rosetta_Stone.JPG?width=900",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Rosetta_Stone.JPG",
+            license: "Open access image; verify file license before production import",
+            hook: "A broken slab that helped reopen an ancient writing system.",
+            story: """
+            The Rosetta Stone matters because the same decree appears in three scripts, including Greek and Egyptian hieroglyphs. That repetition gave scholars a way to compare signs, sounds, and meanings across writing systems. The object is not flashy in the usual sense, but its plainness is part of the power: a damaged administrative text became one of the most important translation tools in history. It turns a chunk of stone into a hinge between lost knowledge and readable language.
+            """,
+            whyItMatters: "It reminds us that understanding often begins with comparison.",
+            latitude: 31.4044,
+            longitude: 30.4164,
+            weekKey: weekKey
+        )
+    }
+
     private static func turtleVessel(weekKey: String) -> CultureItem {
         CultureItem(
             id: "\(weekKey)-colima-turtle-vessel",
@@ -482,6 +588,56 @@ struct MockCultureRepository: CultureRepository {
             whyItMatters: "It shows portraiture outside the frame, shaped into an object that could be held, carried, and used.",
             latitude: -8.1116,
             longitude: -79.0288,
+            weekKey: weekKey
+        )
+    }
+
+    private static func maskOfAgamemnon(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-mask-of-agamemnon",
+            title: "Gold Funerary Mask",
+            maker: nil,
+            culture: "Mycenaean",
+            country: "Greece",
+            region: "Mycenae",
+            dateDisplay: "16th century BCE",
+            category: .jewelry,
+            imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Agamemnon_mask_NAMA_Athens_Greece.jpg?width=900",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Agamemnon_mask_NAMA_Athens_Greece.jpg",
+            license: "Open access image; verify file license before production import",
+            hook: "A sheet of gold pressed into the memory of a face.",
+            story: """
+            This gold funerary mask is famous partly because of its dramatic modern nickname, but the stronger point is simpler: burial becomes presence. A thin sheet of precious metal is shaped into eyes, nose, mouth, beard, and expression, making a face endure after the body is hidden. The mask asks viewers to think about memory as material. Gold is not only valuable here; it is a way to make mourning visible, durable, and difficult to ignore.
+            """,
+            whyItMatters: "It shows how precious materials can make mourning and memory visible.",
+            latitude: 37.7308,
+            longitude: 22.7561,
+            weekKey: weekKey
+        )
+    }
+
+    private static func persianAstrolabe(weekKey: String) -> CultureItem {
+        CultureItem(
+            id: "\(weekKey)-persian-astrolabe",
+            title: "Persian Astrolabe",
+            maker: nil,
+            culture: "Persian",
+            country: "Iran",
+            region: nil,
+            dateDisplay: "18th century",
+            category: .tool,
+            imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Astrolabe-Persian-18C.jpg?width=900",
+            sourceName: "Wikimedia Commons",
+            sourceURL: "https://commons.wikimedia.org/wiki/File:Astrolabe-Persian-18C.jpg",
+            license: "Open access image; verify file license before production import",
+            hook: "A handheld model of sky, time, and calculation.",
+            story: """
+            An astrolabe makes the sky usable. Its engraved circles, plates, and pointer turn observation into a portable tool for time, position, and calculation. What makes this kind of object so good for close looking is that beauty and function are inseparable: the lines are not just decoration, but instructions and measurements. It shows science as something crafted, carried, touched, and read by hand.
+            """,
+            whyItMatters: "It shows science as something crafted, carried, and touched.",
+            latitude: 32.4279,
+            longitude: 53.6880,
             weekKey: weekKey
         )
     }

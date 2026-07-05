@@ -2,11 +2,12 @@ import SwiftUI
 
 struct FeaturedCultureCard: View {
     let item: CultureItem
+    var kicker = "Editor's Choice"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                Text("Editor's Choice")
+                Text(kicker)
                     .font(.cultureKicker())
                     .textCase(.uppercase)
                     .foregroundStyle(HCTheme.editorGold)

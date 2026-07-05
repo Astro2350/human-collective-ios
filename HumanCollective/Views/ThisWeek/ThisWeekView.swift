@@ -1,14 +1,12 @@
 import SwiftUI
 
-struct ThisWeekView: View {
+struct TodayView: View {
     let savedStore: SavedStore
-    @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var viewModel: ThisWeekViewModel
 
-    init(repository: any CultureRepository, savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
+    init(repository: any CultureRepository, savedStore: SavedStore) {
         self.savedStore = savedStore
-        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ThisWeekViewModel(repository: repository))
     }
 
@@ -28,68 +26,65 @@ struct ThisWeekView: View {
             CultureLoadingView()
         case .empty:
             CultureEmptyStateView(
-                title: "This week's pack is not ready.",
-                subtitle: "There is no published selection for the current week yet.",
-                systemImage: "tray"
+                title: "Today's piece is not ready.",
+                subtitle: "The daily selection will appear here when it is published.",
+                systemImage: "calendar"
             )
         case .failed(let message):
             CultureErrorView(message: message) {
                 Task { await viewModel.retry() }
             }
         case .loaded(let pack):
-            packContent(pack)
+            todayContent(pack)
         }
     }
 
-    private func packContent(_ pack: CulturePack) -> some View {
+    @ViewBuilder
+    private func todayContent(_ pack: CulturePack) -> some View {
+        if let selection = pack.dailySelection() {
+            dailyPieceContent(pack: pack, selection: selection)
+        } else {
+            CultureEmptyStateView(
+                title: "Today's piece is not ready.",
+                subtitle: "The daily selection will appear here when it is published.",
+                systemImage: "calendar"
+            )
+        }
+    }
+
+    private func dailyPieceContent(pack: CulturePack, selection: CultureDailySelection) -> some View {
         GeometryReader { proxy in
-            let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
-
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: HCTheme.screenSectionSpacing) {
-                    header(for: pack)
+                VStack(alignment: .leading, spacing: 24) {
+                    header(for: pack, selection: selection)
+                        .padding(.horizontal, HCTheme.pagePadding)
 
-                    if let featuredItem = pack.featuredItem {
-                        NavigationLink {
-                            CultureDetailView(item: featuredItem, savedStore: savedStore)
-                                .rootTabBarHidden($rootTabBarHiddenDepth)
-                        } label: {
-                            FeaturedCultureCard(item: featuredItem)
-                                .frame(width: contentWidth, alignment: .leading)
-                        }
-                        .buttonStyle(.cultureCard)
-                    }
-
-                    if pack.items.count > 1 {
-                        SectionRule(title: "Also this week")
-
-                        ForEach(pack.items.dropFirst()) { item in
-                            NavigationLink {
-                                CultureDetailView(item: item, savedStore: savedStore)
-                                    .rootTabBarHidden($rootTabBarHiddenDepth)
-                            } label: {
-                                CultureCard(item: item)
-                                    .frame(width: contentWidth, alignment: .leading)
-                            }
-                            .buttonStyle(.cultureCard)
-                        }
+                    CultureItemArticleView(
+                        item: selection.item,
+                        isSaved: savedStore.isSaved(selection.item),
+                        showsSaveAction: true,
+                        imageHorizontalPadding: HCTheme.pagePadding,
+                        imageCornerRadius: HCTheme.cardRadius,
+                        contentBottomPadding: 18
+                    ) {
+                        savedStore.toggle(selection.item)
                     }
                 }
-                .frame(width: contentWidth, alignment: .leading)
-                .padding(HCTheme.pagePadding)
-                .padding(.bottom, HCTheme.rootTabBarContentClearance)
+                .frame(width: proxy.size.width, alignment: .leading)
+                .padding(.bottom, 76)
             }
             .background(HCTheme.background)
             .task(id: pack.id) {
-                await prefetchImages(in: pack)
+                await prefetchImages(for: selection.item)
             }
         }
         .background(HCTheme.background)
+        .sensoryFeedback(.selection, trigger: savedStore.revision)
     }
 
-    private func header(for pack: CulturePack) -> some View {
-        ScreenHeader("This Week in\nHuman Culture") {
-            WeekBadge(pack: pack)
+    private func header(for pack: CulturePack, selection: CultureDailySelection) -> some View {
+        ScreenHeader("Today") {
+            DayBadge(pack: pack, selection: selection)
                 .padding(.top, 5)
         }
     }
@@ -100,21 +95,20 @@ struct ThisWeekView: View {
         }
     }
 
-    private func prefetchImages(in pack: CulturePack) async {
-        let urls = pack.items.compactMap { item in
-            CultureAsyncImage.normalizedImageURL(from: item.imageURL)
-        }
+    private func prefetchImages(for item: CultureItem) async {
+        let urls = [CultureAsyncImage.normalizedImageURL(from: item.imageURL)].compactMap { $0 }
 
         await CultureImageCache.shared.prefetch(urls)
     }
 }
 
-private struct WeekBadge: View {
+private struct DayBadge: View {
     let pack: CulturePack
+    let selection: CultureDailySelection
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 3) {
-            Text(weekText)
+            Text("Day \(selection.dayNumber) of \(selection.totalDays)")
                 .font(.cultureKicker(10))
                 .textCase(.uppercase)
                 .foregroundStyle(HCTheme.clay)
@@ -127,36 +121,5 @@ private struct WeekBadge: View {
         }
         .multilineTextAlignment(.trailing)
         .frame(width: 104, alignment: .trailing)
-    }
-
-    private var weekText: String {
-        guard let weekNumber = pack.weekKey.split(separator: "W").last, !weekNumber.isEmpty else {
-            return "This week"
-        }
-        return "Week \(weekNumber)"
-    }
-}
-
-private struct SectionRule: View {
-    let title: String
-    var trailing: String? = nil
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Text(title)
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
-
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.65))
-                .frame(height: HCTheme.hairline)
-
-            if let trailing {
-                Text(trailing)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(HCTheme.mutedInk)
-            }
-        }
     }
 }

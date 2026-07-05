@@ -33,9 +33,9 @@ final class ThisWeekViewModel {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
-                return "Couldn't load this week's pack. Check your connection and try again."
+                return "Couldn't load today's piece. Check your connection and try again."
             case .timedOut:
-                return "This week's pack is taking a little longer than usual. Try again in a moment."
+                return "Today's piece is taking a little longer than usual. Try again in a moment."
             default:
                 break
             }
@@ -44,14 +44,14 @@ final class ThisWeekViewModel {
         if let repositoryError = error as? CultureRepositoryError {
             switch repositoryError {
             case .emptyResponse:
-                return "Couldn't find a published pack for this week."
+                return "Couldn't find a published piece for today."
             case .invalidURL, .notConfigured:
                 return "The culture archive connection is not configured."
             case .requestFailed:
-                return "Couldn't load this week's pack. Please try again."
+                return "Couldn't load today's piece. Please try again."
             }
         }
 
-        return "Couldn't load this week's pack. Check your connection and try again."
+        return "Couldn't load today's piece. Check your connection and try again."
     }
 }

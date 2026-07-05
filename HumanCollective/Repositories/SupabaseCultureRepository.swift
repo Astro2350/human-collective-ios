@@ -37,10 +37,13 @@ struct SupabaseCultureRepository: CultureRepository {
     }
 
     func fetchCurrentPack() async throws -> CulturePack {
+        let today = Self.dateFormatter.string(from: Date())
         let packs: [SupabasePackDTO] = try await request(
             table: "culture_packs",
             queryItems: [
                 URLQueryItem(name: "select", value: "*"),
+                URLQueryItem(name: "start_date", value: "lte.\(today)"),
+                URLQueryItem(name: "end_date", value: "gte.\(today)"),
                 URLQueryItem(name: "order", value: "start_date.desc"),
                 URLQueryItem(name: "limit", value: "1")
             ]

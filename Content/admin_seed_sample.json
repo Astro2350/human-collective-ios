@@ -177,7 +177,7 @@
       "why_it_matters": "It shows the book as an environment where image, text, devotion, and labor meet.",
       "latitude": 53.345,
       "longitude": -6.254,
-      "primary_week_key": "2026-W27",
+      "primary_week_key": "2026-W29",
       "tags": ["ireland", "manuscript", "book", "illumination"],
       "curator_note": "Pairs well with the map as another way of holding knowledge."
     },
@@ -225,7 +225,7 @@
       "why_it_matters": "It shows how a printed image can travel farther than almost any single object.",
       "latitude": 35.3606,
       "longitude": 138.7274,
-      "primary_week_key": "2026-W28",
+      "primary_week_key": "2026-W29",
       "tags": ["japan", "print", "water", "hokusai"],
       "curator_note": "Use carefully because it is familiar; pair with less familiar works."
     },
@@ -297,7 +297,7 @@
       "why_it_matters": "It shows how precious materials can make mourning visible.",
       "latitude": 37.7308,
       "longitude": 22.7561,
-      "primary_week_key": "2026-W28",
+      "primary_week_key": "2026-W29",
       "tags": ["greece", "gold", "burial", "mycenaean"],
       "curator_note": "Use title carefully; avoid overstating the Agamemnon identification."
     },
@@ -321,7 +321,7 @@
       "why_it_matters": "It shows state power through craft as much as through size.",
       "latitude": 34.3853,
       "longitude": 109.2732,
-      "primary_week_key": "2026-W28",
+      "primary_week_key": "2026-W27",
       "tags": ["china", "tomb", "sculpture", "army"],
       "curator_note": "Good monumental object with human detail."
     },
@@ -345,7 +345,7 @@
       "why_it_matters": "It shows portraiture outside the frame, shaped into something held and used.",
       "latitude": -8.1116,
       "longitude": -79.0288,
-      "primary_week_key": "2026-W28",
+      "primary_week_key": "2026-W27",
       "tags": ["peru", "moche", "portrait", "ceramic"],
       "curator_note": "Useful bridge between pottery and portraiture."
     },
@@ -417,7 +417,7 @@
       "why_it_matters": "It reminds us that images can shape belief even when they are partly wrong.",
       "latitude": 49.4521,
       "longitude": 11.0767,
-      "primary_week_key": "2026-W29",
+      "primary_week_key": "2026-W28",
       "tags": ["print", "animal", "renaissance", "knowledge"],
       "curator_note": "Useful as a humility piece about representation."
     },
@@ -441,7 +441,7 @@
       "why_it_matters": "They show play as a carrier of politics, trade, and imagination.",
       "latitude": 58.213,
       "longitude": -6.388,
-      "primary_week_key": "2026-W29",
+      "primary_week_key": "2026-W27",
       "tags": ["scotland", "game", "ivory", "medieval"],
       "curator_note": "Good saved-item candidate; people tend to connect with faces."
     },
@@ -690,8 +690,8 @@
     {
       "id": "pack-2026-W27",
       "week_key": "2026-W27",
-      "title": "This Week in Human Culture",
-      "subtitle": "A blue hippo, a Noh mask, a world map, tiny puppies, and worried chess pieces.",
+      "title": "Daily Human Culture",
+      "subtitle": "Seven daily pieces: animals, maps, faces, games, and ancient craft.",
       "start_date": "2026-06-29",
       "end_date": "2026-07-05",
       "item_ids": [
@@ -699,15 +699,17 @@
         "noh-hannya-mask",
         "waldseemuller-world-map",
         "puppies-netsuke",
-        "lewis-chessmen"
+        "lewis-chessmen",
+        "terracotta-warriors",
+        "moche-portrait-vessel"
       ],
-      "curator_note": "Five stronger first-glance picks: animal charm, dramatic mask, map, miniature puppies, and medieval faces."
+      "curator_note": "Seven daily slots for the current week: animal charm, dramatic mask, map, miniature puppies, medieval faces, ancient scale, and portrait form."
     },
     {
       "id": "pack-2026-W28",
       "week_key": "2026-W28",
       "title": "Creature Features",
-      "subtitle": "Dogs, cats, horses, an octopus, and a rhinoceros with armor.",
+      "subtitle": "Dogs, cats, horses, octopus forms, a rhinoceros, and one famous stone.",
       "start_date": "2026-07-06",
       "end_date": "2026-07-12",
       "item_ids": [
@@ -715,15 +717,17 @@
         "bastet-cat",
         "octopus-stirrup-jar",
         "haniwa-horse-head",
-        "durer-rhinoceros"
+        "durer-rhinoceros",
+        "minoan-octopus-vase",
+        "rosetta-stone"
       ],
-      "curator_note": "Kept to five animal-forward pieces with charm, movement, and one strange rhino print."
+      "curator_note": "Seven archive slots with animal-forward charm, sea-life vessels, image lore, and one object about translation."
     },
     {
       "id": "pack-2026-W29",
       "week_key": "2026-W29",
       "title": "Tiny Legends",
-      "subtitle": "A turtle vessel, a bull cup, a famous wave, a glowing page, and a portrait pot.",
+      "subtitle": "Small vessels, famous images, gold, instruments, and handmade pages.",
       "start_date": "2026-07-13",
       "end_date": "2026-07-19",
       "item_ids": [
@@ -731,9 +735,11 @@
         "minoan-bull-rhyton",
         "great-wave-kanagawa",
         "book-of-kells-chi-rho",
-        "moche-head-vessel"
+        "moche-head-vessel",
+        "mask-of-agamemnon",
+        "persian-astrolabe"
       ],
-      "curator_note": "Five-item archive pack with small, strange, and instantly visual objects."
+      "curator_note": "Seven archive slots with small, strange, instantly visual objects and tools."
     }
   ]
 }

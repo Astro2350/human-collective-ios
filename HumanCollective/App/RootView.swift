@@ -24,17 +24,16 @@ private struct MainTabView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
 
-    @State private var selectedTab: AppTab = .thisWeek
+    @State private var selectedTab: AppTab = .today
     @State private var rootTabBarHiddenDepth = 0
 
     var body: some View {
         ZStack {
-            tabLayer(.thisWeek) {
+            tabLayer(.today) {
                 NavigationStack {
-                    ThisWeekView(
+                    TodayView(
                         repository: repository,
-                        savedStore: savedStore,
-                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                        savedStore: savedStore
                     )
                 }
             }
@@ -85,13 +84,13 @@ private struct MainTabView: View {
 }
 
 enum AppTab: CaseIterable {
-    case thisWeek
+    case today
     case archive
     case saved
 
     var title: String {
         switch self {
-        case .thisWeek: "This Week"
+        case .today: "Today"
         case .archive: "Archive"
         case .saved: "Saved"
         }
@@ -99,7 +98,7 @@ enum AppTab: CaseIterable {
 
     var icon: String {
         switch self {
-        case .thisWeek: "building.columns"
+        case .today: "calendar"
         case .archive: "books.vertical"
         case .saved: "bookmark"
         }

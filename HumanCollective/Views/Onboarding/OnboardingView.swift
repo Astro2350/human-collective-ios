@@ -7,9 +7,9 @@ struct OnboardingView: View {
 
     private let pages = [
         OnboardingPage(
-            title: "Culture, once a week.",
-            subtitle: "One small pack to sit with.",
-            symbolName: "sun.horizon"
+            title: "One piece a day.",
+            subtitle: "A small discovery to sit with.",
+            symbolName: "calendar"
         ),
         OnboardingPage(
             title: "Objects. Places. Stories.",
@@ -18,7 +18,7 @@ struct OnboardingView: View {
         ),
         OnboardingPage(
             title: "No feed. No likes.",
-            subtitle: "Just the week's picks.",
+            subtitle: "Just one thing worth looking at.",
             symbolName: "book.closed"
         )
     ]
