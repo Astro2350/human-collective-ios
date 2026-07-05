@@ -86,7 +86,7 @@ enum AppTab: CaseIterable {
 
     var icon: String {
         switch self {
-        case .thisWeek: "book"
+        case .thisWeek: "ThisWeekTabIcon"
         case .archive: "books.vertical"
         case .saved: "bookmark"
         }
@@ -158,78 +158,15 @@ private struct AppTabIcon: View {
     var body: some View {
         switch tab {
         case .thisWeek:
-            ThisWeekTabIcon()
+            Image(tab.icon)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
                 .frame(width: 22, height: 18)
         case .archive, .saved:
             Image(systemName: tab.icon)
                 .font(.system(size: 18, weight: .semibold))
                 .frame(width: 22, height: 18)
-        }
-    }
-}
-
-private struct ThisWeekTabIcon: View {
-    var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let height = proxy.size.height
-            let lineWidth = max(width * 0.115, 2.1)
-
-            ZStack {
-                bookPath(width: width, height: height)
-                    .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
-
-                globePath(width: width, height: height)
-                    .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
-
-                continentPath(width: width, height: height)
-                    .stroke(style: StrokeStyle(lineWidth: lineWidth * 0.82, lineCap: .round, lineJoin: .round))
-            }
-        }
-        .aspectRatio(22 / 18, contentMode: .fit)
-        .accessibilityHidden(true)
-    }
-
-    private func bookPath(width: CGFloat, height: CGFloat) -> Path {
-        Path { path in
-            path.move(to: CGPoint(x: width * 0.07, y: height * 0.68))
-            path.addLine(to: CGPoint(x: width * 0.07, y: height * 0.96))
-            path.addQuadCurve(
-                to: CGPoint(x: width * 0.50, y: height * 0.91),
-                control: CGPoint(x: width * 0.27, y: height * 0.82)
-            )
-            path.addLine(to: CGPoint(x: width * 0.50, y: height * 0.50))
-            path.move(to: CGPoint(x: width * 0.50, y: height * 0.90))
-            path.addQuadCurve(
-                to: CGPoint(x: width * 0.93, y: height * 0.96),
-                control: CGPoint(x: width * 0.73, y: height * 0.82)
-            )
-            path.addLine(to: CGPoint(x: width * 0.93, y: height * 0.68))
-        }
-    }
-
-    private func globePath(width: CGFloat, height: CGFloat) -> Path {
-        Path { path in
-            path.addEllipse(in: CGRect(
-                x: width * 0.25,
-                y: height * 0.00,
-                width: width * 0.50,
-                height: height * 0.50
-            ))
-        }
-    }
-
-    private func continentPath(width: CGFloat, height: CGFloat) -> Path {
-        Path { path in
-            path.move(to: CGPoint(x: width * 0.38, y: height * 0.18))
-            path.addLine(to: CGPoint(x: width * 0.45, y: height * 0.11))
-            path.addLine(to: CGPoint(x: width * 0.51, y: height * 0.21))
-            path.addLine(to: CGPoint(x: width * 0.47, y: height * 0.31))
-            path.addLine(to: CGPoint(x: width * 0.55, y: height * 0.36))
-
-            path.move(to: CGPoint(x: width * 0.62, y: height * 0.13))
-            path.addLine(to: CGPoint(x: width * 0.58, y: height * 0.25))
-            path.addLine(to: CGPoint(x: width * 0.67, y: height * 0.30))
         }
     }
 }
