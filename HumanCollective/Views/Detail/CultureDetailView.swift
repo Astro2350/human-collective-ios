@@ -1,3 +1,4 @@
+import MapKit
 import SwiftUI
 
 struct CultureDetailView: View {
@@ -47,6 +48,7 @@ struct CultureDetailView: View {
                         articleHeader(item)
                         factStrip(item)
                         actionRow(item)
+                        contextSection(item)
                         highlightsSection(item)
                         whyItMattersSection(item)
                         significanceSection(item)
@@ -137,47 +139,55 @@ struct CultureDetailView: View {
     }
 
     private func actionRow(_ item: CultureItem) -> some View {
-        VStack(spacing: 11) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    viewModel.toggleSaved()
-                }
-            } label: {
-                Label(viewModel.isSaved ? "Saved" : "Save", systemImage: viewModel.isSaved ? "bookmark.fill" : "bookmark")
+        HStack(spacing: 11) {
+            ShareLink(item: shareText(for: item)) {
+                Label("Share", systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
-                    .contentTransition(.symbolEffect(.replace))
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .controlSize(.large)
             .tint(HCTheme.blueStone)
 
-            HStack(spacing: 11) {
-                ShareLink(item: shareText(for: item)) {
-                    Label("Share", systemImage: "square.and.arrow.up")
+            if let url = sourceURL(for: item) {
+                Link(destination: url) {
+                    Label("Source", systemImage: "link")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .tint(HCTheme.blueStone)
+            } else {
+                Button {} label: {
+                    Label("Source", systemImage: "link")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .tint(HCTheme.blueStone)
+                .disabled(true)
+                .accessibilityLabel("Source unavailable")
+            }
+        }
+    }
 
-                if let url = sourceURL(for: item) {
-                    Link(destination: url) {
-                        Label("Source", systemImage: "link")
-                            .frame(maxWidth: .infinity)
+    @ViewBuilder
+    private func contextSection(_ item: CultureItem) -> some View {
+        let date = cleanedText(item.dateDisplay)
+        let place = cleanedText(item.placeDisplay)
+        let coordinate = coordinate(for: item)
+
+        if date != nil || (place != nil && coordinate != nil) {
+            DetailSection(title: "Timeline and map", systemImage: "map") {
+                VStack(alignment: .leading, spacing: 18) {
+                    if let date {
+                        ContextValueRow(label: "Source date", value: date)
+                        TimelineStrip(placement: timelinePlacement(for: date))
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .tint(HCTheme.blueStone)
-                } else {
-                    Button {} label: {
-                        Label("Source", systemImage: "link")
-                            .frame(maxWidth: .infinity)
+
+                    if let place, let coordinate {
+                        ContextValueRow(label: "Origin", value: place)
+                        OriginMapView(coordinate: coordinate)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .tint(HCTheme.blueStone)
-                    .disabled(true)
-                    .accessibilityLabel("Source unavailable")
                 }
             }
         }
@@ -188,10 +198,10 @@ struct CultureDetailView: View {
         let highlights = highlightTexts(for: item)
 
         if !highlights.isEmpty {
-            DetailSection(title: "Highlights") {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(highlights, id: \.self) { highlight in
-                        HighlightRow(text: highlight)
+            DetailSection(title: "Highlights", systemImage: "list.bullet") {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(highlights.enumerated()), id: \.offset) { index, highlight in
+                        HighlightRow(index: index + 1, text: highlight)
                     }
                 }
             }
@@ -203,11 +213,11 @@ struct CultureDetailView: View {
         let paragraphs = summaryParagraphs(for: item)
 
         if !paragraphs.isEmpty {
-            DetailSection(title: "Detailed Summary") {
-                VStack(alignment: .leading, spacing: 12) {
+            DetailSection(title: "Detailed Summary", systemImage: "text.alignleft") {
+                VStack(alignment: .leading, spacing: 14) {
                     ForEach(paragraphs, id: \.self) { paragraph in
                         Text(paragraph)
-                            .font(.system(size: 16.5, weight: .regular, design: .serif))
+                            .font(.body)
                             .foregroundStyle(HCTheme.secondaryInk)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
@@ -220,28 +230,23 @@ struct CultureDetailView: View {
     @ViewBuilder
     private func whyItMattersSection(_ item: CultureItem) -> some View {
         if let whyItMatters = cleanedText(item.whyItMatters) {
-            InsightBlock(title: "Why it matters", text: whyItMatters, accent: HCTheme.clay)
+            DetailSection(title: "Why it matters", systemImage: "sparkle") {
+                InsightBlock(text: whyItMatters, accent: HCTheme.clay)
+            }
         }
     }
 
     @ViewBuilder
     private func significanceSection(_ item: CultureItem) -> some View {
         if let significance = significanceText(for: item) {
-            InsightBlock(title: "Significance", text: significance, accent: HCTheme.moss)
+            DetailSection(title: "Significance", systemImage: "scope") {
+                InsightBlock(text: significance, accent: HCTheme.moss)
+            }
         }
     }
 
     private func sourceSection(_ item: CultureItem) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.7))
-                .frame(height: HCTheme.hairline)
-
-            Text("Source and license")
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
-
+        DetailSection(title: "Source and license", systemImage: "link") {
             Text(sourceSummary(for: item))
                 .font(.footnote)
                 .foregroundStyle(HCTheme.mutedInk)
@@ -263,8 +268,6 @@ struct CultureDetailView: View {
 
     private func detailFacts(for item: CultureItem) -> [DetailFactModel] {
         [
-            cleanedText(item.placeDisplay).map { DetailFactModel(label: "Origin", value: $0) },
-            cleanedText(item.dateDisplay).map { DetailFactModel(label: "Made", value: $0) },
             cleanedText(item.maker).map { DetailFactModel(label: "Maker", value: $0) }
         ]
         .compactMap { $0 }
@@ -277,16 +280,8 @@ struct CultureDetailView: View {
             highlights.append(hook)
         }
 
-        if let context = objectContextHighlight(for: item) {
-            highlights.append(context)
-        }
-
         if let maker = cleanedText(item.maker) {
             highlights.append("Made by \(maker).")
-        }
-
-        if let sourceName = cleanedText(item.sourceName) {
-            highlights.append("Held or documented by \(sourceName).")
         }
 
         if highlights.isEmpty {
@@ -308,35 +303,52 @@ struct CultureDetailView: View {
         }
     }
 
-    private func objectContextHighlight(for item: CultureItem) -> String? {
-        let place = cleanedText(item.placeDisplay)
-        let date = cleanedText(item.dateDisplay)
+    private func significanceText(for item: CultureItem) -> String? {
         let category = item.category.displayName.lowercased()
+        return "This \(category) turns material, form, and use into evidence, making a larger cultural world easier to study through one concrete example."
+    }
 
-        switch (place, date) {
-        case let (place?, date?):
-            return "\(item.category.displayName) from \(place), made \(date)."
-        case let (place?, nil):
-            return "\(item.category.displayName) from \(place)."
-        case let (nil, date?):
-            return "\(category.capitalized) made \(date)."
-        case (nil, nil):
-            return nil
+    private func timelinePlacement(for dateDisplay: String) -> TimelinePlacement? {
+        let lowercase = dateDisplay.lowercased()
+        let numbers = numbers(in: dateDisplay)
+        guard !numbers.isEmpty else { return nil }
+
+        let isBCE = lowercase.contains("bce") || lowercase.contains("bc")
+        let isCentury = lowercase.contains("century")
+        let years = numbers.map { number -> Double in
+            if isCentury {
+                let midpoint = (Double(number - 1) * 100) + 50
+                return isBCE ? -midpoint : midpoint
+            }
+
+            return isBCE ? -Double(number) : Double(number)
+        }
+
+        let averageYear = years.reduce(0, +) / Double(years.count)
+        return TimelinePlacement(year: averageYear)
+    }
+
+    private func numbers(in text: String) -> [Int] {
+        let pattern = #"\d+"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+
+        let nsText = text as NSString
+        let range = NSRange(location: 0, length: nsText.length)
+
+        return regex.matches(in: text, range: range).compactMap { match in
+            Int(nsText.substring(with: match.range))
         }
     }
 
-    private func significanceText(for item: CultureItem) -> String? {
-        let context = [
-            cleanedText(item.placeDisplay),
-            cleanedText(item.dateDisplay)
-        ]
-        .compactMap { $0 }
-        .joined(separator: ", ")
+    private func coordinate(for item: CultureItem) -> CLLocationCoordinate2D? {
+        guard let latitude = item.latitude,
+              let longitude = item.longitude,
+              (-90...90).contains(latitude),
+              (-180...180).contains(longitude) else {
+            return nil
+        }
 
-        guard !context.isEmpty else { return nil }
-
-        let category = item.category.displayName.lowercased()
-        return "This \(category) gives a concrete way to see \(context) through material, form, and use."
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
     private func sentences(from text: String) -> [String] {
@@ -401,21 +413,147 @@ struct CultureDetailView: View {
     }
 }
 
+private struct TimelinePlacement {
+    let year: Double
+}
+
+private struct ContextValueRow: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.cultureKicker(10))
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.mutedInk)
+
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(HCTheme.secondaryInk)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct TimelineStrip: View {
+    let placement: TimelinePlacement?
+
+    private let minYear = -2200.0
+    private let maxYear = 2026.0
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            GeometryReader { proxy in
+                let markerSize: CGFloat = 11
+                let width = proxy.size.width
+                let markerX = markerOffset(width: width, markerSize: markerSize)
+
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(HCTheme.line.opacity(0.72))
+                        .frame(height: 2)
+                        .frame(maxWidth: .infinity)
+
+                    if placement != nil {
+                        Circle()
+                            .fill(HCTheme.clay)
+                            .frame(width: markerSize, height: markerSize)
+                            .offset(x: markerX)
+                    }
+                }
+                .frame(height: 14)
+            }
+            .frame(height: 14)
+            .accessibilityHidden(true)
+
+            HStack {
+                Text("BCE")
+                Spacer()
+                Text("CE")
+            }
+            .font(.caption2.weight(.semibold))
+            .textCase(.uppercase)
+            .foregroundStyle(HCTheme.mutedInk)
+        }
+    }
+
+    private func markerOffset(width: CGFloat, markerSize: CGFloat) -> CGFloat {
+        guard let placement else { return 0 }
+
+        let clampedYear = min(max(placement.year, minYear), maxYear)
+        let progress = (clampedYear - minYear) / (maxYear - minYear)
+        let availableWidth = max(width - markerSize, 0)
+
+        return availableWidth * CGFloat(progress)
+    }
+}
+
+private struct OriginMapView: View {
+    let coordinate: CLLocationCoordinate2D
+
+    private var region: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 18, longitudeDelta: 18)
+        )
+    }
+
+    var body: some View {
+        Map(initialPosition: .region(region)) {
+            Annotation("", coordinate: coordinate) {
+                Circle()
+                    .fill(HCTheme.clay)
+                    .frame(width: 12, height: 12)
+                    .overlay {
+                        Circle()
+                            .stroke(HCTheme.surface, lineWidth: 3)
+                    }
+            }
+        }
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+        .allowsHitTesting(false)
+        .frame(height: 146)
+        .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+    }
+}
+
 private struct DetailSection<Content: View>: View {
     let title: String
+    let systemImage: String?
     private let content: Content
 
-    init(title: String, @ViewBuilder content: () -> Content) {
+    init(title: String, systemImage: String? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
+        self.systemImage = systemImage
         self.content = content()
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title)
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
+        VStack(alignment: .leading, spacing: 13) {
+            Rectangle()
+                .fill(HCTheme.line.opacity(0.55))
+                .frame(height: HCTheme.hairline)
+
+            HStack(spacing: 8) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(HCTheme.clay)
+                }
+
+                Text(title)
+                    .font(.cultureKicker())
+                    .textCase(.uppercase)
+                    .foregroundStyle(HCTheme.clay)
+
+                Spacer(minLength: 0)
+            }
 
             content
         }
@@ -423,17 +561,19 @@ private struct DetailSection<Content: View>: View {
 }
 
 private struct HighlightRow: View {
+    let index: Int
     let text: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 11) {
-            Circle()
-                .fill(HCTheme.clay.opacity(0.75))
-                .frame(width: 5, height: 5)
-                .padding(.top, 8)
+        HStack(alignment: .top, spacing: 12) {
+            Text(String(format: "%02d", index))
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(HCTheme.clay)
+                .frame(width: 22, alignment: .leading)
+                .padding(.top, 3)
 
             Text(text)
-                .font(.callout)
+                .font(.subheadline)
                 .foregroundStyle(HCTheme.secondaryInk)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
@@ -442,30 +582,22 @@ private struct HighlightRow: View {
 }
 
 private struct InsightBlock: View {
-    let title: String
     let text: String
     let accent: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(accent)
+        HStack(alignment: .top, spacing: 13) {
+            Rectangle()
+                .fill(accent.opacity(0.72))
+                .frame(width: 2)
 
-            HStack(alignment: .top, spacing: 14) {
-                Rectangle()
-                    .fill(accent.opacity(0.75))
-                    .frame(width: 2)
-
-                Text(text)
-                    .font(.cultureTitle(20, weight: .regular))
-                    .foregroundStyle(HCTheme.ink)
-                    .lineSpacing(5)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.vertical, 4)
+            Text(text)
+                .font(.body)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(.vertical, 2)
     }
 }
 

@@ -47,7 +47,7 @@ struct SavedView: View {
     private func savedList(_ items: [CultureItem]) -> some View {
         List {
             ScreenHeader("Saved pieces")
-                .listRowInsets(.init(top: 0, leading: HCTheme.pagePadding, bottom: 12, trailing: HCTheme.pagePadding))
+                .listRowInsets(.init(top: HCTheme.pagePadding, leading: HCTheme.pagePadding, bottom: 12, trailing: HCTheme.pagePadding))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
 
@@ -105,8 +105,6 @@ private struct SavedItemCard: View {
                     .font(.caption)
                     .foregroundStyle(HCTheme.secondaryInk)
                     .lineLimit(2)
-
-                CategoryChip(category: item.category)
             }
 
             Spacer(minLength: 0)

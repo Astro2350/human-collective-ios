@@ -27,8 +27,6 @@ struct FeaturedCultureCard: View {
             )
 
             VStack(alignment: .leading, spacing: 10) {
-                CategoryChip(category: item.category)
-
                 Text(item.title)
                     .font(.cultureTitle(31))
                     .foregroundStyle(HCTheme.ink)
