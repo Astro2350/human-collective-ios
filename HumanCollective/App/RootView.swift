@@ -86,7 +86,7 @@ enum AppTab: CaseIterable {
 
     var icon: String {
         switch self {
-        case .thisWeek: "ThisWeekTabIcon"
+        case .thisWeek: "building.columns"
         case .archive: "books.vertical"
         case .saved: "bookmark"
         }
@@ -154,19 +154,9 @@ struct CustomTabBar: View {
 private struct AppTabIcon: View {
     let tab: AppTab
 
-    @ViewBuilder
     var body: some View {
-        switch tab {
-        case .thisWeek:
-            Image(tab.icon)
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 22, height: 18)
-        case .archive, .saved:
-            Image(systemName: tab.icon)
-                .font(.system(size: 18, weight: .semibold))
-                .frame(width: 22, height: 18)
-        }
+        Image(systemName: tab.icon)
+            .font(.system(size: 18, weight: .semibold))
+            .frame(width: 22, height: 18)
     }
 }
