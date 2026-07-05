@@ -49,7 +49,7 @@ private struct MainTabView: View {
             }
         }
         .background(HCTheme.background)
-        .tint(.black)
+        .tint(HCTheme.ink)
         .animation(tabTransitionAnimation, value: selectedTab)
         .sensoryFeedback(.selection, trigger: selectedTab)
     }
@@ -112,13 +112,13 @@ struct CustomTabBar: View {
                         Text(tab.title)
                             .font(.caption2.weight(.semibold))
                     }
-                    .foregroundStyle(.black)
+                    .foregroundStyle(HCTheme.ink)
                     .frame(maxWidth: .infinity)
                     .frame(height: 46)
                     .background {
                         if tab == selectedTab {
                             Capsule()
-                                .fill(Color.black.opacity(0.06))
+                                .fill(HCTheme.ink.opacity(0.06))
                                 .matchedGeometryEffect(id: "selected-tab-background", in: selectionNamespace)
                         }
                     }
@@ -131,7 +131,7 @@ struct CustomTabBar: View {
         .padding(.horizontal, 12)
         .padding(.top, 6)
         .padding(.bottom, 4)
-        .background(.white)
+        .background(HCTheme.surface)
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(HCTheme.line.opacity(0.45))

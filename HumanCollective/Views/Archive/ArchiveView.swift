@@ -49,13 +49,8 @@ struct ArchiveView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Archive")
-                            .font(.cultureTitle(34))
-                            .foregroundStyle(HCTheme.ink)
-                    }
-                    .padding(.top, 10)
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    ScreenHeader("Archive")
 
                     ForEach(packs) { pack in
                         NavigationLink {
@@ -69,7 +64,7 @@ struct ArchiveView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, 12)
+                .padding(.bottom, HCTheme.screenBottomPadding)
             }
             .background(HCTheme.background)
         }

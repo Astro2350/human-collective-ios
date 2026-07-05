@@ -46,15 +46,10 @@ struct SavedView: View {
 
     private func savedList(_ items: [CultureItem]) -> some View {
         List {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Saved pieces")
-                    .font(.cultureTitle(34))
-                    .foregroundStyle(HCTheme.ink)
-            }
-            .padding(.top, 10)
-            .listRowInsets(.init(top: 0, leading: HCTheme.pagePadding, bottom: 10, trailing: HCTheme.pagePadding))
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
+            ScreenHeader("Saved pieces")
+                .listRowInsets(.init(top: 0, leading: HCTheme.pagePadding, bottom: 12, trailing: HCTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
 
             ForEach(items) { item in
                 Button {

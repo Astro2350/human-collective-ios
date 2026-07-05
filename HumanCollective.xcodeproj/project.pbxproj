@@ -10,6 +10,8 @@
 		02C08223D03045E8485AAE46 /* CultureDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C5E88F8B17AE03428C4824 /* CultureDetailViewModel.swift */; };
 		067EF476CFFE013BB50FD50A /* CultureFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34BD70A4C4C8E0A36D211BB /* CultureFormatters.swift */; };
 		0744DF8D9E3A4BA7C15BB159 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6857811C01C14B19FA8B939 /* RootView.swift */; };
+		0C8223EFC5494ED2A9710225 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10F4FB3279474D50B7B51A2E /* Assets.xcassets */; };
+		0D17C7430B614D31B4D83F1E /* ScreenHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A887247197048049BB33E2D /* ScreenHeader.swift */; };
 		14E90CFABC4C41DE84CD90D9 /* Date+CultureWeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A59801443378BF970E896E8 /* Date+CultureWeek.swift */; };
 		15D64E20313202947B13649C /* FeaturedCultureCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CAD0648B9DE195E175A281 /* FeaturedCultureCard.swift */; };
 		174CC561DB7718CBFC24C459 /* LoadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0247C6C0A5B16C6492DA799 /* LoadState.swift */; };
@@ -55,8 +57,11 @@
 		3EB148254B88B5F87EEED1FC /* ThisWeekViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThisWeekViewModel.swift; sourceTree = "<group>"; };
 		47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanCollectiveApp.swift; sourceTree = "<group>"; };
 		4E96E4A0897F9C7601B89E71 /* MockCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCultureRepository.swift; sourceTree = "<group>"; };
+		10F4FB3279474D50B7B51A2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4D9A0F69830E40F6A75C923E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5830EAF77E6B8E977013D391 /* AdminSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminSeedData.swift; sourceTree = "<group>"; };
 		5E671BD8C225B072164844DC /* CultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCard.swift; sourceTree = "<group>"; };
+		5A887247197048049BB33E2D /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
 		64A55F8D2CFC135A64A3A59A /* CategoryChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryChip.swift; sourceTree = "<group>"; };
 		656AD80C91FFB067D40CFA9E /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		667C9E104DB831ED0F3FB74B /* SavedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedStore.swift; sourceTree = "<group>"; };
@@ -165,6 +170,7 @@
 				B2C3D4E5F60718293A4B5C6D /* CultureImageCache.swift */,
 				02CAD0648B9DE195E175A281 /* FeaturedCultureCard.swift */,
 				BE03FC3E3515C807DD20F426 /* PackStateViews.swift */,
+				5A887247197048049BB33E2D /* ScreenHeader.swift */,
 				DA4B59E81572A9ED069653A6 /* ZoomableImageViewer.swift */,
 			);
 			path = Components;
@@ -205,6 +211,7 @@
 				316EFCE9D873F5E0C1C74013 /* Models */,
 				9CA0391F509A5D21867A6D19 /* Persistence */,
 				4DACF09FBA16DBA72C8FB361 /* Repositories */,
+				7D05A7B1145A485CB055C784 /* Resources */,
 				BBD12988D25B3C63812B030F /* ViewModels */,
 				3861A668E81B2147C14AB66E /* Views */,
 			);
@@ -229,6 +236,15 @@
 				8F382C3C5410CEBAC4E7D31C /* Release.xcconfig */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		7D05A7B1145A485CB055C784 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				10F4FB3279474D50B7B51A2E /* Assets.xcassets */,
+				4D9A0F69830E40F6A75C923E /* Info.plist */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		F03844697285EF468D3FA5C5 /* Onboarding */ = {
@@ -263,6 +279,7 @@
 			buildConfigurationList = BEFDC5A6DED105E79CF6DC42 /* Build configuration list for PBXNativeTarget "HumanCollective" */;
 			buildPhases = (
 				7EC3178CA40BFF1BA97CA2A2 /* Sources */,
+				F52D6AE0766E459BAEFB95FA /* Resources */,
 			);
 			buildRules = (
 			);
@@ -303,6 +320,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		F52D6AE0766E459BAEFB95FA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0C8223EFC5494ED2A9710225 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		7EC3178CA40BFF1BA97CA2A2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -338,6 +366,7 @@
 				906D3CA748FC9C4BAB4FD10B /* SavedStore.swift in Sources */,
 				36FBE47AC1ABCD93ED419376 /* SavedView.swift in Sources */,
 				5C93E495827C6687B9E68DD7 /* SavedViewModel.swift in Sources */,
+				0D17C7430B614D31B4D83F1E /* ScreenHeader.swift in Sources */,
 				9FA383626626B38E1307749B /* SupabaseCultureRepository.swift in Sources */,
 				FB807A7486386AD49B920E1D /* ThisWeekView.swift in Sources */,
 				606A20C42A9E7ECDADB7891D /* ThisWeekViewModel.swift in Sources */,

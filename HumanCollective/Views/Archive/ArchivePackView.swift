@@ -10,7 +10,7 @@ struct ArchivePackView: View {
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 22) {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text(CultureFormatters.weekRange(startDate: pack.startDate, endDate: pack.endDate))
                             .font(.cultureKicker())
                             .textCase(.uppercase)
@@ -19,15 +19,17 @@ struct ArchivePackView: View {
                         Text(pack.title)
                             .font(.cultureTitle(38))
                             .foregroundStyle(HCTheme.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text(pack.subtitle)
                             .font(.callout)
                             .foregroundStyle(HCTheme.secondaryInk)
                             .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding(.top, 14)
+                    .padding(.top, HCTheme.screenTopPadding)
 
                     ForEach(pack.items) { item in
                         NavigationLink {
@@ -41,7 +43,7 @@ struct ArchivePackView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, 12)
+                .padding(.bottom, HCTheme.screenBottomPadding)
             }
             .background(HCTheme.background)
         }

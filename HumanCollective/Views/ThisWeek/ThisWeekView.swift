@@ -49,7 +49,7 @@ struct ThisWeekView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
 
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 28) {
+                LazyVStack(alignment: .leading, spacing: HCTheme.screenSectionSpacing) {
                     header(for: pack)
 
                     if let featuredItem = pack.featuredItem {
@@ -78,7 +78,7 @@ struct ThisWeekView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, 12)
+                .padding(.bottom, HCTheme.screenBottomPadding)
             }
             .background(HCTheme.background)
             .task(id: pack.id) {
@@ -89,26 +89,10 @@ struct ThisWeekView: View {
     }
 
     private func header(for pack: CulturePack) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 10) {
-                Text("This Week in\nHuman Culture")
-                    .font(.cultureTitle(32))
-                    .foregroundStyle(HCTheme.ink)
-                    .lineSpacing(2)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.82)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                WeekBadge(pack: pack)
-                    .padding(.top, 5)
-            }
-
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.75))
-                .frame(height: HCTheme.hairline)
-                .padding(.top, 2)
+        ScreenHeader("This Week in\nHuman Culture") {
+            WeekBadge(pack: pack)
+                .padding(.top, 5)
         }
-        .padding(.top, 18)
     }
 
     private func loadIfNeeded() async {
