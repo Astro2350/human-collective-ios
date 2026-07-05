@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-07-04T00:00:00Z",
+  "generated_at": "2026-07-05T17:37:53Z",
   "notes": "Manual seed data for Human Culture. Drafts can be added before curation; curated_items are ready to map into culture_items and weekly_packs maps pack membership.",
   "content_sources": [
     {
@@ -66,7 +66,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "544227",
       "title": "Blue Faience Hippopotamus",
-      "maker": null,
+      "maker": "Unknown Egyptian maker",
       "culture": "Ancient Egyptian",
       "country": "Egypt",
       "region": "Middle Kingdom",
@@ -82,7 +82,12 @@
       "latitude": 27.44,
       "longitude": 30.83,
       "primary_week_key": "2026-W27",
-      "tags": ["egypt", "faience", "afterlife", "river"],
+      "tags": [
+        "egypt",
+        "faience",
+        "afterlife",
+        "river"
+      ],
       "curator_note": "Strong lead image and approachable first object."
     },
     {
@@ -90,7 +95,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Noh_Mask_Hannya_type.jpg",
       "title": "Noh Mask of the Hannya Type",
-      "maker": null,
+      "maker": "Unknown Japanese mask carver",
       "culture": "Japanese",
       "country": "Japan",
       "region": "Edo period",
@@ -106,7 +111,12 @@
       "latitude": 35.6764,
       "longitude": 139.65,
       "primary_week_key": "2026-W27",
-      "tags": ["japan", "theater", "mask", "performance"],
+      "tags": [
+        "japan",
+        "theater",
+        "mask",
+        "performance"
+      ],
       "curator_note": "Use after an object with quiet material beauty."
     },
     {
@@ -130,7 +140,12 @@
       "latitude": 37.5961,
       "longitude": 23.0792,
       "primary_week_key": "2026-W27",
-      "tags": ["greece", "theater", "architecture", "listening"],
+      "tags": [
+        "greece",
+        "theater",
+        "architecture",
+        "listening"
+      ],
       "curator_note": "Balances object-scale items with a place."
     },
     {
@@ -154,7 +169,12 @@
       "latitude": -14.0875,
       "longitude": -75.7626,
       "primary_week_key": "2026-W27",
-      "tags": ["peru", "textile", "andean", "pattern"],
+      "tags": [
+        "peru",
+        "textile",
+        "andean",
+        "pattern"
+      ],
       "curator_note": "Strong textile anchor."
     },
     {
@@ -178,7 +198,12 @@
       "latitude": 53.345,
       "longitude": -6.254,
       "primary_week_key": "2026-W29",
-      "tags": ["ireland", "manuscript", "book", "illumination"],
+      "tags": [
+        "ireland",
+        "manuscript",
+        "book",
+        "illumination"
+      ],
       "curator_note": "Pairs well with the map as another way of holding knowledge."
     },
     {
@@ -202,7 +227,12 @@
       "latitude": 48.2897,
       "longitude": 6.9483,
       "primary_week_key": "2026-W27",
-      "tags": ["map", "renaissance", "printing", "america"],
+      "tags": [
+        "map",
+        "renaissance",
+        "printing",
+        "america"
+      ],
       "curator_note": "Ends first pack with a wide-world object."
     },
     {
@@ -226,7 +256,12 @@
       "latitude": 35.3606,
       "longitude": 138.7274,
       "primary_week_key": "2026-W29",
-      "tags": ["japan", "print", "water", "hokusai"],
+      "tags": [
+        "japan",
+        "print",
+        "water",
+        "hokusai"
+      ],
       "curator_note": "Use carefully because it is familiar; pair with less familiar works."
     },
     {
@@ -234,7 +269,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Rosetta_Stone.JPG",
       "title": "Rosetta Stone",
-      "maker": null,
+      "maker": "Unknown Ptolemaic Egyptian stonecutters",
       "culture": "Ptolemaic Egyptian",
       "country": "Egypt",
       "region": "Rashid / Rosetta",
@@ -250,7 +285,12 @@
       "latitude": 31.4044,
       "longitude": 30.4164,
       "primary_week_key": "2026-W28",
-      "tags": ["egypt", "language", "stone", "translation"],
+      "tags": [
+        "egypt",
+        "language",
+        "stone",
+        "translation"
+      ],
       "curator_note": "Good anchor for a pack about reading objects."
     },
     {
@@ -258,7 +298,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Minoan_vase_with_octopus_motif",
       "title": "Minoan Octopus Vase",
-      "maker": null,
+      "maker": "Unknown Minoan potter",
       "culture": "Minoan",
       "country": "Greece",
       "region": "Crete",
@@ -274,7 +314,12 @@
       "latitude": 35.2401,
       "longitude": 24.8093,
       "primary_week_key": "2026-W28",
-      "tags": ["crete", "pottery", "sea", "animal"],
+      "tags": [
+        "crete",
+        "pottery",
+        "sea",
+        "animal"
+      ],
       "curator_note": "Excellent shape/image relationship."
     },
     {
@@ -282,7 +327,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Agamemnon_mask_NAMA_Athens_Greece.jpg",
       "title": "Gold Funerary Mask",
-      "maker": null,
+      "maker": "Unknown Mycenaean goldsmith",
       "culture": "Mycenaean",
       "country": "Greece",
       "region": "Mycenae",
@@ -298,7 +343,12 @@
       "latitude": 37.7308,
       "longitude": 22.7561,
       "primary_week_key": "2026-W29",
-      "tags": ["greece", "gold", "burial", "mycenaean"],
+      "tags": [
+        "greece",
+        "gold",
+        "burial",
+        "mycenaean"
+      ],
       "curator_note": "Use title carefully; avoid overstating the Agamemnon identification."
     },
     {
@@ -322,7 +372,12 @@
       "latitude": 34.3853,
       "longitude": 109.2732,
       "primary_week_key": "2026-W27",
-      "tags": ["china", "tomb", "sculpture", "army"],
+      "tags": [
+        "china",
+        "tomb",
+        "sculpture",
+        "army"
+      ],
       "curator_note": "Good monumental object with human detail."
     },
     {
@@ -346,7 +401,12 @@
       "latitude": -8.1116,
       "longitude": -79.0288,
       "primary_week_key": "2026-W27",
-      "tags": ["peru", "moche", "portrait", "ceramic"],
+      "tags": [
+        "peru",
+        "moche",
+        "portrait",
+        "ceramic"
+      ],
       "curator_note": "Useful bridge between pottery and portraiture."
     },
     {
@@ -354,7 +414,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Sutton_Hoo_helmet_fig1",
       "title": "Sutton Hoo Helmet",
-      "maker": null,
+      "maker": "Unknown Anglo-Saxon metalworker",
       "culture": "Anglo-Saxon",
       "country": "England",
       "region": "Suffolk",
@@ -370,7 +430,12 @@
       "latitude": 52.089,
       "longitude": 1.338,
       "primary_week_key": "2026-W28",
-      "tags": ["england", "helmet", "burial", "metalwork"],
+      "tags": [
+        "england",
+        "helmet",
+        "burial",
+        "metalwork"
+      ],
       "curator_note": "Image is a reconstruction diagram; replace with object photo if licensing allows."
     },
     {
@@ -378,7 +443,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "P1050763_Louvre_code_Hammurabi_face_rwk.JPG",
       "title": "Stele of Hammurabi",
-      "maker": null,
+      "maker": "Unknown Babylonian stone carver",
       "culture": "Babylonian",
       "country": "Iraq",
       "region": "Babylon",
@@ -394,7 +459,12 @@
       "latitude": 32.5364,
       "longitude": 44.4208,
       "primary_week_key": "2026-W29",
-      "tags": ["babylon", "law", "writing", "stone"],
+      "tags": [
+        "babylon",
+        "law",
+        "writing",
+        "stone"
+      ],
       "curator_note": "Good for a week about rules, records, and memory."
     },
     {
@@ -418,7 +488,12 @@
       "latitude": 49.4521,
       "longitude": 11.0767,
       "primary_week_key": "2026-W28",
-      "tags": ["print", "animal", "renaissance", "knowledge"],
+      "tags": [
+        "print",
+        "animal",
+        "renaissance",
+        "knowledge"
+      ],
       "curator_note": "Useful as a humility piece about representation."
     },
     {
@@ -426,7 +501,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Lewis_chessmen.jpg",
       "title": "Lewis Chessmen",
-      "maker": null,
+      "maker": "Unknown Norse or Scottish carvers",
       "culture": "Norse / Scottish",
       "country": "Scotland",
       "region": "Isle of Lewis",
@@ -442,7 +517,12 @@
       "latitude": 58.213,
       "longitude": -6.388,
       "primary_week_key": "2026-W27",
-      "tags": ["scotland", "game", "ivory", "medieval"],
+      "tags": [
+        "scotland",
+        "game",
+        "ivory",
+        "medieval"
+      ],
       "curator_note": "Good saved-item candidate; people tend to connect with faces."
     },
     {
@@ -450,7 +530,7 @@
       "content_source_id": "wikimedia-commons",
       "source_object_id": "Astrolabe-Persian-18C.jpg",
       "title": "Persian Astrolabe",
-      "maker": null,
+      "maker": "Unknown Persian instrument maker",
       "culture": "Persian",
       "country": "Iran",
       "region": null,
@@ -466,7 +546,12 @@
       "latitude": 32.4279,
       "longitude": 53.688,
       "primary_week_key": "2026-W29",
-      "tags": ["iran", "astronomy", "tool", "science"],
+      "tags": [
+        "iran",
+        "astronomy",
+        "tool",
+        "science"
+      ],
       "curator_note": "Strong example for tools as culture."
     },
     {
@@ -490,7 +575,12 @@
       "latitude": 49.2765,
       "longitude": -0.7025,
       "primary_week_key": "2026-W29",
-      "tags": ["france", "textile", "history", "embroidery"],
+      "tags": [
+        "france",
+        "textile",
+        "history",
+        "embroidery"
+      ],
       "curator_note": "Good close for a week about records and storytelling."
     },
     {
@@ -498,7 +588,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "59681",
       "title": "Netsuke of Puppies at Play",
-      "maker": null,
+      "maker": "Unknown Japanese netsuke carver",
       "culture": "Japanese",
       "country": "Japan",
       "region": "Meiji period",
@@ -514,7 +604,12 @@
       "latitude": 35.6764,
       "longitude": 139.65,
       "primary_week_key": "2026-W27",
-      "tags": ["japan", "netsuke", "dogs", "miniature"],
+      "tags": [
+        "japan",
+        "netsuke",
+        "dogs",
+        "miniature"
+      ],
       "curator_note": "Strong cute-object replacement for quieter pattern pieces."
     },
     {
@@ -538,7 +633,12 @@
       "latitude": 19.2452,
       "longitude": -103.7241,
       "primary_week_key": "2026-W28",
-      "tags": ["mexico", "colima", "dog", "ceramic"],
+      "tags": [
+        "mexico",
+        "colima",
+        "dog",
+        "ceramic"
+      ],
       "curator_note": "Creature-forward archive lead."
     },
     {
@@ -546,7 +646,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "570719",
       "title": "Cat with Image of Bastet",
-      "maker": null,
+      "maker": "Unknown Egyptian maker",
       "culture": "Ancient Egyptian",
       "country": "Egypt",
       "region": "Late Period-Ptolemaic Period",
@@ -562,7 +662,12 @@
       "latitude": 30.9686,
       "longitude": 31.1,
       "primary_week_key": "2026-W28",
-      "tags": ["egypt", "cat", "bastet", "bronze"],
+      "tags": [
+        "egypt",
+        "cat",
+        "bastet",
+        "bronze"
+      ],
       "curator_note": "Adds a high-charm animal object with a strong story."
     },
     {
@@ -570,7 +675,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "254779",
       "title": "Terracotta Stirrup Jar with Octopus",
-      "maker": null,
+      "maker": "Unknown Mycenaean potter",
       "culture": "Helladic, Mycenaean",
       "country": "Greece",
       "region": "Late Helladic IIIC",
@@ -586,7 +691,12 @@
       "latitude": 37.7308,
       "longitude": 22.7561,
       "primary_week_key": "2026-W28",
-      "tags": ["greece", "octopus", "pottery", "sea"],
+      "tags": [
+        "greece",
+        "octopus",
+        "pottery",
+        "sea"
+      ],
       "curator_note": "Keeps the archive week lively and animal-led."
     },
     {
@@ -594,7 +704,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "44442",
       "title": "Haniwa Horse's Head",
-      "maker": null,
+      "maker": "Unknown Japanese haniwa maker",
       "culture": "Japanese",
       "country": "Japan",
       "region": "Kofun period",
@@ -610,7 +720,12 @@
       "latitude": 34.6851,
       "longitude": 135.8048,
       "primary_week_key": "2026-W28",
-      "tags": ["japan", "haniwa", "horse", "clay"],
+      "tags": [
+        "japan",
+        "haniwa",
+        "horse",
+        "clay"
+      ],
       "curator_note": "Quietly cute, with strong silhouette value."
     },
     {
@@ -634,7 +749,12 @@
       "latitude": 19.2452,
       "longitude": -103.7241,
       "primary_week_key": "2026-W29",
-      "tags": ["mexico", "colima", "turtle", "vessel"],
+      "tags": [
+        "mexico",
+        "colima",
+        "turtle",
+        "vessel"
+      ],
       "curator_note": "Cute lead for the Tiny Legends archive week."
     },
     {
@@ -642,7 +762,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "255506",
       "title": "Minoan Bull's-Head Rhyton",
-      "maker": null,
+      "maker": "Unknown Minoan stone carver",
       "culture": "Minoan",
       "country": "Greece",
       "region": "Crete",
@@ -658,7 +778,12 @@
       "latitude": 35.2401,
       "longitude": 24.8093,
       "primary_week_key": "2026-W29",
-      "tags": ["crete", "bull", "rhyton", "ritual"],
+      "tags": [
+        "crete",
+        "bull",
+        "rhyton",
+        "ritual"
+      ],
       "curator_note": "Strong small-form object with immediate visual appeal."
     },
     {
@@ -666,7 +791,7 @@
       "content_source_id": "met-open-access",
       "source_object_id": "310524",
       "title": "Moche Head Vessel",
-      "maker": null,
+      "maker": "Unknown Moche artist",
       "culture": "Moche",
       "country": "Peru",
       "region": "North Coast",
@@ -682,11 +807,900 @@
       "latitude": -8.1116,
       "longitude": -79.0288,
       "primary_week_key": "2026-W29",
-      "tags": ["peru", "moche", "portrait", "ceramic"],
+      "tags": [
+        "peru",
+        "moche",
+        "portrait",
+        "ceramic"
+      ],
       "curator_note": "Keeps the week object-led and face-forward."
+    },
+    {
+      "id": "met-colima-frog-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "312554",
+      "title": "Frog Vessel",
+      "maker": "Colima artist(s)",
+      "culture": "Colima",
+      "country": "Mexico",
+      "region": "West Mexico",
+      "date_display": "2nd century BCE-3rd century CE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/1979.206.332.JPG",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/312554",
+      "license": "Public domain / Met Open Access",
+      "hook": "A frog becomes a vessel, squat, alert, and ready to leap.",
+      "story": "This Colima ceramic turns an animal body into a container without losing the frog's personality. The rounded form, short legs, and lifted head make function feel animated rather than plain.",
+      "why_it_matters": "It shows how ancient makers could make usefulness feel alive, using animal form to give an everyday shape character.",
+      "latitude": 19.2452,
+      "longitude": -103.7241,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "mexico",
+        "frog",
+        "vessel",
+        "animal"
+      ],
+      "curator_note": "Cute, direct animal form with strong archive appeal."
+    },
+    {
+      "id": "met-rabbit-netsuke-mitsuhiro",
+      "content_source_id": "met-open-access",
+      "source_object_id": "59689",
+      "title": "Rabbit Netsuke",
+      "maker": "Ohara Mitsuhiro",
+      "culture": "Japanese",
+      "country": "Japan",
+      "region": "Edo period",
+      "date_display": "mid-19th century",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/as/web-large/DT4920.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/59689",
+      "license": "Public domain / Met Open Access",
+      "hook": "A tiny rabbit holds still with the tension of something about to move.",
+      "story": "Netsuke were small toggles used with traditional Japanese dress, but they often became miniature sculptures. This rabbit has the compact energy that makes small objects rewarding: ears, body, and posture are compressed into a form meant to be held close.",
+      "why_it_matters": "It shows how a practical accessory could become a small act of observation and affection.",
+      "latitude": 35.6764,
+      "longitude": 139.65,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "japan",
+        "rabbit",
+        "netsuke",
+        "miniature"
+      ],
+      "curator_note": "Animal charm with named maker."
+    },
+    {
+      "id": "met-owl-staff-head",
+      "content_source_id": "met-open-access",
+      "source_object_id": "312501",
+      "title": "Owl Staff Head",
+      "maker": "Zenu artist(s)",
+      "culture": "Zenu",
+      "country": "Colombia",
+      "region": "Caribbean lowlands",
+      "date_display": "1-1000 CE",
+      "category": "jewelry",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DT4865.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/312501",
+      "license": "Public domain / Met Open Access",
+      "hook": "A small gold owl turns a staff into something watchful.",
+      "story": "The owl form is compact and frontal, made in gold so its tiny body carries authority beyond its size. The object suggests how animal imagery could sit at the border of ornament, tool, and presence.",
+      "why_it_matters": "It shows how scale does not limit power: a small animal image can change the meaning of the thing it belongs to.",
+      "latitude": 9.241,
+      "longitude": -74.426,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "colombia",
+        "owl",
+        "gold",
+        "animal"
+      ],
+      "curator_note": "Small and visually immediate."
+    },
+    {
+      "id": "met-monkey-netsuke-masakazu",
+      "content_source_id": "met-open-access",
+      "source_object_id": "59650",
+      "title": "Netsuke of a Seated Monkey",
+      "maker": "Masakazu",
+      "culture": "Japanese",
+      "country": "Japan",
+      "region": "Edo or Meiji period",
+      "date_display": "19th century",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/as/web-large/1985_399_8_S1_sf.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/59650",
+      "license": "Public domain / Met Open Access",
+      "hook": "A seated monkey, small enough for the hand, looks fully self-possessed.",
+      "story": "The monkey netsuke works because it does not need much scale to feel alive. Its seated posture gives the figure a calm, comic intelligence, turning a dress accessory into a tiny character study.",
+      "why_it_matters": "It shows how miniature sculpture can make personality feel concentrated rather than reduced.",
+      "latitude": 35.6764,
+      "longitude": 139.65,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "japan",
+        "monkey",
+        "netsuke",
+        "miniature"
+      ],
+      "curator_note": "Good cute/archive object."
+    },
+    {
+      "id": "met-cat-amulet-late-period",
+      "content_source_id": "met-open-access",
+      "source_object_id": "555251",
+      "title": "Cat Amulet",
+      "maker": "Unknown Egyptian maker",
+      "culture": "Ancient Egyptian",
+      "country": "Egypt",
+      "region": "Late Period",
+      "date_display": "664-332 BCE",
+      "category": "artifact",
+      "image_url": "https://images.metmuseum.org/CRDImages/eg/web-large/LC-X_351_14_EGDP037171.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/555251",
+      "license": "Public domain / Met Open Access",
+      "hook": "A little faience cat made to carry protection in miniature.",
+      "story": "The amulet takes a familiar animal and makes it portable, durable, and meaningful. Its small size is part of its force: it was designed to be close to the body, where belief could become something carried.",
+      "why_it_matters": "It shows how affection for animals, protection, and daily life could meet in a tiny object.",
+      "latitude": 30.9686,
+      "longitude": 31.1,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "egypt",
+        "cat",
+        "amulet",
+        "faience"
+      ],
+      "curator_note": "Cute, spiritual, and compact."
+    },
+    {
+      "id": "met-egyptian-hedgehog-faience",
+      "content_source_id": "met-open-access",
+      "source_object_id": "544054",
+      "title": "Faience Hedgehog",
+      "maker": "Unknown Egyptian maker",
+      "culture": "Ancient Egyptian",
+      "country": "Egypt",
+      "region": "New Kingdom",
+      "date_display": "ca. 1550-1450 BCE",
+      "category": "artifact",
+      "image_url": "https://images.metmuseum.org/CRDImages/eg/web-large/DT6212.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/544054",
+      "license": "Public domain / Met Open Access",
+      "hook": "A hedgehog rendered as a small bright creature from the desert edge.",
+      "story": "This faience hedgehog gives attention to an animal that is modest, low to the ground, and instantly recognizable. Its charm comes from how directly the maker turned a compact animal into a compact object.",
+      "why_it_matters": "It shows how ancient craft could preserve delight in small creatures, not only gods, rulers, or monuments.",
+      "latitude": 25.6872,
+      "longitude": 32.6396,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "egypt",
+        "hedgehog",
+        "faience",
+        "animal"
+      ],
+      "curator_note": "Extremely approachable animal object."
+    },
+    {
+      "id": "met-casas-grandes-fish-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "313362",
+      "title": "Fish Vessel",
+      "maker": "Casas Grandes artist(s)",
+      "culture": "Casas Grandes",
+      "country": "Mexico",
+      "region": "Chihuahua",
+      "date_display": "4th century",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/1979.206.1170_a.JPG",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/313362",
+      "license": "Public domain / Met Open Access",
+      "hook": "A fish-shaped vessel turns a container into something swimming in place.",
+      "story": "The fish form makes the vessel feel animated before it is understood as pottery. Body, mouth, and surface decoration work together so the object reads as both animal and container.",
+      "why_it_matters": "It shows how vessel shapes can carry humor, observation, and usefulness at the same time.",
+      "latitude": 30.3753,
+      "longitude": -107.95,
+      "primary_week_key": "2026-W23",
+      "tags": [
+        "mexico",
+        "fish",
+        "vessel",
+        "animal"
+      ],
+      "curator_note": "Strong final item for animal week."
+    },
+    {
+      "id": "met-moche-frog-bottle",
+      "content_source_id": "met-open-access",
+      "source_object_id": "316720",
+      "title": "Stirrup Spout Bottle: Frog",
+      "maker": "Unknown Moche artist",
+      "culture": "Moche",
+      "country": "Peru",
+      "region": "North Coast",
+      "date_display": "2nd-5th century",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP-23894-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/316720",
+      "license": "Public domain / Met Open Access",
+      "hook": "A frog sits inside the logic of a bottle, half creature and half vessel.",
+      "story": "Moche artists often made containers that feel like beings. Here the stirrup spout frames the frog form, making pouring, holding, and looking part of the same experience.",
+      "why_it_matters": "It shows how a vessel can become a small performance of animal life and human use.",
+      "latitude": -8.1116,
+      "longitude": -79.0288,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "peru",
+        "moche",
+        "frog",
+        "vessel"
+      ],
+      "curator_note": "Good bridge from animal week into vessels."
+    },
+    {
+      "id": "met-egyptian-frog-jar-lid",
+      "content_source_id": "met-open-access",
+      "source_object_id": "559545",
+      "title": "Jar and Lid Decorated with a Frog",
+      "maker": "Unknown Egyptian maker",
+      "culture": "Ancient Egyptian",
+      "country": "Egypt",
+      "region": "New Kingdom",
+      "date_display": "ca. 1390-1352 BCE",
+      "category": "artifact",
+      "image_url": "https://images.metmuseum.org/CRDImages/eg/web-large/22.2.33.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/559545",
+      "license": "Public domain / Met Open Access",
+      "hook": "A frog perches on a jar, making storage feel oddly alive.",
+      "story": "The decoration changes the jar from a plain container into an object with a small animal presence. The frog is not a huge image, but it is enough to make the vessel feel watched over.",
+      "why_it_matters": "It shows how a small detail can shift the entire personality of an object.",
+      "latitude": 25.6872,
+      "longitude": 32.6396,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "egypt",
+        "frog",
+        "jar",
+        "animal"
+      ],
+      "curator_note": "Subtle but charming."
+    },
+    {
+      "id": "met-chimu-dog-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "310615",
+      "title": "Double-Chambered Vessel with Dog",
+      "maker": "Chimu artist(s)",
+      "culture": "Chimu",
+      "country": "Peru",
+      "region": "North Coast",
+      "date_display": "1350-1470 CE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP215704.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/310615",
+      "license": "Public domain / Met Open Access",
+      "hook": "A little dog rides the top of a vessel with complete confidence.",
+      "story": "The double-chambered form gives the object structure, but the dog gives it charm. The figure turns the vessel into a small scene, as if function needed a companion.",
+      "why_it_matters": "It shows how animal imagery could soften and animate even highly designed ceremonial objects.",
+      "latitude": -8.1116,
+      "longitude": -79.0288,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "peru",
+        "dog",
+        "vessel",
+        "chimu"
+      ],
+      "curator_note": "Cute and materially rich."
+    },
+    {
+      "id": "met-veracruz-canine-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "313292",
+      "title": "Canine Vessel",
+      "maker": "Classic Veracruz artist(s)",
+      "culture": "Classic Veracruz",
+      "country": "Mexico",
+      "region": "South central Veracruz",
+      "date_display": "600-900 CE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP-23886-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/313292",
+      "license": "Public domain / Met Open Access",
+      "hook": "A canine body becomes a container with a face full of attitude.",
+      "story": "The vessel keeps the animal form readable while still serving as an object. Its character comes from the way the maker balances anatomy, expression, and shape.",
+      "why_it_matters": "It shows how ancient ceramics could be playful without losing their formal intelligence.",
+      "latitude": 19.1738,
+      "longitude": -96.1342,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "mexico",
+        "dog",
+        "vessel",
+        "ceramic"
+      ],
+      "curator_note": "Strong character object."
+    },
+    {
+      "id": "met-egyptian-fish-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "548322",
+      "title": "Tell el-Yahudiya-Ware Fish Vessel",
+      "maker": "Unknown Egyptian maker",
+      "culture": "Ancient Egyptian",
+      "country": "Egypt",
+      "region": "Second Intermediate Period",
+      "date_display": "ca. 1640-1550 BCE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/eg/web-large/LC-15_3_1687_EGDP034571.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/548322",
+      "license": "Public domain / Met Open Access",
+      "hook": "A fish vessel makes pottery feel like something pulled from water.",
+      "story": "The fish form gives the vessel a clear silhouette and immediate charm. It is not just decorated with an animal; the object itself takes on the animal body.",
+      "why_it_matters": "It shows how shape can carry meaning before any inscription or label is read.",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "egypt",
+        "fish",
+        "vessel",
+        "pottery"
+      ],
+      "curator_note": "Good ancient vessel form."
+    },
+    {
+      "id": "met-roman-byzantine-fish-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "468584",
+      "title": "Vessel in the Shape of a Fish",
+      "maker": "Unknown Roman or Byzantine maker",
+      "culture": "Roman or Byzantine",
+      "country": "Eastern Mediterranean",
+      "region": "Mediterranean",
+      "date_display": "4th-6th century",
+      "category": "artifact",
+      "image_url": "https://images.metmuseum.org/CRDImages/md/web-large/DP123964.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/468584",
+      "license": "Public domain / Met Open Access",
+      "hook": "A copper-alloy fish turns a vessel into a sleek little animal.",
+      "story": "The cast metal form makes the fish feel durable and precise. It carries the same pleasure as many animal vessels: recognition first, function second, then curiosity about how it was used.",
+      "why_it_matters": "It shows the long life of animal-shaped containers across materials, regions, and centuries.",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "fish",
+        "vessel",
+        "metal",
+        "medieval"
+      ],
+      "curator_note": "Adds material variety."
+    },
+    {
+      "id": "met-hittite-painted-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "325240",
+      "title": "Painted Vessel",
+      "maker": "Old Assyrian Trading Colony or Hittite artist(s)",
+      "culture": "Old Assyrian Trading Colony or Hittite",
+      "country": "Turkey",
+      "region": "Anatolia",
+      "date_display": "ca. 1900-1600 BCE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/an/web-large/DP-13441-011.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/325240",
+      "license": "Public domain / Met Open Access",
+      "hook": "A painted vessel carries ancient pattern around its curved body.",
+      "story": "The vessel depends on rhythm: painted marks move around a shape that was made to be turned in the hand. Its appeal is quieter than an animal form, but just as physical.",
+      "why_it_matters": "It shows how pattern can make a useful form feel deliberate, memorable, and social.",
+      "latitude": 39.9334,
+      "longitude": 32.8597,
+      "primary_week_key": "2026-W24",
+      "tags": [
+        "anatolia",
+        "vessel",
+        "pattern",
+        "pottery"
+      ],
+      "curator_note": "Quiet closer after animal vessels."
+    },
+    {
+      "id": "met-cupisnique-whistle",
+      "content_source_id": "met-open-access",
+      "source_object_id": "316716",
+      "title": "Ceramic Whistle",
+      "maker": "Cupisnique artist(s)",
+      "culture": "Cupisnique",
+      "country": "Peru",
+      "region": "North Coast",
+      "date_display": "1200-500 BCE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP-24270-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/316716",
+      "license": "Public domain / Met Open Access",
+      "hook": "A small ceramic object was made not just to be seen, but heard.",
+      "story": "The whistle changes the archive from silent looking to imagined sound. Its form holds a practical secret: breath moves through clay and turns an object into an event.",
+      "why_it_matters": "It reminds us that museum objects were often active things, meant for bodies, sound, and movement.",
+      "latitude": -8.1116,
+      "longitude": -79.0288,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "peru",
+        "whistle",
+        "sound",
+        "ceramic"
+      ],
+      "curator_note": "Great daily hook because it implies sound."
+    },
+    {
+      "id": "met-maya-double-whistle",
+      "content_source_id": "met-open-access",
+      "source_object_id": "503940",
+      "title": "Double Whistle",
+      "maker": "Maya artist(s)",
+      "culture": "Maya",
+      "country": "Mexico / Guatemala",
+      "region": "Mesoamerica",
+      "date_display": "7th-9th century",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/mi/web-large/DP-42309-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/503940",
+      "license": "Public domain / Met Open Access",
+      "hook": "Two whistles sit inside one object, built for breath and sound.",
+      "story": "The double whistle makes sound feel architectural. It is a small object, but it organizes air, hand, mouth, and listening into one designed experience.",
+      "why_it_matters": "It shows how technical knowledge and ritual or social use could meet in a compact musical object.",
+      "latitude": 17.0732,
+      "longitude": -89.6348,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "maya",
+        "whistle",
+        "sound",
+        "music"
+      ],
+      "curator_note": "Strong sound object."
+    },
+    {
+      "id": "met-chimu-whistling-jar",
+      "content_source_id": "met-open-access",
+      "source_object_id": "501305",
+      "title": "Whistling Jar",
+      "maker": "Chimu artist(s)",
+      "culture": "Chimu",
+      "country": "Peru",
+      "region": "North Coast",
+      "date_display": "1000-1476",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/mi/web-large/188957.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/501305",
+      "license": "Public domain / Met Open Access",
+      "hook": "A jar that could make sound turns pouring into performance.",
+      "story": "Whistling vessels blur the line between container and instrument. Their design makes liquid, air, and handling part of the object's meaning.",
+      "why_it_matters": "It shows how a vessel could create an experience instead of merely holding something.",
+      "latitude": -8.1116,
+      "longitude": -79.0288,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "peru",
+        "jar",
+        "sound",
+        "chimu"
+      ],
+      "curator_note": "Pairs well with other sound pieces."
+    },
+    {
+      "id": "met-thai-karen-frog-drum",
+      "content_source_id": "met-open-access",
+      "source_object_id": "501800",
+      "title": "Hpa-Si Frog Drum",
+      "maker": "Thai Karen maker(s)",
+      "culture": "Thai (Karen)",
+      "country": "Thailand",
+      "region": "Mainland Southeast Asia",
+      "date_display": "mid-19th-19th century",
+      "category": "tool",
+      "image_url": "https://images.metmuseum.org/CRDImages/mi/web-large/89.4.1234%20det%20slide.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/501800",
+      "license": "Public domain / Met Open Access",
+      "hook": "A bronze drum connects music, animal imagery, and ceremony.",
+      "story": "The frog drum is larger in implication than in the hand: it belongs to sound, gathering, and ritual presence. Its animal name and bronze surface make it feel both tool and symbol.",
+      "why_it_matters": "It shows how music objects can hold social meaning even before a note is heard.",
+      "latitude": 16.8409,
+      "longitude": 100.265,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "thailand",
+        "drum",
+        "frog",
+        "sound"
+      ],
+      "curator_note": "Adds Southeast Asian range and sound theme."
+    },
+    {
+      "id": "met-snail-inro",
+      "content_source_id": "met-open-access",
+      "source_object_id": "58560",
+      "title": "Inro with Snail on Bamboo",
+      "maker": "Ganbun",
+      "culture": "Japanese",
+      "country": "Japan",
+      "region": "Edo or Meiji period",
+      "date_display": "mid-19th century",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/as/web-large/LC-13_67_10-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/58560",
+      "license": "Public domain / Met Open Access",
+      "hook": "A snail moves slowly across bamboo on a pocket-sized case.",
+      "story": "An inro was made to carry small things, but this one also carries a scene. The snail, bamboo, poem, and materials turn a personal container into a miniature world.",
+      "why_it_matters": "It shows how wearable objects could reward close looking with texture, wit, and literary feeling.",
+      "latitude": 35.6764,
+      "longitude": 139.65,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "japan",
+        "snail",
+        "inro",
+        "miniature"
+      ],
+      "curator_note": "Charming slow-looking object."
+    },
+    {
+      "id": "met-owl-on-frog-bronze",
+      "content_source_id": "met-open-access",
+      "source_object_id": "207026",
+      "title": "Owl on a Frog",
+      "maker": "Unknown European maker",
+      "culture": "European",
+      "country": "Europe",
+      "region": "Early modern Europe",
+      "date_display": "ca. 1620",
+      "category": "sculpture",
+      "image_url": "https://images.metmuseum.org/CRDImages/es/web-large/ES7557.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/207026",
+      "license": "Public domain / Met Open Access",
+      "hook": "An owl stands on a frog in a tiny bronze scene full of odd tension.",
+      "story": "The object is strange in the best way: two animals, one perched on the other, fixed in bronze. It asks for a second look because the relationship is specific, compact, and slightly comic.",
+      "why_it_matters": "It shows how small sculpture can make a whole little drama out of animal bodies.",
+      "latitude": 45,
+      "longitude": 10,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "owl",
+        "frog",
+        "bronze",
+        "animal"
+      ],
+      "curator_note": "Odd and memorable."
+    },
+    {
+      "id": "met-hoefnagel-still-life-snail",
+      "content_source_id": "met-open-access",
+      "source_object_id": "382608",
+      "title": "Still Life with Flowers, a Snail and Insects",
+      "maker": "Joris Hoefnagel",
+      "culture": "European",
+      "country": "Netherlands / Austria",
+      "region": "Northern Europe",
+      "date_display": "1589",
+      "category": "painting",
+      "image_url": "https://images.metmuseum.org/CRDImages/dp/web-large/DP158476.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/382608",
+      "license": "Public domain / Met Open Access",
+      "hook": "A tiny world of flowers, insects, and a snail slows looking down.",
+      "story": "Hoefnagel's still life makes small life feel monumental through attention. The sheet gathers delicate things that could be overlooked and turns them into the main event.",
+      "why_it_matters": "It shows how careful observation can make the smallest creatures feel historically important.",
+      "latitude": 52.3676,
+      "longitude": 4.9041,
+      "primary_week_key": "2026-W25",
+      "tags": [
+        "snail",
+        "flowers",
+        "insects",
+        "still life"
+      ],
+      "curator_note": "Balances object-heavy packs with image."
+    },
+    {
+      "id": "met-athena-flying-owl",
+      "content_source_id": "met-open-access",
+      "source_object_id": "254648",
+      "title": "Bronze Statuette of Athena Flying Her Owl",
+      "maker": "Unknown Greek maker",
+      "culture": "Greek",
+      "country": "Greece",
+      "region": "Classical period",
+      "date_display": "ca. 460 BCE",
+      "category": "sculpture",
+      "image_url": "https://images.metmuseum.org/CRDImages/gr/web-large/DP324650.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/254648",
+      "license": "Public domain / Met Open Access",
+      "hook": "Athena releases an owl in a small bronze moment of motion.",
+      "story": "The statuette compresses mythic identity into gesture. Athena and the owl are linked by movement, making the bronze feel less like a fixed figure and more like a paused action.",
+      "why_it_matters": "It shows how a small object can hold myth, symbol, and motion in one readable pose.",
+      "latitude": 37.9838,
+      "longitude": 23.7275,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "greece",
+        "athena",
+        "owl",
+        "bronze"
+      ],
+      "curator_note": "Mythological but still accessible."
+    },
+    {
+      "id": "met-carnelian-snail-ring-stone",
+      "content_source_id": "met-open-access",
+      "source_object_id": "245010",
+      "title": "Carnelian Ring Stone with Snail",
+      "maker": "Unknown Roman maker",
+      "culture": "Roman",
+      "country": "Roman Empire",
+      "region": "Mediterranean",
+      "date_display": "ca. 1st-3rd century CE",
+      "category": "jewelry",
+      "image_url": "https://images.metmuseum.org/CRDImages/gr/web-large/DP143761.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/245010",
+      "license": "Public domain / Met Open Access",
+      "hook": "A snail appears on a tiny stone once meant for a ring.",
+      "story": "Ring stones are small by design, but their images can be surprisingly specific. A snail carved into carnelian turns a personal ornament into a private little emblem.",
+      "why_it_matters": "It shows how miniature images could carry identity, humor, or taste at the scale of jewelry.",
+      "latitude": 41.9028,
+      "longitude": 12.4964,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "roman",
+        "snail",
+        "ring",
+        "jewelry"
+      ],
+      "curator_note": "Tiny but conceptually strong."
+    },
+    {
+      "id": "met-egyptian-hedgehog-perfume-jar",
+      "content_source_id": "met-open-access",
+      "source_object_id": "553081",
+      "title": "Perfume Jar in the Form of a Hedgehog",
+      "maker": "Unknown Egyptian maker",
+      "culture": "Ancient Egyptian",
+      "country": "Egypt",
+      "region": "Late Period",
+      "date_display": "6th century BCE",
+      "category": "artifact",
+      "image_url": "https://images.metmuseum.org/CRDImages/eg/web-large/DP-24805-002.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/553081",
+      "license": "Public domain / Met Open Access",
+      "hook": "A perfume jar takes the shape of a hedgehog, useful and adorable at once.",
+      "story": "The jar makes scent portable through an animal body. Its hedgehog form is not just decoration; it changes the whole mood of the object, making storage feel intimate and playful.",
+      "why_it_matters": "It shows how personal objects could make daily care feel imaginative.",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "egypt",
+        "hedgehog",
+        "perfume",
+        "jar"
+      ],
+      "curator_note": "Very cute paid archive item."
+    },
+    {
+      "id": "met-wood-rabbit-netsuke",
+      "content_source_id": "met-open-access",
+      "source_object_id": "59699",
+      "title": "Wood Rabbit Netsuke",
+      "maker": "Unknown Japanese maker",
+      "culture": "Japanese",
+      "country": "Japan",
+      "region": "Edo or Meiji period",
+      "date_display": "19th century",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/as/web-large/91_1_988_O1_sf.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/59699",
+      "license": "Public domain / Met Open Access",
+      "hook": "A wood rabbit curls into a small shape made for touch.",
+      "story": "This rabbit netsuke uses wood rather than ivory or stone, giving the miniature animal a warmer physical presence. The object asks to be understood by hand as much as by sight.",
+      "why_it_matters": "It shows how material changes the feeling of even the same subject and scale.",
+      "latitude": 35.6764,
+      "longitude": 139.65,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "japan",
+        "rabbit",
+        "netsuke",
+        "wood"
+      ],
+      "curator_note": "Good companion to earlier rabbit without feeling duplicate."
+    },
+    {
+      "id": "met-wood-monkey-netsuke",
+      "content_source_id": "met-open-access",
+      "source_object_id": "59236",
+      "title": "Wood Monkey Netsuke",
+      "maker": "Unknown Japanese maker",
+      "culture": "Japanese",
+      "country": "Japan",
+      "region": "Edo period",
+      "date_display": "18th century",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/as/web-large/10_211_2018_O1_sf.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/59236",
+      "license": "Public domain / Met Open Access",
+      "hook": "A small wood monkey carries a whole mood in its posture.",
+      "story": "The monkey netsuke is compact enough to be overlooked, but its attitude makes it memorable. Netsuke like this prove how much expression can fit into a few inches.",
+      "why_it_matters": "It shows how repeated subjects still become individual through pose, material, and carving.",
+      "latitude": 35.6764,
+      "longitude": 139.65,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "japan",
+        "monkey",
+        "netsuke",
+        "wood"
+      ],
+      "curator_note": "Miniature personality."
+    },
+    {
+      "id": "met-temne-bullom-saltcellar",
+      "content_source_id": "met-open-access",
+      "source_object_id": "316442",
+      "title": "Lidded Saltcellar",
+      "maker": "Temne or Bullom artist(s)",
+      "culture": "Temne or Bullom peoples",
+      "country": "Sierra Leone",
+      "region": "West Africa",
+      "date_display": "ca. 1490-1530",
+      "category": "object",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP-40021-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/316442",
+      "license": "Public domain / Met Open Access",
+      "hook": "A saltcellar turns a table object into a sculptural event.",
+      "story": "Made in ivory, the lidded saltcellar belongs to exchange, display, and use. Its form shows how an object tied to food could also carry prestige and cross-cultural history.",
+      "why_it_matters": "It shows how design, trade, and daily rituals can meet in one compact luxury object.",
+      "latitude": 8.4606,
+      "longitude": -11.7799,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "sierra leone",
+        "saltcellar",
+        "ivory",
+        "table"
+      ],
+      "curator_note": "Elegant object with historic complexity."
+    },
+    {
+      "id": "met-maya-mythological-vessel",
+      "content_source_id": "met-open-access",
+      "source_object_id": "310364",
+      "title": "Vessel with Mythological Scene",
+      "maker": "Metropolitan Painter",
+      "culture": "Maya",
+      "country": "Guatemala / Mexico",
+      "region": "Mesoamerica",
+      "date_display": "600-800 CE",
+      "category": "pottery",
+      "image_url": "https://images.metmuseum.org/CRDImages/ao/web-large/DP-576-001.jpg",
+      "source_name": "The Metropolitan Museum of Art",
+      "source_url": "https://www.metmuseum.org/art/collection/search/310364",
+      "license": "Public domain / Met Open Access",
+      "hook": "A painted vessel wraps myth around a cylinder made to be turned.",
+      "story": "The vessel rewards rotation: figures and story unfold as the object moves. Its painting makes the container feel like a portable scene rather than a static surface.",
+      "why_it_matters": "It shows how narrative could live on objects handled in social and ceremonial settings.",
+      "latitude": 17.0732,
+      "longitude": -89.6348,
+      "primary_week_key": "2026-W26",
+      "tags": [
+        "maya",
+        "vessel",
+        "myth",
+        "painting"
+      ],
+      "curator_note": "Strong final piece before current week."
     }
   ],
   "weekly_packs": [
+    {
+      "id": "pack-2026-W23",
+      "week_key": "2026-W23",
+      "title": "Pocket Animals",
+      "subtitle": "Small creatures with big personality: frogs, rabbits, owls, monkeys, cats, hedgehogs, and fish.",
+      "start_date": "2026-06-01",
+      "end_date": "2026-06-07",
+      "item_ids": [
+        "met-colima-frog-vessel",
+        "met-rabbit-netsuke-mitsuhiro",
+        "met-owl-staff-head",
+        "met-monkey-netsuke-masakazu",
+        "met-cat-amulet-late-period",
+        "met-egyptian-hedgehog-faience",
+        "met-casas-grandes-fish-vessel"
+      ],
+      "curator_note": "Immediate paid archive week built around cute animal forms."
+    },
+    {
+      "id": "pack-2026-W24",
+      "week_key": "2026-W24",
+      "title": "Animal Vessels",
+      "subtitle": "Containers that become frogs, dogs, fish, and patterned bodies across ancient cultures.",
+      "start_date": "2026-06-08",
+      "end_date": "2026-06-14",
+      "item_ids": [
+        "met-moche-frog-bottle",
+        "met-egyptian-frog-jar-lid",
+        "met-chimu-dog-vessel",
+        "met-veracruz-canine-vessel",
+        "met-egyptian-fish-vessel",
+        "met-roman-byzantine-fish-vessel",
+        "met-hittite-painted-vessel"
+      ],
+      "curator_note": "A week that makes the archive feel object-led and tactile."
+    },
+    {
+      "id": "pack-2026-W25",
+      "week_key": "2026-W25",
+      "title": "Objects With Sound",
+      "subtitle": "Whistles, drums, slow-looking cases, and small scenes that suggest motion, breath, and listening.",
+      "start_date": "2026-06-15",
+      "end_date": "2026-06-21",
+      "item_ids": [
+        "met-cupisnique-whistle",
+        "met-maya-double-whistle",
+        "met-chimu-whistling-jar",
+        "met-thai-karen-frog-drum",
+        "met-snail-inro",
+        "met-owl-on-frog-bronze",
+        "met-hoefnagel-still-life-snail"
+      ],
+      "curator_note": "Adds a fresh angle beyond image-only looking."
+    },
+    {
+      "id": "pack-2026-W26",
+      "week_key": "2026-W26",
+      "title": "Small Wonders",
+      "subtitle": "Miniature myths, ring stones, perfume jars, netsuke, table objects, and painted stories.",
+      "start_date": "2026-06-22",
+      "end_date": "2026-06-28",
+      "item_ids": [
+        "met-athena-flying-owl",
+        "met-carnelian-snail-ring-stone",
+        "met-egyptian-hedgehog-perfume-jar",
+        "met-wood-rabbit-netsuke",
+        "met-wood-monkey-netsuke",
+        "met-temne-bullom-saltcellar",
+        "met-maya-mythological-vessel"
+      ],
+      "curator_note": "Closest past week, visually varied and very archive-friendly."
+    },
     {
       "id": "pack-2026-W27",
       "week_key": "2026-W27",
