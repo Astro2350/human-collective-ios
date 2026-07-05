@@ -59,7 +59,6 @@ Weekly packs are curated manually. Each pack should contain a small set of cultu
 - source archive or museum
 - source link
 - license
-- optional `guided_scenes` for immersive close-looking moments
 
 Mock content lives in `HumanCollective/Repositories/MockCultureRepository.swift`. A larger sample seed payload lives in `Content/admin_seed_sample.json`.
 
@@ -72,7 +71,7 @@ The manual curation workflow is documented in `docs/content-pipeline.md`.
 - `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST repository
 - `HumanCollective/Persistence` - local saved-item persistence using `UserDefaults`
 - `HumanCollective/ViewModels` - async loading and detail/saved state
-- `HumanCollective/Views` - onboarding, this week, archive, saved, detail, guided close-looking view
+- `HumanCollective/Views` - onboarding, this week, archive, saved, and detail views
 - `HumanCollective/Components` - reusable images, cards, chips, state views, and image viewer
 
 ## Persistence

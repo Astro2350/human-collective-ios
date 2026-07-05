@@ -3,7 +3,6 @@ import SwiftUI
 struct CultureDetailView: View {
     @State private var viewModel: CultureDetailViewModel
     @State private var isShowingImageViewer = false
-    @State private var isShowingGuidedView = false
 
     init(item: CultureItem, savedStore: SavedStore) {
         _viewModel = State(initialValue: CultureDetailViewModel(item: item, savedStore: savedStore))
@@ -46,7 +45,6 @@ struct CultureDetailView: View {
 
                     VStack(alignment: .leading, spacing: 28) {
                         articleHeader(item)
-                        guidedViewButton(item)
                         factStrip(item)
                         actionRow(item)
                         storySection(item)
@@ -93,9 +91,6 @@ struct CultureDetailView: View {
                 .zIndex(10)
             }
         }
-        .fullScreenCover(isPresented: $isShowingGuidedView) {
-            GuidedCultureView(item: item, guidedScenes: item.guidedScenes)
-        }
         .sensoryFeedback(.selection, trigger: viewModel.isSaved)
     }
 
@@ -113,48 +108,6 @@ struct CultureDetailView: View {
                 .foregroundStyle(HCTheme.secondaryInk)
                 .lineSpacing(5)
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    @ViewBuilder
-    private func guidedViewButton(_ item: CultureItem) -> some View {
-        if !item.guidedScenes.isEmpty {
-            Button {
-                isShowingGuidedView = true
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "sparkle.magnifyingglass")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 32, height: 32)
-                        .background(HCTheme.surfaceRaised, in: Circle())
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Explore the Details")
-                            .font(.headline.weight(.semibold))
-
-                        Text("\(item.guidedScenes.count) guided moments")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(HCTheme.mutedInk)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(HCTheme.mutedInk)
-                }
-                .foregroundStyle(HCTheme.ink)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
-                        .stroke(HCTheme.editorGold.opacity(0.5), lineWidth: 1)
-                }
-            }
-            .buttonStyle(.cultureCard)
-            .accessibilityLabel("Explore the details")
-            .accessibilityHint("Opens a guided view of this object")
         }
     }
 

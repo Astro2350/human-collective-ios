@@ -103,8 +103,7 @@ struct MockCultureRepository: CultureRepository {
                 whyItMatters: "It turns a feared animal into a hopeful object, showing how craft, belief, and affection can meet in a single handmade form.",
                 latitude: 27.4400,
                 longitude: 30.8300,
-                weekKey: weekKey,
-                guidedScenes: blueHippoGuidedScenes()
+                weekKey: weekKey
             ),
             CultureItem(
                 id: "\(weekKey)-noh-hannya-mask",
@@ -126,8 +125,7 @@ struct MockCultureRepository: CultureRepository {
                 whyItMatters: "It shows how performance can live inside an object, waiting for gesture, light, and patience to release it.",
                 latitude: 35.6764,
                 longitude: 139.6500,
-                weekKey: weekKey,
-                guidedScenes: nohMaskGuidedScenes()
+                weekKey: weekKey
             ),
             CultureItem(
                 id: "\(weekKey)-moroccan-zellige",
@@ -281,136 +279,7 @@ struct MockCultureRepository: CultureRepository {
             whyItMatters: item.whyItMatters,
             latitude: item.latitude,
             longitude: item.longitude,
-            weekKey: item.weekKey,
-            guidedScenes: item.guidedScenes
+            weekKey: item.weekKey
         )
-    }
-
-    private static func blueHippoGuidedScenes() -> [GuidedCultureScene] {
-        [
-            GuidedCultureScene(
-                id: "blue-hippo-full-object",
-                title: "A River Animal, Held in the Hand",
-                body: "This small hippopotamus was made for a tomb, but its rounded body and vivid blue surface still feel startlingly present.",
-                focusX: 0.50,
-                focusY: 0.54,
-                zoom: 1.0,
-                callout: "Blue faience body",
-                sceneIndex: 0
-            ),
-            GuidedCultureScene(
-                id: "blue-hippo-marsh-plants",
-                title: "A Marsh Painted on Its Back",
-                body: "Lotus and river plants turn the animal into a tiny Nile landscape. The decoration suggests water, growth, and renewal.",
-                focusX: 0.38,
-                focusY: 0.32,
-                zoom: 1.72,
-                highlightX: 0.36,
-                highlightY: 0.30,
-                highlightRadius: 0.16,
-                callout: "Lotus and marsh plants",
-                sceneIndex: 1
-            ),
-            GuidedCultureScene(
-                id: "blue-hippo-face",
-                title: "Charm and Danger",
-                body: "The face is gentle now, but a real hippopotamus was powerful and dangerous. The object holds both affection and awe.",
-                focusX: 0.72,
-                focusY: 0.48,
-                zoom: 1.9,
-                highlightX: 0.73,
-                highlightY: 0.48,
-                highlightRadius: 0.15,
-                callout: "A watchful face",
-                sceneIndex: 2
-            ),
-            GuidedCultureScene(
-                id: "blue-hippo-faience",
-                title: "Color Made by Fire",
-                body: "Egyptian faience was quartz-rich and glassy after firing. Its blue-green surface could carry the feeling of river light.",
-                focusX: 0.50,
-                focusY: 0.42,
-                zoom: 1.38,
-                callout: "Glassy blue-green surface",
-                sceneIndex: 3
-            ),
-            GuidedCultureScene(
-                id: "blue-hippo-pull-back",
-                title: "A Companion for Renewal",
-                body: "Pulled back, the whole object becomes a hopeful companion: craft, belief, animal power, and affection in one handmade form.",
-                focusX: 0.50,
-                focusY: 0.52,
-                zoom: 1.0,
-                sceneIndex: 4
-            )
-        ]
-    }
-
-    private static func nohMaskGuidedScenes() -> [GuidedCultureScene] {
-        [
-            GuidedCultureScene(
-                id: "noh-mask-introduction",
-                title: "A Face for the Stage",
-                body: "In Noh theater, a mask is not only a disguise. It is an instrument that comes alive through movement, light, and attention.",
-                focusX: 0.50,
-                focusY: 0.50,
-                zoom: 1.0,
-                sceneIndex: 0
-            ),
-            GuidedCultureScene(
-                id: "noh-mask-expression",
-                title: "Expression in Small Changes",
-                body: "A slight tilt can change the feeling of the fixed face. Raised or lowered, the mask can seem open, wounded, severe, or shadowed.",
-                focusX: 0.50,
-                focusY: 0.42,
-                zoom: 1.55,
-                callout: "Expression shifts with angle",
-                sceneIndex: 1
-            ),
-            GuidedCultureScene(
-                id: "noh-mask-eyes",
-                title: "Eyes That Hold Back",
-                body: "The eyes do not explain everything. Their restraint lets the performer and audience complete the emotion together.",
-                focusX: 0.50,
-                focusY: 0.36,
-                zoom: 2.15,
-                highlightX: 0.50,
-                highlightY: 0.36,
-                highlightRadius: 0.13,
-                callout: "Restrained eyes",
-                sceneIndex: 2
-            ),
-            GuidedCultureScene(
-                id: "noh-mask-mouth",
-                title: "Ambiguity at the Mouth",
-                body: "The mouth can read as pain, anger, or grief depending on how the actor carries the mask through space.",
-                focusX: 0.50,
-                focusY: 0.58,
-                zoom: 2.0,
-                highlightX: 0.50,
-                highlightY: 0.58,
-                highlightRadius: 0.12,
-                callout: "Emotional ambiguity",
-                sceneIndex: 3
-            ),
-            GuidedCultureScene(
-                id: "noh-mask-handwork",
-                title: "Wood, Paint, and Patience",
-                body: "The mask's force comes from carved wood, painted surface, and generations of performers learning how little motion is enough.",
-                focusX: 0.50,
-                focusY: 0.50,
-                zoom: 1.32,
-                sceneIndex: 4
-            ),
-            GuidedCultureScene(
-                id: "noh-mask-pull-back",
-                title: "Still Human, Still Alive",
-                body: "Seen whole again, the mask feels alive because it leaves room for gesture, breath, and imagination.",
-                focusX: 0.50,
-                focusY: 0.50,
-                zoom: 1.0,
-                sceneIndex: 5
-            )
-        ]
     }
 }

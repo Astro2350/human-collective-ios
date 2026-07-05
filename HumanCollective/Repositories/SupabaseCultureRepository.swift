@@ -205,7 +205,6 @@ private struct SupabaseCultureItemDTO: Decodable {
     let latitude: Double?
     let longitude: Double?
     let weekKey: String?
-    let guidedScenes: [GuidedCultureScene]?
 
     var model: CultureItem {
         CultureItem(
@@ -226,8 +225,7 @@ private struct SupabaseCultureItemDTO: Decodable {
             whyItMatters: whyItMatters ?? "",
             latitude: latitude,
             longitude: longitude,
-            weekKey: weekKey ?? "",
-            guidedScenes: guidedScenes ?? []
+            weekKey: weekKey ?? ""
         )
     }
 
@@ -250,6 +248,5 @@ private struct SupabaseCultureItemDTO: Decodable {
         case latitude
         case longitude
         case weekKey = "week_key"
-        case guidedScenes = "guided_scenes"
     }
 }

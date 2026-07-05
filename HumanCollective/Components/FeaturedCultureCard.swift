@@ -5,31 +5,26 @@ struct FeaturedCultureCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                Text("Editor's Choice")
+                    .font(.cultureKicker())
+                    .textCase(.uppercase)
+                    .foregroundStyle(HCTheme.editorGold)
+
+                Rectangle()
+                    .fill(HCTheme.editorGold.opacity(0.78))
+                    .frame(height: HCTheme.hairline)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
             CultureAsyncImage(
                 imageURL: item.imageURL,
                 aspectRatio: HCTheme.featuredImageAspectRatio,
                 cornerRadius: 0,
                 accessibilityLabel: item.title
             )
-            .overlay(alignment: .topLeading) {
-                HStack(spacing: 6) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 11, weight: .semibold))
-
-                    Text("Editor's Choice")
-                        .font(.cultureKicker())
-                        .textCase(.uppercase)
-                }
-                .foregroundStyle(HCTheme.editorGold)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(HCTheme.surface.opacity(0.9), in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(HCTheme.editorGold.opacity(0.45), lineWidth: HCTheme.hairline)
-                }
-                .padding(12)
-            }
 
             VStack(alignment: .leading, spacing: 10) {
                 CategoryChip(category: item.category)

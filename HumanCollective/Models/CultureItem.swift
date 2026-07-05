@@ -19,7 +19,6 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
     let latitude: Double?
     let longitude: Double?
     let weekKey: String
-    let guidedScenes: [GuidedCultureScene]
 
     init(
         id: String,
@@ -39,8 +38,7 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
         whyItMatters: String,
         latitude: Double?,
         longitude: Double?,
-        weekKey: String,
-        guidedScenes: [GuidedCultureScene] = []
+        weekKey: String
     ) {
         self.id = id
         self.title = title
@@ -60,7 +58,6 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
         self.latitude = latitude
         self.longitude = longitude
         self.weekKey = weekKey
-        self.guidedScenes = guidedScenes.sorted { $0.sceneIndex < $1.sceneIndex }
     }
 
     var placeDisplay: String {
@@ -108,7 +105,6 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
         case latitude
         case longitude
         case weekKey = "week_key"
-        case guidedScenes = "guided_scenes"
     }
 
     init(from decoder: Decoder) throws {
@@ -132,8 +128,7 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
             whyItMatters: try container.decode(String.self, forKey: .whyItMatters),
             latitude: try container.decodeIfPresent(Double.self, forKey: .latitude),
             longitude: try container.decodeIfPresent(Double.self, forKey: .longitude),
-            weekKey: try container.decode(String.self, forKey: .weekKey),
-            guidedScenes: try container.decodeIfPresent([GuidedCultureScene].self, forKey: .guidedScenes) ?? []
+            weekKey: try container.decode(String.self, forKey: .weekKey)
         )
     }
 }

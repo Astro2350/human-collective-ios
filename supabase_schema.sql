@@ -19,7 +19,6 @@ create table if not exists public.culture_items (
   latitude double precision,
   longitude double precision,
   week_key text,
-  guided_scenes jsonb not null default '[]'::jsonb,
   created_at timestamp with time zone default now()
 );
 
