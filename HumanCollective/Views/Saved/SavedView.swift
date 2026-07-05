@@ -6,12 +6,10 @@ struct SavedView: View {
 
     @State private var viewModel = SavedViewModel()
     @State private var selectedItem: CultureItem?
-    @Binding private var selectedTab: AppTab
 
-    init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
+    init(repository: any CultureRepository, savedStore: SavedStore) {
         self.repository = repository
         self.savedStore = savedStore
-        _selectedTab = selectedTab
     }
 
     var body: some View {
@@ -20,9 +18,6 @@ struct SavedView: View {
             .background(HCTheme.background)
             .task(id: savedStore.revision) {
                 await viewModel.load(from: savedStore, repository: repository)
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                CustomTabBar(selectedTab: $selectedTab)
             }
     }
 

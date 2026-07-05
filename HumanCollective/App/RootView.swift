@@ -24,38 +24,34 @@ private struct MainTabView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     @State private var selectedTab: AppTab = .thisWeek
 
     var body: some View {
         ZStack {
             tabLayer(.thisWeek) {
                 NavigationStack {
-                    ThisWeekView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
+                    ThisWeekView(repository: repository, savedStore: savedStore)
                 }
             }
 
             tabLayer(.archive) {
                 NavigationStack {
-                    ArchiveView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
+                    ArchiveView(repository: repository, savedStore: savedStore)
                 }
             }
 
             tabLayer(.saved) {
                 NavigationStack {
-                    SavedView(repository: repository, savedStore: savedStore, selectedTab: $selectedTab)
+                    SavedView(repository: repository, savedStore: savedStore)
                 }
             }
         }
         .background(HCTheme.background)
         .tint(HCTheme.ink)
-        .animation(tabTransitionAnimation, value: selectedTab)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CustomTabBar(selectedTab: $selectedTab)
+        }
         .sensoryFeedback(.selection, trigger: selectedTab)
-    }
-
-    private var tabTransitionAnimation: Animation? {
-        reduceMotion ? nil : .easeInOut(duration: 0.24)
     }
 
     private func tabLayer<Content: View>(_ tab: AppTab, @ViewBuilder content: () -> Content) -> some View {
@@ -63,8 +59,9 @@ private struct MainTabView: View {
 
         return content()
             .opacity(isSelected ? 1 : 0)
-            .scaleEffect(isSelected ? 1 : 0.985)
-            .offset(y: isSelected ? 0 : 8)
+            .transaction { transaction in
+                transaction.animation = nil
+            }
             .allowsHitTesting(isSelected)
             .accessibilityHidden(!isSelected)
             .zIndex(isSelected ? 1 : 0)
@@ -131,6 +128,7 @@ struct CustomTabBar: View {
         .padding(.top, 6)
         .padding(.bottom, 4)
         .background(HCTheme.surface)
+        .animation(tabSelectionAnimation, value: selectedTab)
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(HCTheme.line.opacity(0.45))
@@ -144,10 +142,7 @@ struct CustomTabBar: View {
 
     private func select(_ tab: AppTab) {
         guard selectedTab != tab else { return }
-
-        withAnimation(tabSelectionAnimation) {
-            selectedTab = tab
-        }
+        selectedTab = tab
     }
 }
 

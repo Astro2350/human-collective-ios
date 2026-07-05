@@ -4,11 +4,9 @@ struct ThisWeekView: View {
     let savedStore: SavedStore
 
     @State private var viewModel: ThisWeekViewModel
-    @Binding private var selectedTab: AppTab
 
-    init(repository: any CultureRepository, savedStore: SavedStore, selectedTab: Binding<AppTab>) {
+    init(repository: any CultureRepository, savedStore: SavedStore) {
         self.savedStore = savedStore
-        _selectedTab = selectedTab
         _viewModel = State(initialValue: ThisWeekViewModel(repository: repository))
     }
 
@@ -18,9 +16,6 @@ struct ThisWeekView: View {
             .background(HCTheme.background)
             .task {
                 await loadIfNeeded()
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                CustomTabBar(selectedTab: $selectedTab)
             }
     }
 
