@@ -3,13 +3,15 @@ import SwiftUI
 struct SavedView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
+    @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var viewModel = SavedViewModel()
     @State private var selectedItem: CultureItem?
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(repository: any CultureRepository, savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
         self.repository = repository
         self.savedStore = savedStore
+        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
     }
 
     var body: some View {
@@ -66,9 +68,16 @@ struct SavedView: View {
                     }
                 }
             }
+
+            Color.clear
+                .frame(height: HCTheme.rootTabBarContentClearance)
+                .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
         }
         .navigationDestination(item: $selectedItem) { item in
             CultureDetailView(item: item, savedStore: savedStore)
+                .rootTabBarHidden($rootTabBarHiddenDepth)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)

@@ -67,6 +67,7 @@ struct ZoomableImageViewer: View {
         }
         .offset(y: max(dragOffset.height, 0))
         .opacity(viewerOpacity)
+        .background(Color.black.ignoresSafeArea())
         .simultaneousGesture(dismissDrag)
         .accessibilityAction(.escape, onDismiss)
     }
@@ -149,6 +150,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
     }
 
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.isActive = true
         context.coordinator.isZoomed = $isZoomed
         context.coordinator.isLoading = $isLoading
         context.coordinator.didFail = $didFail
@@ -175,6 +177,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
                 guard !Task.isCancelled, let image = UIImage(data: data) else { return }
 
                 await MainActor.run {
+                    guard context.coordinator.isActive, !Task.isCancelled else { return }
                     context.coordinator.imageView?.image = image
                     context.coordinator.isLoading?.wrappedValue = false
                     context.coordinator.didFail?.wrappedValue = false
@@ -183,6 +186,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
                 return
             } catch {
                 await MainActor.run {
+                    guard context.coordinator.isActive, !Task.isCancelled else { return }
                     context.coordinator.imageView?.image = nil
                     context.coordinator.isLoading?.wrappedValue = false
                     context.coordinator.didFail?.wrappedValue = true
@@ -192,15 +196,19 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ uiView: UIScrollView, coordinator: Coordinator) {
+        coordinator.isActive = false
         coordinator.task?.cancel()
         coordinator.imageView?.image = nil
         coordinator.scrollView?.delegate = nil
-        coordinator.isZoomed?.wrappedValue = false
+        coordinator.isZoomed = nil
+        coordinator.isLoading = nil
+        coordinator.didFail = nil
     }
 
     final class Coordinator: NSObject, UIScrollViewDelegate {
         weak var imageView: UIImageView?
         weak var scrollView: UIScrollView?
+        var isActive = true
         var isZoomed: Binding<Bool>?
         var isLoading: Binding<Bool>?
         var didFail: Binding<Bool>?
@@ -212,6 +220,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
         }
 
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            guard isActive else { return }
             isZoomed?.wrappedValue = scrollView.zoomScale > scrollView.minimumZoomScale + 0.01
         }
 

@@ -16,9 +16,7 @@ struct CultureDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.22)) {
-                            isShowingImageViewer = true
-                        }
+                        isShowingImageViewer = true
                     } label: {
                         CultureAsyncImage(
                             imageURL: item.imageURL,
@@ -27,10 +25,6 @@ struct CultureDetailView: View {
                             accessibilityLabel: item.title
                         )
                             .clipShape(Rectangle())
-                            .overlay(alignment: .bottomLeading) {
-                                CategoryChip(category: item.category)
-                                    .padding(18)
-                            }
                             .overlay(alignment: .topTrailing) {
                                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                                     .font(.system(size: 15, weight: .semibold))
@@ -60,14 +54,10 @@ struct CultureDetailView: View {
                 .frame(width: proxy.size.width, alignment: .leading)
             }
         }
-        .allowsHitTesting(!isShowingImageViewer)
-        .accessibilityHidden(isShowingImageViewer)
         .background(HCTheme.background)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(HCTheme.background, for: .navigationBar)
-        .toolbar(isShowingImageViewer ? .hidden : .visible, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .statusBarHidden(isShowingImageViewer)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -81,17 +71,13 @@ struct CultureDetailView: View {
                 .accessibilityLabel(viewModel.isSaved ? "Unsave" : "Save")
             }
         }
-        .overlay {
-            if isShowingImageViewer {
-                ZoomableImageViewer(imageURL: item.imageURL, title: item.title) {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isShowingImageViewer = false
-                    }
-                }
-                .ignoresSafeArea()
-                .transition(.opacity.combined(with: .scale(scale: 0.985)))
-                .zIndex(10)
+        .fullScreenCover(isPresented: $isShowingImageViewer) {
+            ZoomableImageViewer(imageURL: item.imageURL, title: item.title) {
+                isShowingImageViewer = false
             }
+            .ignoresSafeArea()
+            .presentationBackground(.black)
+            .statusBarHidden(true)
         }
         .sensoryFeedback(.selection, trigger: viewModel.isSaved)
     }
@@ -254,7 +240,7 @@ struct CultureDetailView: View {
         }
 
         if highlights.isEmpty {
-            highlights.append("\(item.category.displayName) selected for close reading.")
+            highlights.append("Selected for close reading.")
         }
 
         return Array(highlights.prefix(4))
@@ -298,8 +284,7 @@ struct CultureDetailView: View {
             insights.append(MeaningInsight(label: "Why it matters", text: whyItMatters, accent: HCTheme.clay))
         }
 
-        let category = item.category.displayName.lowercased()
-        let significance = "This \(category) turns material, form, and use into evidence, making a larger cultural world easier to study through one concrete example."
+        let significance = "This piece turns material, form, and use into evidence, making a larger cultural world easier to study through one concrete example."
         insights.append(MeaningInsight(label: "Significance", text: significance, accent: HCTheme.moss))
 
         return insights

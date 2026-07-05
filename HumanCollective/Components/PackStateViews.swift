@@ -35,7 +35,7 @@ struct LoadingSkeletonView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, 12)
+                .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
             .accessibilityLabel("Loading this week's culture pack")
         }

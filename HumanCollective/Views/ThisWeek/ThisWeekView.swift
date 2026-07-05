@@ -2,11 +2,13 @@ import SwiftUI
 
 struct ThisWeekView: View {
     let savedStore: SavedStore
+    @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var viewModel: ThisWeekViewModel
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(repository: any CultureRepository, savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
         self.savedStore = savedStore
+        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ThisWeekViewModel(repository: repository))
     }
 
@@ -50,6 +52,7 @@ struct ThisWeekView: View {
                     if let featuredItem = pack.featuredItem {
                         NavigationLink {
                             CultureDetailView(item: featuredItem, savedStore: savedStore)
+                                .rootTabBarHidden($rootTabBarHiddenDepth)
                         } label: {
                             FeaturedCultureCard(item: featuredItem)
                                 .frame(width: contentWidth, alignment: .leading)
@@ -63,6 +66,7 @@ struct ThisWeekView: View {
                         ForEach(pack.items.dropFirst()) { item in
                             NavigationLink {
                                 CultureDetailView(item: item, savedStore: savedStore)
+                                    .rootTabBarHidden($rootTabBarHiddenDepth)
                             } label: {
                                 CultureCard(item: item)
                                     .frame(width: contentWidth, alignment: .leading)
@@ -73,7 +77,7 @@ struct ThisWeekView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, HCTheme.screenBottomPadding)
+                .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
             .background(HCTheme.background)
             .task(id: pack.id) {

@@ -2,11 +2,13 @@ import SwiftUI
 
 struct ArchiveView: View {
     let savedStore: SavedStore
+    @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var viewModel: ArchiveViewModel
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(repository: any CultureRepository, savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
         self.savedStore = savedStore
+        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ArchiveViewModel(repository: repository))
     }
 
@@ -49,7 +51,12 @@ struct ArchiveView: View {
 
                     ForEach(packs) { pack in
                         NavigationLink {
-                            ArchivePackView(pack: pack, savedStore: savedStore)
+                            ArchivePackView(
+                                pack: pack,
+                                savedStore: savedStore,
+                                rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                            )
+                            .rootTabBarHidden($rootTabBarHiddenDepth)
                         } label: {
                             ArchiveWeekCard(pack: pack)
                                 .frame(width: contentWidth, alignment: .leading)
@@ -59,7 +66,7 @@ struct ArchiveView: View {
                 }
                 .frame(width: contentWidth, alignment: .leading)
                 .padding(HCTheme.pagePadding)
-                .padding(.bottom, HCTheme.screenBottomPadding)
+                .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
             .background(HCTheme.background)
         }

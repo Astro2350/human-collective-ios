@@ -25,32 +25,48 @@ private struct MainTabView: View {
     let savedStore: SavedStore
 
     @State private var selectedTab: AppTab = .thisWeek
+    @State private var rootTabBarHiddenDepth = 0
 
     var body: some View {
         ZStack {
             tabLayer(.thisWeek) {
                 NavigationStack {
-                    ThisWeekView(repository: repository, savedStore: savedStore)
+                    ThisWeekView(
+                        repository: repository,
+                        savedStore: savedStore,
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                    )
                 }
             }
 
             tabLayer(.archive) {
                 NavigationStack {
-                    ArchiveView(repository: repository, savedStore: savedStore)
+                    ArchiveView(
+                        repository: repository,
+                        savedStore: savedStore,
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                    )
                 }
             }
 
             tabLayer(.saved) {
                 NavigationStack {
-                    SavedView(repository: repository, savedStore: savedStore)
+                    SavedView(
+                        repository: repository,
+                        savedStore: savedStore,
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                    )
                 }
             }
         }
         .background(HCTheme.background)
         .tint(HCTheme.ink)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            CustomTabBar(selectedTab: $selectedTab)
+            if rootTabBarHiddenDepth == 0 {
+                CustomTabBar(selectedTab: $selectedTab)
+            }
         }
+        .animation(.easeInOut(duration: 0.18), value: rootTabBarHiddenDepth)
         .sensoryFeedback(.selection, trigger: selectedTab)
     }
 
@@ -153,5 +169,30 @@ private struct AppTabIcon: View {
         Image(systemName: tab.icon)
             .font(.system(size: 18, weight: .semibold))
             .frame(width: 22, height: 18)
+    }
+}
+
+extension View {
+    func rootTabBarHidden(_ hiddenDepth: Binding<Int>) -> some View {
+        modifier(RootTabBarVisibilityModifier(hiddenDepth: hiddenDepth))
+    }
+}
+
+private struct RootTabBarVisibilityModifier: ViewModifier {
+    @Binding var hiddenDepth: Int
+    @State private var isRegistered = false
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                guard !isRegistered else { return }
+                hiddenDepth += 1
+                isRegistered = true
+            }
+            .onDisappear {
+                guard isRegistered else { return }
+                hiddenDepth = max(hiddenDepth - 1, 0)
+                isRegistered = false
+            }
     }
 }

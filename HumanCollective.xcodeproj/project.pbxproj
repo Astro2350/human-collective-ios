@@ -36,7 +36,6 @@
 		A859AAC85972C9F7D64F4FC7 /* HumanCollectiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */; };
 		CBD7C8FE53DCFF8DFFF6A444 /* ArchivePackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C937F3B666E3F6D47711596A /* ArchivePackView.swift */; };
 		D11746FE49A534473E04859F /* AdminSeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5830EAF77E6B8E977013D391 /* AdminSeedData.swift */; };
-		D1F484F864EE3397E54F50AE /* CategoryChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A55F8D2CFC135A64A3A59A /* CategoryChip.swift */; };
 		D88841D4F2A8960DE4C8BA81 /* CultureItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DD663AD5C447F3D1E1AAA1 /* CultureItem.swift */; };
 		E07075711317FAEADBEAC5A4 /* CulturePack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E408F81C428D0233F6C85B7 /* CulturePack.swift */; };
 		E95583AAE147081C87F10E69 /* ZoomableImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4B59E81572A9ED069653A6 /* ZoomableImageViewer.swift */; };
@@ -63,7 +62,6 @@
 		5830EAF77E6B8E977013D391 /* AdminSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminSeedData.swift; sourceTree = "<group>"; };
 		5E671BD8C225B072164844DC /* CultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCard.swift; sourceTree = "<group>"; };
 		5A887247197048049BB33E2D /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
-		64A55F8D2CFC135A64A3A59A /* CategoryChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryChip.swift; sourceTree = "<group>"; };
 		656AD80C91FFB067D40CFA9E /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		667C9E104DB831ED0F3FB74B /* SavedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedStore.swift; sourceTree = "<group>"; };
 		66A12DFD0618303C7858CCB1 /* Human Culture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Human Culture.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -165,7 +163,6 @@
 		6A95C38C3EC8EFCAE1CA4068 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				64A55F8D2CFC135A64A3A59A /* CategoryChip.swift */,
 				3D0A86A1CAC4505FF035A77E /* CultureAsyncImage.swift */,
 				5E671BD8C225B072164844DC /* CultureCard.swift */,
 				A1B2C3D4E5F60718293A4B5C /* CultureCardPressStyle.swift */,
@@ -344,7 +341,6 @@
 				CBD7C8FE53DCFF8DFFF6A444 /* ArchivePackView.swift in Sources */,
 				387DB2986C0FE79E6AB1E666 /* ArchiveView.swift in Sources */,
 				2C9A61DF4C0312796128F236 /* ArchiveViewModel.swift in Sources */,
-				D1F484F864EE3397E54F50AE /* CategoryChip.swift in Sources */,
 				F55A2F8BC2ADBF05400853CC /* ContentSource.swift in Sources */,
 				26A610622BF3BA0A9E7194A2 /* CultureAsyncImage.swift in Sources */,
 				32C83D5BFCA2EE65C96DB580 /* CultureCard.swift in Sources */,

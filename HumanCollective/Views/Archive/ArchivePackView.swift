@@ -3,6 +3,7 @@ import SwiftUI
 struct ArchivePackView: View {
     let pack: CulturePack
     let savedStore: SavedStore
+    @Binding var rootTabBarHiddenDepth: Int
 
     var body: some View {
         GeometryReader { proxy in
@@ -34,6 +35,7 @@ struct ArchivePackView: View {
                     ForEach(pack.items) { item in
                         NavigationLink {
                             CultureDetailView(item: item, savedStore: savedStore)
+                                .rootTabBarHidden($rootTabBarHiddenDepth)
                         } label: {
                             CultureCard(item: item)
                                 .frame(width: contentWidth, alignment: .leading)

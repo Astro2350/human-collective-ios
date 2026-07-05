@@ -18,6 +18,7 @@ enum HCTheme {
     static let pagePadding: CGFloat = 18
     static let screenTopPadding: CGFloat = 18
     static let screenBottomPadding: CGFloat = 12
+    static let rootTabBarContentClearance: CGFloat = 104
     static let screenSectionSpacing: CGFloat = 28
     static let screenTitleSize: CGFloat = 34
     static let hairline: CGFloat = 0.75
