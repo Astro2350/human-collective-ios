@@ -29,11 +29,7 @@ struct SavedView: View {
         case .idle, .loading:
             CultureLoadingView()
         case .empty:
-            CultureEmptyStateView(
-                title: "Saved pieces will live here.",
-                subtitle: "Use the bookmark on any piece you want to revisit.",
-                systemImage: "bookmark"
-            )
+            savedList([])
         case .failed(let message):
             CultureErrorView(message: message) {}
         case .loaded(let items):
@@ -48,23 +44,28 @@ struct SavedView: View {
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
 
-            ForEach(items) { item in
-                Button {
-                    selectedItem = item
-                } label: {
-                    SavedItemCard(item: item)
-                }
-                .buttonStyle(.plain)
-                .listRowInsets(.init(top: 8, leading: HCTheme.pagePadding, bottom: 8, trailing: HCTheme.pagePadding))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        withAnimation(.easeInOut(duration: 0.18)) {
-                            savedStore.unsave(item)
-                        }
+            if items.isEmpty {
+                SavedEmptyRow()
+                    .listRowInsets(.init(top: 10, leading: HCTheme.pagePadding, bottom: 8, trailing: HCTheme.pagePadding))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            } else {
+                ForEach(items) { item in
+                    Button {
+                        selectedItem = item
                     } label: {
-                        Label("Unsave", systemImage: "bookmark.slash")
+                        SavedItemCard(item: item)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(.init(top: 8, leading: HCTheme.pagePadding, bottom: 8, trailing: HCTheme.pagePadding))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            unsave(item)
+                        } label: {
+                            Label("Unsave", systemImage: "bookmark.slash")
+                        }
                     }
                 }
             }
@@ -83,6 +84,32 @@ struct SavedView: View {
         .scrollContentBackground(.hidden)
         .environment(\.defaultMinListRowHeight, 1)
         .background(HCTheme.background)
+        .animation(.easeInOut(duration: 0.18), value: items.map(\.id))
+    }
+
+    private func unsave(_ item: CultureItem) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            savedStore.unsave(item)
+            viewModel.display(savedStore.savedItems)
+        }
+    }
+}
+
+private struct SavedEmptyRow: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: "bookmark")
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(HCTheme.mutedInk)
+                .frame(width: 42, height: 42)
+                .background(HCTheme.surfaceDeep, in: Circle())
+
+            Text("Saved pieces will live here.")
+                .font(.cultureTitle(25))
+                .foregroundStyle(HCTheme.ink)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 22)
     }
 }
 
