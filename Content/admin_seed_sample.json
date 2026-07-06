@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-07-05T17:37:53Z",
-  "notes": "Manual seed data for Human Culture. Drafts can be added before curation; curated_items are ready to map into culture_items and weekly_packs maps pack membership.",
+  "notes": "Manual seed data for Human Collective. Drafts can be added before curation; curated_items are ready to map into culture_items and weekly_packs maps pack membership.",
   "content_sources": [
     {
       "id": "met-open-access",
@@ -1704,7 +1704,7 @@
     {
       "id": "pack-2026-W27",
       "week_key": "2026-W27",
-      "title": "Daily Human Culture",
+      "title": "Daily Human Collective",
       "subtitle": "Seven daily pieces: animals, maps, faces, games, and ancient craft.",
       "start_date": "2026-06-29",
       "end_date": "2026-07-05",

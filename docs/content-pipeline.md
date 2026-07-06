@@ -1,6 +1,6 @@
 # Content Pipeline
 
-Human Culture should stay curated, not scraped. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
+Human Collective should stay curated, not scraped. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
 
 ## Files
 

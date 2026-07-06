@@ -30,7 +30,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sam.HumanCollective
-        PRODUCT_NAME: Human Culture
+        PRODUCT_NAME: Human Collective
         INFOPLIST_FILE: HumanCollective/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

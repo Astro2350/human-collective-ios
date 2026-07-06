@@ -66,7 +66,7 @@
 		5A887247197048049BB33E2D /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
 		656AD80C91FFB067D40CFA9E /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		667C9E104DB831ED0F3FB74B /* SavedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedStore.swift; sourceTree = "<group>"; };
-		66A12DFD0618303C7858CCB1 /* Human Culture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Human Culture.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66A12DFD0618303C7858CCB1 /* Human Collective.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Human Collective.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		75CF9109852D45E88DCD6B97 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7902881242FEC9D27AB2ADCB /* SupabaseCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseCultureRepository.swift; sourceTree = "<group>"; };
 		81EE7D8F6ED39FD87B1F4083 /* ThisWeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThisWeekView.swift; sourceTree = "<group>"; };
@@ -272,7 +272,7 @@
 		FD566D48724AE148BEA56972 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				66A12DFD0618303C7858CCB1 /* Human Culture.app */,
+				66A12DFD0618303C7858CCB1 /* Human Collective.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -295,7 +295,7 @@
 			packageProductDependencies = (
 			);
 			productName = HumanCollective;
-			productReference = 66A12DFD0618303C7858CCB1 /* Human Culture.app */;
+			productReference = 66A12DFD0618303C7858CCB1 /* Human Collective.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -401,7 +401,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sam.HumanCollective;
-				PRODUCT_NAME = "Human Culture";
+				PRODUCT_NAME = "Human Collective";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -488,7 +488,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sam.HumanCollective;
-				PRODUCT_NAME = "Human Culture";
+				PRODUCT_NAME = "Human Collective";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

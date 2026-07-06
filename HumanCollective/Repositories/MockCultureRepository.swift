@@ -38,7 +38,7 @@ struct MockCultureRepository: CultureRepository {
         [
             makePack(
                 weekOffset: 0,
-                title: "Daily Human Culture",
+                title: "Daily Human Collective",
                 subtitle: "Seven daily pieces: animals, maps, faces, games, and ancient craft.",
                 items: currentItems
             ),

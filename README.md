@@ -1,6 +1,6 @@
-# Human Culture
+# Human Collective
 
-Human Culture is a calm SwiftUI iOS app for a weekly editorial pack of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world.
+Human Collective is a calm SwiftUI iOS app for a daily editorial view of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world.
 
 The app is intentionally simple. It does not include social features, likes, comments, recommendations, gamification, or an infinite feed.
 
@@ -17,7 +17,7 @@ xcodegen generate
 open HumanCollective.xcodeproj
 ```
 
-Select the `HumanCollective` scheme and run on an iPhone simulator or a signed physical iPhone target. The internal project and target names are still `HumanCollective`; the user-facing app name is Human Culture.
+Select the `HumanCollective` scheme and run on an iPhone simulator or a signed physical iPhone target. The internal project and target names are still `HumanCollective`; the user-facing app name is Human Collective.
 
 ## Supabase Setup
 
@@ -63,6 +63,19 @@ Weekly packs are curated manually. Each pack should contain a small set of cultu
 Mock content lives in `HumanCollective/Repositories/MockCultureRepository.swift`. A larger sample seed payload lives in `Content/admin_seed_sample.json`.
 
 The manual curation workflow is documented in `docs/content-pipeline.md`.
+
+## Full Archive In-App Purchases
+
+Full Archive uses support-level non-consumable in-app purchases. Every level unlocks the same archive, so people can choose what works for them while still helping cover research, upkeep, and future improvements.
+
+Configure these product IDs in App Store Connect:
+
+- `com.sam.HumanCollective.fullArchive.access`
+- `com.sam.HumanCollective.fullArchive.standard`
+- `com.sam.HumanCollective.fullArchive.supporter`
+- `com.sam.HumanCollective.fullArchive.patron`
+
+Suggested price ladder: lowest available tier for Access, then a few modest higher levels for Standard, Supporter, and Patron. Keep the App Store Connect product copy consistent with the in-app language: support levels, not donations, and the same Full Archive unlock at every level.
 
 ## App Structure
 

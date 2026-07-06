@@ -15,26 +15,43 @@ final class FullArchiveStore {
         case failed(String)
     }
 
-    static let productID = "com.sam.HumanCollective.fullArchive"
-    private static let debugAccessOverrideKey = "HCFullArchiveDebugAccessOverride"
+    struct SupportOption: Identifiable, Equatable {
+        let id: String
+        let title: String
+        let subtitle: String
+        let displayPrice: String
+    }
 
-    private(set) var product: Product?
+    static let legacyProductID = "com.sam.HumanCollective.fullArchive"
+    static let accessProductID = "com.sam.HumanCollective.fullArchive.access"
+    static let standardProductID = "com.sam.HumanCollective.fullArchive.standard"
+    static let supporterProductID = "com.sam.HumanCollective.fullArchive.supporter"
+    static let patronProductID = "com.sam.HumanCollective.fullArchive.patron"
+
+    static let productID = standardProductID
+    private static let debugAccessOverrideKey = "HCFullArchiveDebugAccessOverride"
+    private static let productIDs = [
+        accessProductID,
+        standardProductID,
+        supporterProductID,
+        patronProductID,
+        legacyProductID
+    ]
+
+    private(set) var products: [Product] = []
     private(set) var purchaseState: PurchaseState = .idle
     private(set) var hasFullArchiveAccess = false
+    private(set) var activePurchaseProductID: String?
 
     @ObservationIgnored private var transactionUpdatesTask: Task<Void, Never>?
 
     var priceText: String {
-        product?.displayPrice ?? ""
+        products.first?.displayPrice ?? ""
     }
 
     var purchaseButtonTitle: String {
         if hasFullArchiveAccess {
             return "Unlocked"
-        }
-
-        if let product {
-            return product.displayPrice.isEmpty ? "Unlock Full Archive" : "Unlock for \(product.displayPrice)"
         }
 
         switch purchaseState {
@@ -49,12 +66,27 @@ final class FullArchiveStore {
         }
     }
 
+    var supportOptions: [SupportOption] {
+        products
+            .filter { Self.supportDetails[$0.id] != nil }
+            .sorted { Self.sortIndex(for: $0.id) < Self.sortIndex(for: $1.id) }
+            .map { product in
+                let details = Self.supportDetails[product.id] ?? Self.fallbackSupportDetails
+                return SupportOption(
+                    id: product.id,
+                    title: details.title,
+                    subtitle: details.subtitle,
+                    displayPrice: product.displayPrice
+                )
+            }
+    }
+
     var statusMessage: String? {
         switch purchaseState {
         case .failed(let message):
             return message
         case .unavailable:
-            return "Full Archive is not available yet. Check that the in-app purchase is active in App Store Connect."
+            return nil
         default:
             return nil
         }
@@ -99,9 +131,9 @@ final class FullArchiveStore {
         purchaseState = .loading
 
         do {
-            let products = try await Product.products(for: [Self.productID])
-            product = products.first
-            purchaseState = product == nil ? .unavailable : .idle
+            let loadedProducts = try await Product.products(for: Self.productIDs)
+            products = loadedProducts.sorted { Self.sortIndex(for: $0.id) < Self.sortIndex(for: $1.id) }
+            purchaseState = products.isEmpty ? .unavailable : .idle
         } catch {
             purchaseState = .failed("Couldn't load the Full Archive purchase. Try again in a moment.")
         }
@@ -117,8 +149,24 @@ final class FullArchiveStore {
             return
         }
 
+        let productID = products.first?.id ?? Self.productID
+        await purchase(productID: productID)
+    }
+
+    func purchase(productID: String) async {
+        if applyDebugAccessOverrideIfNeeded() {
+            return
+        }
+
+        guard !hasFullArchiveAccess else {
+            purchaseState = .unlocked
+            return
+        }
+
+        var product = products.first { $0.id == productID }
         if product == nil {
             await loadProducts()
+            product = products.first { $0.id == productID }
         }
 
         guard let product else {
@@ -126,6 +174,7 @@ final class FullArchiveStore {
             return
         }
 
+        activePurchaseProductID = productID
         purchaseState = .purchasing
 
         do {
@@ -139,16 +188,21 @@ final class FullArchiveStore {
 
                 hasFullArchiveAccess = true
                 purchaseState = .unlocked
+                activePurchaseProductID = nil
                 await transaction.finish()
             case .userCancelled:
                 purchaseState = .idle
+                activePurchaseProductID = nil
             case .pending:
                 purchaseState = .failed("Purchase is pending approval.")
+                activePurchaseProductID = nil
             @unknown default:
                 purchaseState = .failed("Purchase couldn't be completed.")
+                activePurchaseProductID = nil
             }
         } catch {
             purchaseState = .failed("Purchase couldn't be completed. Please try again.")
+            activePurchaseProductID = nil
         }
     }
 
@@ -162,8 +216,10 @@ final class FullArchiveStore {
         do {
             try await AppStore.sync()
             await refreshEntitlements()
+            activePurchaseProductID = nil
             purchaseState = hasFullArchiveAccess ? .unlocked : .failed("No Full Archive purchase was found.")
         } catch {
+            activePurchaseProductID = nil
             purchaseState = .failed("Couldn't restore purchases. Please try again.")
         }
     }
@@ -177,7 +233,7 @@ final class FullArchiveStore {
 
         for await entitlement in Transaction.currentEntitlements {
             guard let transaction = verifiedTransaction(from: entitlement) else { continue }
-            if transaction.productID == Self.productID {
+            if Self.productIDs.contains(transaction.productID) {
                 isUnlocked = true
                 break
             }
@@ -193,10 +249,11 @@ final class FullArchiveStore {
 
     private func handle(transactionResult: VerificationResult<Transaction>) async {
         guard let transaction = verifiedTransaction(from: transactionResult) else { return }
-        guard transaction.productID == Self.productID else { return }
+        guard Self.productIDs.contains(transaction.productID) else { return }
 
         hasFullArchiveAccess = true
         purchaseState = .unlocked
+        activePurchaseProductID = nil
         await transaction.finish()
     }
 
@@ -207,6 +264,38 @@ final class FullArchiveStore {
         case .unverified:
             return nil
         }
+    }
+
+    private static let fallbackSupportDetails = (
+        title: "Full Archive",
+        subtitle: "Unlock every past piece."
+    )
+
+    private static let supportDetails: [String: (title: String, subtitle: String)] = [
+        accessProductID: (
+            title: "Access",
+            subtitle: "Same complete archive at the lowest level."
+        ),
+        standardProductID: (
+            title: "Standard",
+            subtitle: "Helps cover ongoing research and updates."
+        ),
+        supporterProductID: (
+            title: "Supporter",
+            subtitle: "Supports new pieces, fixes, and careful improvements."
+        ),
+        patronProductID: (
+            title: "Patron",
+            subtitle: "Helps keep the archive growing for more people."
+        ),
+        legacyProductID: (
+            title: "Full Archive",
+            subtitle: "Unlock every past piece."
+        )
+    ]
+
+    private static func sortIndex(for productID: String) -> Int {
+        productIDs.firstIndex(of: productID) ?? productIDs.count
     }
 
     @discardableResult
