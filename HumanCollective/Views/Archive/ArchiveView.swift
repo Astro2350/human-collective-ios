@@ -1,16 +1,17 @@
 import MapKit
-import SceneKit
 import SwiftUI
 import UIKit
 
 struct ArchiveView: View {
     private let freeArchivePackLimit = 2
+    private let pastWeekBatchSize = 5
 
     let savedStore: SavedStore
     let fullArchiveStore: FullArchiveStore
     @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var isShowingFullArchivePaywall = false
+    @State private var visiblePastWeekCount = 5
     @State private var viewModel: ArchiveViewModel
 
     init(
@@ -92,21 +93,6 @@ struct ArchiveView: View {
                             }
                         }
 
-                        let earlierPacks = Array(visiblePacks.dropFirst())
-                        if !earlierPacks.isEmpty {
-                            VStack(alignment: .leading, spacing: 16) {
-                                ArchiveSectionHeader(title: "Past weeks")
-
-                                ForEach(earlierPacks) { pack in
-                                    archivePackLink(pack) {
-                                        ArchiveWeekCard(pack: pack)
-                                            .frame(width: contentWidth, alignment: .leading)
-                                    }
-                                }
-                            }
-                            .frame(width: contentWidth, alignment: .leading)
-                        }
-
                         let shelves = ArchiveBrowseShelf.makeShelves(from: visiblePacks)
                         if !shelves.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
@@ -117,6 +103,43 @@ struct ArchiveView: View {
                                     savedStore: savedStore,
                                     rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                                 )
+                            }
+                            .frame(width: contentWidth, alignment: .leading)
+                        }
+
+                        let earlierPacks = Array(visiblePacks.dropFirst())
+                        if !earlierPacks.isEmpty {
+                            let loadedPastWeeks = Array(earlierPacks.prefix(visiblePastWeekCount))
+                            let remainingPastWeekCount = max(earlierPacks.count - loadedPastWeeks.count, 0)
+                            let nextLoadCount = min(pastWeekBatchSize, remainingPastWeekCount)
+
+                            VStack(alignment: .leading, spacing: 16) {
+                                ArchiveSectionHeader(title: "Past weeks")
+
+                                ForEach(loadedPastWeeks) { pack in
+                                    archivePackLink(pack) {
+                                        ArchiveWeekCard(pack: pack)
+                                            .frame(width: contentWidth, alignment: .leading)
+                                    }
+                                }
+
+                                if remainingPastWeekCount > 0 {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.22)) {
+                                            visiblePastWeekCount = min(
+                                                visiblePastWeekCount + pastWeekBatchSize,
+                                                earlierPacks.count
+                                            )
+                                        }
+                                    } label: {
+                                        ArchiveLoadMoreWeeksLabel(
+                                            nextLoadCount: nextLoadCount,
+                                            remainingCount: remainingPastWeekCount
+                                        )
+                                        .frame(width: contentWidth, alignment: .leading)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
                             .frame(width: contentWidth, alignment: .leading)
                         }
@@ -131,6 +154,9 @@ struct ArchiveView: View {
                 FullArchivePaywallView(fullArchiveStore: fullArchiveStore)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+            }
+            .onChange(of: visiblePacks.map(\.id)) { _, _ in
+                visiblePastWeekCount = pastWeekBatchSize
             }
         }
         .background(HCTheme.background)
@@ -598,6 +624,46 @@ private struct ArchiveWeekCard: View {
     }
 }
 
+private struct ArchiveLoadMoreWeeksLabel: View {
+    let nextLoadCount: Int
+    let remainingCount: Int
+
+    var body: some View {
+        HStack(spacing: 11) {
+            Image(systemName: "plus")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(HCTheme.clay)
+                .frame(width: 28, height: 28)
+                .background(HCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .stroke(HCTheme.line.opacity(0.45), lineWidth: HCTheme.hairline)
+                }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Load \(nextLoadCount) more")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(HCTheme.ink)
+
+                Text("\(remainingCount) remaining")
+                    .font(.caption)
+                    .foregroundStyle(HCTheme.secondaryInk)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(HCTheme.surface.opacity(0.78), in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 private struct ArchiveBrowseShelf: Identifiable {
     let id: String
     let title: String
@@ -609,51 +675,66 @@ private struct ArchiveBrowseShelf: Identifiable {
         let definitions: [(String, String, String, (CultureItem) -> Bool)] = [
             ("creatures", "Creatures", "Animals, vessels, and tiny carved companions", { item in
                 let text = searchableText(for: item)
-                return text.contains("dog") ||
-                    text.contains("cat") ||
-                    text.contains("hippo") ||
-                    text.contains("horse") ||
-                    text.contains("octopus") ||
-                    text.contains("turtle") ||
-                    text.contains("bull") ||
-                    text.contains("frog") ||
-                    text.contains("fish") ||
-                    text.contains("owl") ||
-                    text.contains("rabbit") ||
-                    text.contains("monkey") ||
-                    text.contains("hedgehog") ||
-                    text.contains("rhinoceros")
+                let words = searchableWords(for: item)
+                return containsAnyWord(
+                    words,
+                    [
+                        "bear", "bird", "birds", "bull", "cat", "deer", "dog",
+                        "elephant", "fish", "frog", "hedgehog", "hippo",
+                        "hippopotamus", "horse", "lion", "monkey", "octopus",
+                        "owl", "rabbit", "rhinoceros", "snail", "turtle",
+                        "whale", "whales"
+                    ]
+                ) || containsAnyPhrase(
+                    text,
+                    [
+                        "bird-shaped",
+                        "bull-dog",
+                        "killer whale",
+                        "owl-shaped",
+                        "pussycat"
+                    ]
+                )
             }),
             ("faces", "Faces and masks", "Portraits, masks, and figures with presence", { item in
-                let text = searchableText(for: item)
-                return item.category == .mask ||
-                    item.title.localizedCaseInsensitiveContains("mask") ||
-                    text.contains("portrait") ||
-                    text.contains("face") ||
-                    text.contains("head") ||
-                    text.contains("figure") ||
-                    text.contains("statuette")
+                let title = item.title.lowercased()
+                let words = words(in: title)
+                return item.id.contains("lewis-chessmen") ||
+                    item.id.contains("terracotta-warriors") ||
+                    containsAnyWord(
+                        words,
+                        ["face", "faces", "mask", "masks", "portrait", "portraits"]
+                    ) ||
+                    containsAnyPhrase(title, ["portrait vessel"])
             }),
             ("knowledge", "Maps and knowledge", "Books, tools, diagrams, and ways of reading the world", { item in
                 let text = searchableText(for: item)
+                let words = searchableWords(for: item)
                 return item.category == .map ||
                     item.category == .manuscript ||
                     item.category == .tool ||
-                    text.contains("map") ||
-                    text.contains("book") ||
-                    text.contains("astrolabe") ||
-                    text.contains("stone") ||
-                    text.contains("law")
+                    containsAnyWord(
+                        words,
+                        [
+                            "astrolabe", "bible", "book", "books", "codex",
+                            "hieroglyph", "hieroglyphs", "inscription", "law",
+                            "laws", "map", "maps", "page", "pages", "scroll"
+                        ]
+                    ) ||
+                    containsAnyPhrase(text, ["rosetta stone"])
             }),
             ("small", "Small wonders", "Netsuke, jewelry, amulets, and compact objects", { item in
-                let text = searchableText(for: item)
-                return text.contains("netsuke") ||
-                    text.contains("chessmen") ||
-                    text.contains("amulet") ||
-                    text.contains("ring") ||
-                    text.contains("perfume") ||
-                    text.contains("small") ||
-                    text.contains("tiny")
+                let words = searchableWords(for: item)
+                return item.category == .jewelry ||
+                    containsAnyWord(
+                        words,
+                        [
+                            "amulet", "amulets", "bead", "beads", "chessmen",
+                            "intaglio", "miniature", "miniatures", "netsuke",
+                            "pendant", "pendants", "perfume", "ring", "rings",
+                            "scarab", "scaraboid", "small", "tiny", "whistle"
+                        ]
+                    )
             })
         ]
 
@@ -684,6 +765,22 @@ private struct ArchiveBrowseShelf: Identifiable {
             .compactMap { $0 }
             .joined(separator: " ")
             .lowercased()
+    }
+
+    private static func searchableWords(for item: CultureItem) -> Set<String> {
+        words(in: searchableText(for: item))
+    }
+
+    private static func words(in text: String) -> Set<String> {
+        Set(text.split { !$0.isLetter && !$0.isNumber }.map(String.init))
+    }
+
+    private static func containsAnyWord(_ words: Set<String>, _ candidates: [String]) -> Bool {
+        candidates.contains { words.contains($0) }
+    }
+
+    private static func containsAnyPhrase(_ text: String, _ candidates: [String]) -> Bool {
+        candidates.contains { text.contains($0) }
     }
 }
 
@@ -934,8 +1031,8 @@ private struct FullArchiveDiscoveryView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            VStack(alignment: .leading, spacing: 13) {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 8) {
                 ArchiveToolHeader(title: "Timeline")
 
                 ArchiveTimelineWheel(
@@ -944,7 +1041,7 @@ private struct FullArchiveDiscoveryView: View {
                 )
             }
 
-            VStack(alignment: .leading, spacing: 13) {
+            VStack(alignment: .leading, spacing: 9) {
                 ArchiveToolHeader(title: "Map")
 
                 ArchiveInteractiveMap(
@@ -956,7 +1053,7 @@ private struct FullArchiveDiscoveryView: View {
                         selectedLongitude = coordinate.longitude
                     }
                 }
-                .aspectRatio(1, contentMode: .fit)
+                .aspectRatio(1.58, contentMode: .fit)
 
                 ArchiveFilteredResultHeader(
                     title: "Near \(selectedRegion.title)",
@@ -1006,7 +1103,7 @@ private struct ArchiveToolHeader: View {
 
     var body: some View {
         Text(title)
-            .font(.cultureTitle(27))
+            .font(.cultureTitle(24))
             .foregroundStyle(HCTheme.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -1189,7 +1286,15 @@ private struct ArchiveTimelineWheel: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(ArchiveHistoricalPeriod.title(for: selectedYear))
+                .font(.caption.weight(.semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.clay)
+                .padding(.leading, 2)
+                .accessibilityLabel("Period")
+                .accessibilityValue(ArchiveHistoricalPeriod.title(for: selectedYear))
+
             Picker("Time", selection: selectedYearBinding) {
                 ForEach(yearOptions, id: \.self) { year in
                     Text(ArchiveItemDateParser.displayYear(Double(year)))
@@ -1200,11 +1305,11 @@ private struct ArchiveTimelineWheel: View {
             }
             .pickerStyle(.wheel)
             .labelsHidden()
-            .frame(height: 90)
+            .frame(height: 74)
             .clipped()
             .background(HCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
             .overlay(alignment: .center) {
-                VStack(spacing: 34) {
+                VStack(spacing: 27) {
                     Rectangle()
                         .fill(HCTheme.line.opacity(0.55))
                         .frame(height: HCTheme.hairline)
@@ -1216,7 +1321,7 @@ private struct ArchiveTimelineWheel: View {
                 .allowsHitTesting(false)
             }
             .accessibilityLabel("Time")
-            .accessibilityValue(ArchiveItemDateParser.displayYear(selectedYear))
+            .accessibilityValue("\(ArchiveItemDateParser.displayYear(selectedYear)), \(ArchiveHistoricalPeriod.title(for: selectedYear))")
 
             HStack {
                 Text(ArchiveItemDateParser.displayYear(bounds.lowerBound))
@@ -1227,11 +1332,42 @@ private struct ArchiveTimelineWheel: View {
             .textCase(.uppercase)
             .foregroundStyle(HCTheme.mutedInk)
         }
-        .padding(10)
+        .padding(8)
         .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
                 .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+    }
+}
+
+private enum ArchiveHistoricalPeriod {
+    static func title(for year: Double) -> String {
+        switch year {
+        case ..<(-3000):
+            return "Prehistoric"
+        case -3000..<(-800):
+            return "Early ancient"
+        case -800..<500:
+            return "Ancient world"
+        case 500..<1000:
+            return "Early medieval"
+        case 1000..<1400:
+            return "Medieval"
+        case 1400..<1600:
+            return "Renaissance"
+        case 1600..<1750:
+            return "Early modern"
+        case 1750..<1850:
+            return "Age of revolutions"
+        case 1850..<1914:
+            return "Modern era"
+        case 1914..<1945:
+            return "World wars era"
+        case 1945..<1990:
+            return "Postwar era"
+        default:
+            return "Contemporary"
         }
     }
 }
@@ -1455,7 +1591,7 @@ private struct ArchiveInteractiveMap: View {
     let onSelectCoordinate: (CLLocationCoordinate2D) -> Void
 
     var body: some View {
-        ArchiveGlobeSceneView(
+        ArchiveAppleMapView(
             points: points,
             selectedCoordinate: selectedCoordinate,
             onSelectCoordinate: onSelectCoordinate
@@ -1471,7 +1607,7 @@ private struct ArchiveInteractiveMap: View {
     }
 }
 
-private struct ArchiveGlobeSceneView: UIViewRepresentable {
+private struct ArchiveAppleMapView: UIViewRepresentable {
     let points: [ArchiveMapPoint]
     let selectedCoordinate: CLLocationCoordinate2D
     let onSelectCoordinate: (CLLocationCoordinate2D) -> Void
@@ -1480,75 +1616,58 @@ private struct ArchiveGlobeSceneView: UIViewRepresentable {
         Coordinator()
     }
 
-    func makeUIView(context: Context) -> SCNView {
+    func makeUIView(context: Context) -> MKMapView {
         context.coordinator.makeView()
     }
 
-    func updateUIView(_ uiView: SCNView, context: Context) {
+    func updateUIView(_ uiView: MKMapView, context: Context) {
         context.coordinator.update(
+            mapView: uiView,
             points: points,
             selectedCoordinate: selectedCoordinate,
             onSelectCoordinate: onSelectCoordinate
         )
     }
 
-    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        private let scene = SCNScene()
-        private let globeContainerNode = SCNNode()
-        private let markerRootNode = SCNNode()
-        private let cameraNode = SCNNode()
-        private var points: [ArchiveMapPoint] = []
+    final class Coordinator: NSObject, MKMapViewDelegate, UIGestureRecognizerDelegate {
         private var pointSignature = ""
         private var selectedSignature = ""
         private var onSelectCoordinate: (CLLocationCoordinate2D) -> Void = { _ in }
-        private var spinLongitude = 15.0
-        private var tiltLatitude = 20.0
-        private var cameraDistance: Float = 4.1
-        private var lastPanTranslation = CGPoint.zero
-        private var angularVelocity = CGPoint.zero
-        private var momentumDisplayLink: CADisplayLink?
-        private var isInteracting = false
+        private var isUpdatingCamera = false
 
-        private let globeRadius: CGFloat = 1.32
-        private let markerRadius: CGFloat = 1.355
-        private let horizontalRotationRadiansPerPoint: CGFloat = 0.0046
-        private let tiltDegreesPerPoint = 0.12
-        private let maximumTilt = 34.0
+        private let markerReuseIdentifier = "ArchiveAppleMapMarker"
+        private let minimumCameraDistance: CLLocationDistance = 1_100_000
+        private let maximumCameraDistance: CLLocationDistance = 32_000_000
+        private let defaultCameraDistance: CLLocationDistance = 17_500_000
 
-        deinit {
-            stopMomentum()
-        }
-
-        func makeView() -> SCNView {
-            let view = SCNView(frame: .zero)
-            view.scene = scene
+        func makeView() -> MKMapView {
+            let view = MKMapView(frame: .zero)
+            view.delegate = self
             view.backgroundColor = .black
-            view.isOpaque = false
-            view.antialiasingMode = .multisampling4X
-            view.preferredFramesPerSecond = 60
-            view.autoenablesDefaultLighting = false
-            view.allowsCameraControl = false
-
-            configureScene()
-
-            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-            panGesture.minimumNumberOfTouches = 1
-            panGesture.maximumNumberOfTouches = 1
-            panGesture.delegate = self
-            view.addGestureRecognizer(panGesture)
-
-            let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
-            pinchGesture.delegate = self
-            view.addGestureRecognizer(pinchGesture)
+            view.overrideUserInterfaceStyle = .dark
+            view.preferredConfiguration = MKImageryMapConfiguration(elevationStyle: .realistic)
+            view.isRotateEnabled = false
+            view.isPitchEnabled = false
+            view.isScrollEnabled = true
+            view.isZoomEnabled = true
+            view.showsCompass = false
+            view.showsScale = false
+            view.showsUserLocation = false
+            view.cameraZoomRange = MKMapView.CameraZoomRange(
+                minCenterCoordinateDistance: minimumCameraDistance,
+                maxCenterCoordinateDistance: maximumCameraDistance
+            )
 
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             tapGesture.delegate = self
             view.addGestureRecognizer(tapGesture)
 
+            setCamera(on: view, to: CLLocationCoordinate2D(latitude: 20, longitude: 15), animated: false)
             return view
         }
 
         func update(
+            mapView: MKMapView,
             points: [ArchiveMapPoint],
             selectedCoordinate: CLLocationCoordinate2D,
             onSelectCoordinate: @escaping (CLLocationCoordinate2D) -> Void
@@ -1557,351 +1676,151 @@ private struct ArchiveGlobeSceneView: UIViewRepresentable {
 
             let nextPointSignature = points.map(\.id).joined(separator: "|")
             if nextPointSignature != pointSignature {
-                self.points = points
                 pointSignature = nextPointSignature
-                rebuildMarkers()
+                rebuildAnnotations(on: mapView, with: points)
             }
 
             let nextSelectedSignature = Self.signature(for: selectedCoordinate)
             if nextSelectedSignature != selectedSignature {
                 selectedSignature = nextSelectedSignature
-                updateMarkerSelection()
-
-                if !isInteracting {
-                    focus(on: selectedCoordinate, animated: true)
-                }
+                refreshAnnotationViews(on: mapView)
+                setCamera(on: mapView, to: selectedCoordinate, animated: true)
             }
-        }
-
-        @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
-            switch gesture.state {
-            case .began:
-                stopMomentum()
-                isInteracting = true
-                lastPanTranslation = .zero
-            case .changed:
-                let translation = gesture.translation(in: gesture.view)
-                let delta = CGPoint(
-                    x: translation.x - lastPanTranslation.x,
-                    y: translation.y - lastPanTranslation.y
-                )
-                lastPanTranslation = translation
-                angularVelocity = gesture.velocity(in: gesture.view)
-                rotateGlobe(deltaX: delta.x, deltaY: delta.y)
-            case .ended, .cancelled, .failed:
-                angularVelocity = gesture.velocity(in: gesture.view)
-                startMomentumIfNeeded()
-            default:
-                break
-            }
-        }
-
-        @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-            guard gesture.state == .began || gesture.state == .changed else {
-                isInteracting = false
-                return
-            }
-
-            isInteracting = true
-            let nextDistance = cameraDistance / Float(gesture.scale)
-            cameraDistance = min(max(nextDistance, 2.55), 6.4)
-            gesture.scale = 1
-            applyCamera(animated: false)
         }
 
         @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
-            guard let view = gesture.view as? SCNView else { return }
+            guard gesture.state == .ended,
+                  let mapView = gesture.view as? MKMapView else { return }
 
-            let location = gesture.location(in: view)
-            let results = view.hitTest(location, options: [
-                .searchMode: SCNHitTestSearchMode.all.rawValue
-            ])
+            let location = gesture.location(in: mapView)
+            let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
+            select(coordinate, on: mapView, shouldFocus: true)
+        }
 
-            for result in results {
-                if let pointID = markerID(in: result.node),
-                   let point = points.first(where: { $0.id == pointID }) {
-                    select(point.coordinate, shouldFocus: true)
-                    return
-                }
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let archiveAnnotation = annotation as? ArchiveMapAnnotation else {
+                return nil
             }
 
-            guard let result = results.first,
-                  let coordinate = coordinate(from: result.worldCoordinates) else {
-                return
-            }
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: markerReuseIdentifier) ??
+                MKAnnotationView(annotation: annotation, reuseIdentifier: markerReuseIdentifier)
+            view.annotation = annotation
+            view.canShowCallout = false
+            view.displayPriority = .required
+            view.collisionMode = .circle
+            configureMarkerView(view, for: archiveAnnotation)
+            return view
+        }
 
-            select(coordinate, shouldFocus: true)
+        func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
+            guard let annotation = annotation as? ArchiveMapAnnotation else { return }
+
+            mapView.deselectAnnotation(annotation, animated: false)
+            select(annotation.coordinate, on: mapView, shouldFocus: true)
+        }
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            guard !isUpdatingCamera else { return }
+
+            refreshAnnotationViews(on: mapView)
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldReceive touch: UITouch
+        ) -> Bool {
+            !(touch.view is MKAnnotationView)
         }
 
         func gestureRecognizer(
             _ gestureRecognizer: UIGestureRecognizer,
             shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
-            gestureRecognizer is UIPinchGestureRecognizer ||
-                otherGestureRecognizer is UIPinchGestureRecognizer
+            true
         }
 
-        private func configureScene() {
-            scene.background.contents = UIColor.black
-
-            let sphere = SCNSphere(radius: globeRadius)
-            sphere.segmentCount = 160
-
-            let material = SCNMaterial()
-            material.lightingModel = .constant
-            material.diffuse.contents = UIImage(named: "EarthBlueMarble") ?? UIColor(red: 0.76, green: 0.82, blue: 0.82, alpha: 1)
-            material.diffuse.mipFilter = .linear
-            material.diffuse.minificationFilter = .linear
-            material.diffuse.magnificationFilter = .linear
-            sphere.firstMaterial = material
-
-            let earthNode = SCNNode(geometry: sphere)
-            globeContainerNode.addChildNode(earthNode)
-
-            globeContainerNode.addChildNode(markerRootNode)
-            scene.rootNode.addChildNode(globeContainerNode)
-
-            let ambientLight = SCNLight()
-            ambientLight.type = .ambient
-            ambientLight.intensity = 180
-            let ambientNode = SCNNode()
-            ambientNode.light = ambientLight
-            scene.rootNode.addChildNode(ambientNode)
-
-            let keyLight = SCNLight()
-            keyLight.type = .omni
-            keyLight.intensity = 300
-            let keyNode = SCNNode()
-            keyNode.light = keyLight
-            keyNode.position = SCNVector3(-2.6, 2.4, 3.5)
-            scene.rootNode.addChildNode(keyNode)
-
-            let fillLight = SCNLight()
-            fillLight.type = .omni
-            fillLight.intensity = 80
-            let fillNode = SCNNode()
-            fillNode.light = fillLight
-            fillNode.position = SCNVector3(2.2, -1.8, 2.4)
-            scene.rootNode.addChildNode(fillNode)
-
-            let camera = SCNCamera()
-            camera.fieldOfView = 34
-            camera.zNear = 0.1
-            camera.zFar = 20
-            cameraNode.camera = camera
-            scene.rootNode.addChildNode(cameraNode)
-            applyCamera(animated: false)
-            updateFocus(to: CLLocationCoordinate2D(latitude: 20, longitude: 15))
-            applyGlobeRotation(animated: false)
+        private func rebuildAnnotations(on mapView: MKMapView, with points: [ArchiveMapPoint]) {
+            let existingAnnotations = mapView.annotations.compactMap { $0 as? ArchiveMapAnnotation }
+            mapView.removeAnnotations(existingAnnotations)
+            mapView.addAnnotations(points.map(ArchiveMapAnnotation.init(point:)))
+            refreshAnnotationViews(on: mapView)
         }
 
-        private func rebuildMarkers() {
-            markerRootNode.childNodes.forEach { $0.removeFromParentNode() }
-
-            for point in points {
-                let node = makeMarkerNode(for: point)
-                markerRootNode.addChildNode(node)
-            }
-
-            updateMarkerSelection()
-        }
-
-        private func makeMarkerNode(for point: ArchiveMapPoint) -> SCNNode {
-            let node = SCNNode()
-            node.name = point.id
-            node.position = Self.position(
-                latitude: point.latitude,
-                longitude: point.longitude,
-                radius: markerRadius
-            )
-
-            let dot = SCNSphere(radius: 0.025)
-            dot.segmentCount = 24
-            let dotMaterial = SCNMaterial()
-            dotMaterial.diffuse.contents = Palette.marker
-            dotMaterial.emission.contents = Palette.marker.withAlphaComponent(0.08)
-            dot.firstMaterial = dotMaterial
-            let dotNode = SCNNode(geometry: dot)
-            dotNode.name = point.id
-            node.addChildNode(dotNode)
-
-            let halo = SCNSphere(radius: 0.047)
-            halo.segmentCount = 24
-            let haloMaterial = SCNMaterial()
-            haloMaterial.diffuse.contents = Palette.markerHalo
-            haloMaterial.transparency = 0
-            halo.firstMaterial = haloMaterial
-            let haloNode = SCNNode(geometry: halo)
-            haloNode.name = "\(point.id)-halo"
-            haloNode.opacity = 0
-            node.addChildNode(haloNode)
-
-            return node
-        }
-
-        private func updateMarkerSelection() {
-            let selectedPointID = points.first { Self.signature(for: $0.coordinate) == selectedSignature }?.id
-
-            SCNTransaction.begin()
-            SCNTransaction.animationDuration = 0.16
-
-            for node in markerRootNode.childNodes {
-                let isSelected = node.name == selectedPointID
-                node.scale = isSelected ? SCNVector3(1.55, 1.55, 1.55) : SCNVector3(1, 1, 1)
-
-                for child in node.childNodes {
-                    if child.name?.hasSuffix("-halo") == true {
-                        child.opacity = isSelected ? 1 : 0
-                    } else if let material = child.geometry?.firstMaterial {
-                        material.diffuse.contents = isSelected ? Palette.selectedMarker : Palette.marker
-                        material.emission.contents = isSelected ? Palette.selectedMarker.withAlphaComponent(0.18) : Palette.marker.withAlphaComponent(0.08)
-                    }
+        private func refreshAnnotationViews(on mapView: MKMapView) {
+            for annotation in mapView.annotations {
+                guard let annotation = annotation as? ArchiveMapAnnotation,
+                      let view = mapView.view(for: annotation) else {
+                    continue
                 }
+
+                configureMarkerView(view, for: annotation)
             }
-
-            SCNTransaction.commit()
         }
 
-        private func focus(on coordinate: CLLocationCoordinate2D, animated: Bool) {
-            stopMomentum()
-            updateFocus(to: coordinate)
-            applyGlobeRotation(animated: animated)
-        }
-
-        private func select(_ coordinate: CLLocationCoordinate2D, shouldFocus: Bool) {
+        private func select(_ coordinate: CLLocationCoordinate2D, on mapView: MKMapView, shouldFocus: Bool) {
             let normalizedCoordinate = CLLocationCoordinate2D(
                 latitude: Self.clampedLatitude(coordinate.latitude),
                 longitude: Self.normalizedLongitude(coordinate.longitude)
             )
 
             selectedSignature = Self.signature(for: normalizedCoordinate)
-            updateMarkerSelection()
+            refreshAnnotationViews(on: mapView)
 
             if shouldFocus {
-                focus(on: normalizedCoordinate, animated: true)
+                setCamera(on: mapView, to: normalizedCoordinate, animated: true)
             }
 
             onSelectCoordinate(normalizedCoordinate)
         }
 
-        private func applyCamera(animated: Bool) {
-            SCNTransaction.begin()
-            SCNTransaction.animationDuration = animated ? 0.18 : 0
-            cameraNode.position = SCNVector3(0, 0, cameraDistance)
-            cameraNode.look(at: SCNVector3(0, 0, 0))
-            SCNTransaction.commit()
-        }
-
-        private func applyGlobeRotation(animated: Bool) {
-            SCNTransaction.begin()
-            SCNTransaction.animationDuration = animated ? 0.22 : 0
-            globeContainerNode.transform = Self.transform(
-                latitude: tiltLatitude,
-                longitude: spinLongitude
+        private func setCamera(on mapView: MKMapView, to coordinate: CLLocationCoordinate2D, animated: Bool) {
+            let currentDistance = mapView.camera.centerCoordinateDistance
+            let distance = currentDistance.isFinite && currentDistance > 0
+                ? min(max(currentDistance, minimumCameraDistance), maximumCameraDistance)
+                : defaultCameraDistance
+            let camera = MKMapCamera(
+                lookingAtCenter: coordinate,
+                fromDistance: distance,
+                pitch: 0,
+                heading: 0
             )
-            SCNTransaction.commit()
-        }
 
-        private func rotateGlobe(deltaX: CGFloat, deltaY: CGFloat = 0) {
-            guard deltaX != 0 || deltaY != 0 else { return }
+            isUpdatingCamera = true
+            mapView.setCamera(camera, animated: animated)
 
-            spinLongitude = Self.normalizedLongitude(
-                spinLongitude - Double(deltaX * horizontalRotationRadiansPerPoint).radiansToDegrees
-            )
-            tiltLatitude = min(
-                max(tiltLatitude + (Double(deltaY) * tiltDegreesPerPoint), -maximumTilt),
-                maximumTilt
-            )
-            applyGlobeRotation(animated: false)
-        }
-
-        private func startMomentumIfNeeded() {
-            let speed = abs(angularVelocity.x)
-            guard speed > 90 else {
-                finishInteraction()
-                return
-            }
-
-            isInteracting = true
-            momentumDisplayLink?.invalidate()
-            let displayLink = CADisplayLink(target: self, selector: #selector(stepMomentum(_:)))
-            displayLink.add(to: .main, forMode: .common)
-            momentumDisplayLink = displayLink
-        }
-
-        @objc private func stepMomentum(_ displayLink: CADisplayLink) {
-            let deltaTime = max(min(displayLink.targetTimestamp - displayLink.timestamp, 1.0 / 30.0), 1.0 / 120.0)
-            rotateGlobe(deltaX: angularVelocity.x * deltaTime, deltaY: 0)
-
-            let decay = pow(0.91, deltaTime * 60)
-            angularVelocity.x *= decay
-            angularVelocity.y = 0
-
-            if abs(angularVelocity.x) < 14 {
-                stopMomentum()
-                finishInteraction()
+            DispatchQueue.main.asyncAfter(deadline: .now() + (animated ? 0.28 : 0.04)) { [weak self] in
+                self?.isUpdatingCamera = false
             }
         }
 
-        private func stopMomentum() {
-            momentumDisplayLink?.invalidate()
-            momentumDisplayLink = nil
-            angularVelocity = .zero
+        private func configureMarkerView(_ view: MKAnnotationView, for annotation: ArchiveMapAnnotation) {
+            let isSelected = Self.signature(for: annotation.coordinate) == selectedSignature
+
+            view.image = Self.markerImage(isSelected: isSelected)
+            view.centerOffset = .zero
+            view.alpha = isSelected ? 1 : 0.84
         }
 
-        private func finishInteraction() {
-            isInteracting = false
+        private static func markerImage(isSelected: Bool) -> UIImage {
+            let size = isSelected ? CGSize(width: 18, height: 18) : CGSize(width: 12, height: 12)
+            let renderer = UIGraphicsImageRenderer(size: size)
 
-            if let coordinate = coordinate(from: SCNVector3(0, 0, Float(globeRadius))) {
-                select(coordinate, shouldFocus: false)
+            return renderer.image { context in
+                let bounds = CGRect(origin: .zero, size: size)
+                let outerColor = UIColor(red: 0.98, green: 0.94, blue: 0.86, alpha: isSelected ? 0.94 : 0.76)
+                let innerColor = UIColor(red: 0.55, green: 0.35, blue: 0.24, alpha: 1)
+
+                context.cgContext.setFillColor(outerColor.cgColor)
+                context.cgContext.fillEllipse(in: bounds)
+
+                let inset = isSelected ? 4.5 : 3.0
+                context.cgContext.setFillColor(innerColor.cgColor)
+                context.cgContext.fillEllipse(in: bounds.insetBy(dx: inset, dy: inset))
             }
-        }
-
-        private func updateFocus(to coordinate: CLLocationCoordinate2D) {
-            tiltLatitude = min(max(Self.clampedLatitude(coordinate.latitude), -maximumTilt), maximumTilt)
-            spinLongitude = Self.normalizedLongitude(coordinate.longitude)
-        }
-
-        private func markerID(in node: SCNNode) -> String? {
-            var currentNode: SCNNode? = node
-            let pointIDs = Set(points.map(\.id))
-
-            while let node = currentNode {
-                if let name = node.name, pointIDs.contains(name) {
-                    return name
-                }
-                currentNode = node.parent
-            }
-
-            return nil
-        }
-
-        private func coordinate(from worldPosition: SCNVector3) -> CLLocationCoordinate2D? {
-            let localPosition = globeContainerNode.convertPosition(worldPosition, from: nil)
-            let x = Double(localPosition.x)
-            let y = Double(localPosition.y)
-            let z = Double(localPosition.z)
-            let length = sqrt((x * x) + (y * y) + (z * z))
-
-            guard length > 0.001 else { return nil }
-
-            return CLLocationCoordinate2D(
-                latitude: Self.clampedLatitude(asin(y / length).radiansToDegrees),
-                longitude: Self.normalizedLongitude(atan2(x, z).radiansToDegrees)
-            )
-        }
-
-        private static func position(latitude: Double, longitude: Double, radius: CGFloat) -> SCNVector3 {
-            let latitudeRadians = latitude.degreesToRadians
-            let longitudeRadians = longitude.degreesToRadians
-            let x = Double(radius) * cos(latitudeRadians) * sin(longitudeRadians)
-            let y = Double(radius) * sin(latitudeRadians)
-            let z = Double(radius) * cos(latitudeRadians) * cos(longitudeRadians)
-            return SCNVector3(Float(x), Float(y), Float(z))
         }
 
         private static func clampedLatitude(_ latitude: Double) -> Double {
-            min(max(latitude, -78), 78)
+            min(max(latitude, -85), 85)
         }
 
         private static func normalizedLongitude(_ longitude: Double) -> Double {
@@ -1913,41 +1832,27 @@ private struct ArchiveGlobeSceneView: UIViewRepresentable {
         private static func signature(for coordinate: CLLocationCoordinate2D) -> String {
             "\(coordinate.latitude.rounded(toPlaces: 3))|\(coordinate.longitude.rounded(toPlaces: 3))"
         }
+    }
+}
 
-        private static func transform(latitude: Double, longitude: Double) -> SCNMatrix4 {
-            let longitudeRotation = SCNMatrix4MakeRotation(
-                Float(-longitude.degreesToRadians),
-                0,
-                1,
-                0
-            )
-            let latitudeRotation = SCNMatrix4MakeRotation(
-                Float(latitude.degreesToRadians),
-                1,
-                0,
-                0
-            )
+private final class ArchiveMapAnnotation: NSObject, MKAnnotation {
+    let point: ArchiveMapPoint
 
-            return SCNMatrix4Mult(latitudeRotation, longitudeRotation)
-        }
+    var coordinate: CLLocationCoordinate2D {
+        point.coordinate
+    }
 
-        private enum Palette {
-            static let marker = UIColor(white: 0.11, alpha: 0.72)
-            static let selectedMarker = UIColor(red: 0.55, green: 0.35, blue: 0.24, alpha: 1)
-            static let markerHalo = UIColor(red: 0.98, green: 0.94, blue: 0.86, alpha: 0.88)
-        }
+    var title: String? {
+        point.item.displayTitle
+    }
+
+    init(point: ArchiveMapPoint) {
+        self.point = point
+        super.init()
     }
 }
 
 private extension Double {
-    var degreesToRadians: Double {
-        self * .pi / 180
-    }
-
-    var radiansToDegrees: Double {
-        self * 180 / .pi
-    }
-
     func rounded(toPlaces places: Int) -> Double {
         let divisor = pow(10.0, Double(places))
         return (self * divisor).rounded() / divisor

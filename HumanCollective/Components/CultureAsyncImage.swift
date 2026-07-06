@@ -151,21 +151,7 @@ struct CultureAsyncImage: View {
     }
 
     static func normalizedImageURL(from imageURL: String) -> URL? {
-        guard let url = URL(string: imageURL) else { return nil }
-
-        let marker = "/wikipedia/commons/thumb/"
-        guard imageURL.contains("upload.wikimedia.org"),
-              let range = imageURL.range(of: marker) else {
-            return url
-        }
-
-        let remainder = imageURL[range.upperBound...]
-        let pathParts = remainder.split(separator: "/")
-        guard pathParts.count >= 3 else { return url }
-
-        let fileName = pathParts[2]
-        let redirectURL = "https://commons.wikimedia.org/wiki/Special:Redirect/file/\(fileName)?width=900"
-        return URL(string: redirectURL) ?? url
+        URL(string: imageURL)
     }
 }
 
