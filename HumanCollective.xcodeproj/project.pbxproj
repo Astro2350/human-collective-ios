@@ -49,6 +49,7 @@
 
 /* Begin PBXFileReference section */
 		02CAD0648B9DE195E175A281 /* FeaturedCultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturedCultureCard.swift; sourceTree = "<group>"; };
+		10F4FB3279474D50B7B51A2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		130069A13FCAD0CBC493D3C0 /* ArchiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveViewModel.swift; sourceTree = "<group>"; };
 		1A59801443378BF970E896E8 /* Date+CultureWeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+CultureWeek.swift"; sourceTree = "<group>"; };
 		2E408F81C428D0233F6C85B7 /* CulturePack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CulturePack.swift; sourceTree = "<group>"; };
@@ -58,12 +59,11 @@
 		3D75CA4160E25047A4FBE0AF /* CultureCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCategory.swift; sourceTree = "<group>"; };
 		3EB148254B88B5F87EEED1FC /* ThisWeekViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThisWeekViewModel.swift; sourceTree = "<group>"; };
 		47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanCollectiveApp.swift; sourceTree = "<group>"; };
-		4E96E4A0897F9C7601B89E71 /* MockCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCultureRepository.swift; sourceTree = "<group>"; };
-		10F4FB3279474D50B7B51A2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4D9A0F69830E40F6A75C923E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4E96E4A0897F9C7601B89E71 /* MockCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCultureRepository.swift; sourceTree = "<group>"; };
 		5830EAF77E6B8E977013D391 /* AdminSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminSeedData.swift; sourceTree = "<group>"; };
-		5E671BD8C225B072164844DC /* CultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCard.swift; sourceTree = "<group>"; };
 		5A887247197048049BB33E2D /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
+		5E671BD8C225B072164844DC /* CultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCard.swift; sourceTree = "<group>"; };
 		656AD80C91FFB067D40CFA9E /* ContentSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSource.swift; sourceTree = "<group>"; };
 		667C9E104DB831ED0F3FB74B /* SavedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedStore.swift; sourceTree = "<group>"; };
 		66A12DFD0618303C7858CCB1 /* Human Collective.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Human Collective.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -198,6 +198,16 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		7D05A7B1145A485CB055C784 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				10F4FB3279474D50B7B51A2E /* Assets.xcassets */,
+				4D9A0F69830E40F6A75C923E /* Info.plist */,
+				75CF9109852D45E88DCD6B97 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		9CA0391F509A5D21867A6D19 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
@@ -241,16 +251,6 @@
 				8F382C3C5410CEBAC4E7D31C /* Release.xcconfig */,
 			);
 			path = Config;
-			sourceTree = "<group>";
-		};
-		7D05A7B1145A485CB055C784 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				10F4FB3279474D50B7B51A2E /* Assets.xcassets */,
-				4D9A0F69830E40F6A75C923E /* Info.plist */,
-				75CF9109852D45E88DCD6B97 /* PrivacyInfo.xcprivacy */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		F03844697285EF468D3FA5C5 /* Onboarding */ = {
@@ -305,7 +305,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2660;
 			};
 			buildConfigurationList = 22F61503E4A196C2AABE2951 /* Build configuration list for PBXProject "HumanCollective" */;
 			developmentRegion = en;
@@ -392,7 +392,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = T4BMDGW7CH;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HumanCollective/Resources/Info.plist;
@@ -443,8 +442,10 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = T4BMDGW7CH;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -466,6 +467,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -479,7 +481,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = T4BMDGW7CH;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HumanCollective/Resources/Info.plist;
@@ -530,8 +531,10 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = T4BMDGW7CH;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -546,6 +549,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
