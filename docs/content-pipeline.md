@@ -29,7 +29,7 @@ Human Collective should stay curated, not scraped. This foundation keeps manual 
    - License or rights label
    - One-sentence hook
    - Short story
-   - Why-it-matters line
+   - Significance line
    - Tags and curator note
 
 4. Assign items to `weekly_packs`.

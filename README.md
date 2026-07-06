@@ -54,7 +54,7 @@ The archive read path is prepared for a full 365-piece year. Future weekly packs
 Weekly packs are curated manually. Each pack should contain a small set of cultural items with:
 
 - title and short hook
-- story and "why it matters" text
+- story and significance text
 - category
 - country, culture, region, date, and maker when known
 - image URL

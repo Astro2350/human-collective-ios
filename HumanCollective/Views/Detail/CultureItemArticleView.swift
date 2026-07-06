@@ -185,7 +185,7 @@ struct CultureItemArticleView: View {
     @ViewBuilder
     private func meaningSection(_ item: CultureItem) -> some View {
         if let whyItMatters = cleanedText(item.whyItMatters) {
-            DetailSection(title: "Why it matters", systemImage: "sparkle") {
+            DetailSection(title: "Significance", systemImage: "sparkle") {
                 PullQuoteBlock(text: whyItMatters, accent: HCTheme.clay)
             }
         }
