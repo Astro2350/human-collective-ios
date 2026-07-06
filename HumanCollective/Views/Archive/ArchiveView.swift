@@ -55,6 +55,7 @@ struct ArchiveView: View {
         GeometryReader { proxy in
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
             let visiblePacks = visibleArchivePacks(from: packs)
+            let visiblePackSignature = ArchiveItemCollection.packIDSignature(visiblePacks)
             let lockedPackCount = max(packs.count - visiblePacks.count, 0)
 
             ScrollView {
@@ -111,7 +112,6 @@ struct ArchiveView: View {
                         if !earlierPacks.isEmpty {
                             let loadedPastWeeks = Array(earlierPacks.prefix(visiblePastWeekCount))
                             let remainingPastWeekCount = max(earlierPacks.count - loadedPastWeeks.count, 0)
-                            let nextLoadCount = min(pastWeekBatchSize, remainingPastWeekCount)
 
                             VStack(alignment: .leading, spacing: 16) {
                                 ArchiveSectionHeader(title: "Past weeks")
@@ -132,11 +132,8 @@ struct ArchiveView: View {
                                             )
                                         }
                                     } label: {
-                                        ArchiveLoadMoreWeeksLabel(
-                                            nextLoadCount: nextLoadCount,
-                                            remainingCount: remainingPastWeekCount
-                                        )
-                                        .frame(width: contentWidth, alignment: .leading)
+                                        ArchiveLoadMoreWeeksLabel()
+                                            .frame(width: contentWidth, alignment: .center)
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -155,7 +152,7 @@ struct ArchiveView: View {
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
-            .onChange(of: visiblePacks.map(\.id)) { _, _ in
+            .onChange(of: visiblePackSignature) { _, _ in
                 visiblePastWeekCount = pastWeekBatchSize
             }
         }
@@ -625,42 +622,25 @@ private struct ArchiveWeekCard: View {
 }
 
 private struct ArchiveLoadMoreWeeksLabel: View {
-    let nextLoadCount: Int
-    let remainingCount: Int
-
     var body: some View {
-        HStack(spacing: 11) {
+        HStack(spacing: 8) {
             Image(systemName: "plus")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(HCTheme.clay)
-                .frame(width: 28, height: 28)
-                .background(HCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .stroke(HCTheme.line.opacity(0.45), lineWidth: HCTheme.hairline)
-                }
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Load \(nextLoadCount) more")
-                    .font(.callout.weight(.semibold))
-                    .foregroundStyle(HCTheme.ink)
-
-                Text("\(remainingCount) remaining")
-                    .font(.caption)
-                    .foregroundStyle(HCTheme.secondaryInk)
-            }
-
-            Spacer(minLength: 0)
+            Text("Load more")
+                .font(.subheadline.weight(.semibold))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HCTheme.surface.opacity(0.78), in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .foregroundStyle(HCTheme.ink)
+        .padding(.horizontal, 15)
+        .padding(.vertical, 10)
+        .background(HCTheme.surfaceRaised.opacity(0.82), in: Capsule())
         .overlay {
-            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
-                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+            Capsule()
+                .stroke(HCTheme.line.opacity(0.58), lineWidth: HCTheme.hairline)
         }
-        .contentShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .contentShape(Capsule())
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("Load more past weeks")
     }
 }
 
@@ -974,10 +954,77 @@ private enum ArchiveItemCollection {
             return true
         }
     }
+
+    static func idSignature(_ items: [CultureItem]) -> String {
+        items.reduce(into: "") { signature, item in
+            if !signature.isEmpty {
+                signature.append("|")
+            }
+            signature.append(item.id)
+        }
+    }
+
+    static func packIDSignature(_ packs: [CulturePack]) -> String {
+        packs.reduce(into: "") { signature, pack in
+            if !signature.isEmpty {
+                signature.append("|")
+            }
+            signature.append(pack.id)
+        }
+    }
+}
+
+private struct ArchiveDiscoveryData {
+    let items: [CultureItem]
+    let datedItems: [ArchiveTimelineItem]
+    let timelineBounds: ClosedRange<Double>
+    private let mapPointsByItemID: [String: ArchiveMapPoint]
+
+    init(items: [CultureItem]) {
+        var parsedItems: [ArchiveTimelineItem] = []
+        parsedItems.reserveCapacity(items.count)
+
+        var mapPointsByItemID: [String: ArchiveMapPoint] = [:]
+        mapPointsByItemID.reserveCapacity(items.count)
+
+        for item in items {
+            if let year = ArchiveItemDateParser.estimatedYear(for: item.dateDisplay) {
+                parsedItems.append(ArchiveTimelineItem(item: item, year: year))
+            }
+
+            if let mapPoint = ArchiveMapPoint.make(from: item) {
+                mapPointsByItemID[item.id] = mapPoint
+            }
+        }
+
+        parsedItems.sort { lhs, rhs in
+            lhs.year == rhs.year ? lhs.item.title < rhs.item.title : lhs.year < rhs.year
+        }
+
+        self.items = items
+        self.datedItems = parsedItems
+        self.timelineBounds = ArchiveTimelineScale.bounds(for: parsedItems.map { $0.year })
+        self.mapPointsByItemID = mapPointsByItemID
+    }
+
+    func itemsClosest(to year: Double, limit: Int) -> [CultureItem] {
+        datedItems
+            .sorted { lhs, rhs in
+                let lhsDistance = abs(lhs.year - year)
+                let rhsDistance = abs(rhs.year - year)
+                return lhsDistance == rhsDistance ? lhs.item.title < rhs.item.title : lhsDistance < rhsDistance
+            }
+            .prefix(limit)
+            .map(\.item)
+    }
+
+    func mapPoints(for items: [CultureItem]) -> [ArchiveMapPoint] {
+        items.compactMap { mapPointsByItemID[$0.id] }
+    }
 }
 
 private struct FullArchiveDiscoveryView: View {
-    let items: [CultureItem]
+    private let data: ArchiveDiscoveryData
     let savedStore: SavedStore
     @Binding var rootTabBarHiddenDepth: Int
 
@@ -985,32 +1032,10 @@ private struct FullArchiveDiscoveryView: View {
     @State private var selectedLatitude = 26.8206
     @State private var selectedLongitude = 30.8025
 
-    private var datedItems: [ArchiveTimelineItem] {
-        items.compactMap { item in
-            guard let year = ArchiveItemDateParser.estimatedYear(for: item.dateDisplay) else {
-                return nil
-            }
-
-            return ArchiveTimelineItem(item: item, year: year)
-        }
-        .sorted { lhs, rhs in
-            lhs.year == rhs.year ? lhs.item.title < rhs.item.title : lhs.year < rhs.year
-        }
-    }
-
-    private var timeFilteredItems: [CultureItem] {
-        datedItems
-            .sorted { lhs, rhs in
-                let lhsDistance = abs(lhs.year - selectedYear)
-                let rhsDistance = abs(rhs.year - selectedYear)
-                return lhsDistance == rhsDistance ? lhs.item.title < rhs.item.title : lhsDistance < rhsDistance
-            }
-            .prefix(14)
-            .map(\.item)
-    }
-
-    private var mapPoints: [ArchiveMapPoint] {
-        timeFilteredItems.compactMap(ArchiveMapPoint.make(from:))
+    init(items: [CultureItem], savedStore: SavedStore, rootTabBarHiddenDepth: Binding<Int>) {
+        self.data = ArchiveDiscoveryData(items: items)
+        self.savedStore = savedStore
+        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
     }
 
     private var selectedCoordinate: CLLocationCoordinate2D {
@@ -1021,23 +1046,20 @@ private struct FullArchiveDiscoveryView: View {
         ArchiveMapRegion.region(latitude: selectedLatitude, longitude: selectedLongitude)
     }
 
-    private var nearbyItems: [CultureItem] {
-        mapPoints
-            .sorted {
-                $0.distanceKilometers(to: selectedCoordinate) < $1.distanceKilometers(to: selectedCoordinate)
-            }
-            .prefix(4)
-            .map(\.item)
-    }
-
     var body: some View {
+        let timeFilteredItems = data.itemsClosest(to: selectedYear, limit: 14)
+        let mapPoints = data.mapPoints(for: timeFilteredItems)
+        let nearbyItems = nearbyItems(from: mapPoints)
+        let timeFilteredSignature = ArchiveItemCollection.idSignature(timeFilteredItems)
+        let nearbySignature = ArchiveItemCollection.idSignature(nearbyItems)
+
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 8) {
                 ArchiveToolHeader(title: "Timeline")
 
                 ArchiveTimelineWheel(
                     selectedYear: $selectedYear,
-                    bounds: ArchiveTimelineScale.bounds(for: datedItems.map(\.year))
+                    bounds: data.timelineBounds
                 )
             }
 
@@ -1068,19 +1090,28 @@ private struct FullArchiveDiscoveryView: View {
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: timeFilteredItems.map(\.id))
-        .animation(.easeInOut(duration: 0.2), value: nearbyItems.map(\.id))
+        .animation(.easeInOut(duration: 0.2), value: timeFilteredSignature)
+        .animation(.easeInOut(duration: 0.2), value: nearbySignature)
         .sensoryFeedback(.selection, trigger: Int(selectedYear.rounded()))
         .sensoryFeedback(.selection, trigger: selectedRegion.id)
         .onAppear {
-            moveSelectionToFirstMapPoint(animated: false)
+            moveSelectionToFirstMapPoint(in: mapPoints, animated: false)
         }
         .onChange(of: Int(selectedYear.rounded())) { _, _ in
-            moveSelectionToFirstMapPoint(animated: true)
+            moveSelectionToFirstMapPoint(in: mapPoints, animated: true)
         }
     }
 
-    private func moveSelectionToFirstMapPoint(animated: Bool) {
+    private func nearbyItems(from mapPoints: [ArchiveMapPoint]) -> [CultureItem] {
+        mapPoints
+            .sorted {
+                $0.distanceKilometers(to: selectedCoordinate) < $1.distanceKilometers(to: selectedCoordinate)
+            }
+            .prefix(4)
+            .map(\.item)
+    }
+
+    private func moveSelectionToFirstMapPoint(in mapPoints: [ArchiveMapPoint], animated: Bool) {
         guard let point = mapPoints.first else { return }
 
         let update = {
@@ -1114,6 +1145,10 @@ private struct ArchiveInlineResultList: View {
     let savedStore: SavedStore
     @Binding var rootTabBarHiddenDepth: Int
 
+    private var itemSignature: String {
+        ArchiveItemCollection.idSignature(items)
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             ForEach(items) { item in
@@ -1127,7 +1162,7 @@ private struct ArchiveInlineResultList: View {
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: items.map(\.id))
+        .animation(.easeInOut(duration: 0.2), value: itemSignature)
     }
 }
 
@@ -1402,6 +1437,13 @@ private struct ArchiveTimelineItem: Identifiable {
 }
 
 private enum ArchiveItemDateParser {
+    private static let centuryRegex = try? NSRegularExpression(
+        pattern: #"(\d{1,2})(?:st|nd|rd|th)?(?:\s*[-–—]\s*(\d{1,2})(?:st|nd|rd|th)?)?\s*(bce|bc|ce|ad)?"#
+    )
+    private static let yearRegex = try? NSRegularExpression(
+        pattern: #"(\d{1,4})(?:\s*[-–—]\s*(\d{1,4}))?\s*(bce|bc|ce|ad)?"#
+    )
+
     static func estimatedYear(for dateDisplay: String) -> Double? {
         let lowercase = dateDisplay.lowercased()
         let values = numbers(in: dateDisplay, isCentury: lowercase.contains("century"))
@@ -1443,10 +1485,7 @@ private enum ArchiveItemDateParser {
     }
 
     private static func numbers(in text: String, isCentury: Bool) -> [DatedNumber] {
-        let pattern = isCentury
-            ? #"(\d{1,2})(?:st|nd|rd|th)?(?:\s*[-–—]\s*(\d{1,2})(?:st|nd|rd|th)?)?\s*(bce|bc|ce|ad)?"#
-            : #"(\d{1,4})(?:\s*[-–—]\s*(\d{1,4}))?\s*(bce|bc|ce|ad)?"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        guard let regex = isCentury ? centuryRegex : yearRegex else { return [] }
 
         let nsText = text.lowercased() as NSString
         let range = NSRange(location: 0, length: nsText.length)
@@ -1637,8 +1676,8 @@ private struct ArchiveAppleMapView: UIViewRepresentable {
 
         private let markerReuseIdentifier = "ArchiveAppleMapMarker"
         private let minimumCameraDistance: CLLocationDistance = 1_100_000
-        private let maximumCameraDistance: CLLocationDistance = 32_000_000
-        private let defaultCameraDistance: CLLocationDistance = 17_500_000
+        private let maximumCameraDistance: CLLocationDistance = 82_000_000
+        private let defaultCameraDistance: CLLocationDistance = 68_000_000
 
         func makeView() -> MKMapView {
             let view = MKMapView(frame: .zero)
@@ -1674,7 +1713,12 @@ private struct ArchiveAppleMapView: UIViewRepresentable {
         ) {
             self.onSelectCoordinate = onSelectCoordinate
 
-            let nextPointSignature = points.map(\.id).joined(separator: "|")
+            let nextPointSignature = points.reduce(into: "") { signature, point in
+                if !signature.isEmpty {
+                    signature.append("|")
+                }
+                signature.append(point.id)
+            }
             if nextPointSignature != pointSignature {
                 pointSignature = nextPointSignature
                 rebuildAnnotations(on: mapView, with: points)
@@ -1802,6 +1846,13 @@ private struct ArchiveAppleMapView: UIViewRepresentable {
         }
 
         private static func markerImage(isSelected: Bool) -> UIImage {
+            isSelected ? selectedMarkerImage : unselectedMarkerImage
+        }
+
+        private static let selectedMarkerImage = makeMarkerImage(isSelected: true)
+        private static let unselectedMarkerImage = makeMarkerImage(isSelected: false)
+
+        private static func makeMarkerImage(isSelected: Bool) -> UIImage {
             let size = isSelected ? CGSize(width: 18, height: 18) : CGSize(width: 12, height: 12)
             let renderer = UIGraphicsImageRenderer(size: size)
 

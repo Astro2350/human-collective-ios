@@ -173,8 +173,8 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
 
         context.coordinator.task = Task {
             do {
-                let data = try await CultureImageCache.shared.data(for: url)
-                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+                let image = try await CultureImageCache.shared.image(for: url)
+                guard !Task.isCancelled else { return }
 
                 await MainActor.run {
                     guard context.coordinator.isActive, !Task.isCancelled else { return }

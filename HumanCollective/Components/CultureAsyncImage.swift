@@ -77,8 +77,7 @@ struct CultureAsyncImage: View {
             return
         }
 
-        if let cachedData = await CultureImageCache.shared.cachedData(for: url),
-           let image = UIImage(data: cachedData) {
+        if let image = await CultureImageCache.shared.cachedImage(for: url) {
             phase = .success(image)
             isTakingLonger = false
             return
@@ -91,8 +90,8 @@ struct CultureAsyncImage: View {
         }
 
         do {
-            let data = try await CultureImageCache.shared.data(for: url)
-            guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+            let image = try await CultureImageCache.shared.image(for: url)
+            guard !Task.isCancelled else { return }
 
             withAnimation(.easeInOut(duration: 0.24)) {
                 phase = .success(image)

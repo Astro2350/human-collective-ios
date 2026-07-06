@@ -2,6 +2,8 @@ import MapKit
 import SwiftUI
 
 struct CultureItemArticleView: View {
+    private static let numberRegex = try? NSRegularExpression(pattern: #"\d+"#)
+
     let item: CultureItem
     var isSaved = false
     var showsSaveAction = false
@@ -263,8 +265,7 @@ struct CultureItemArticleView: View {
     }
 
     private func numbers(in text: String) -> [Int] {
-        let pattern = #"\d+"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        guard let regex = Self.numberRegex else { return [] }
 
         let nsText = text as NSString
         let range = NSRange(location: 0, length: nsText.length)

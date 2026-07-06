@@ -150,8 +150,20 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
 
 private enum CultureItemTitleFormatter {
     private static let idealLimit = 46
+    private static let displayTitleCache = NSCache<NSString, NSString>()
 
     static func displayTitle(from title: String) -> String {
+        let cacheKey = title as NSString
+        if let cachedTitle = displayTitleCache.object(forKey: cacheKey) {
+            return cachedTitle as String
+        }
+
+        let displayTitle = makeDisplayTitle(from: title)
+        displayTitleCache.setObject(displayTitle as NSString, forKey: cacheKey)
+        return displayTitle
+    }
+
+    private static func makeDisplayTitle(from title: String) -> String {
         let normalizedTitle = normalized(title)
 
         if let override = curatedShortTitles[normalizedTitle] {

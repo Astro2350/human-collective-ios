@@ -84,7 +84,16 @@ struct SavedView: View {
         .scrollContentBackground(.hidden)
         .environment(\.defaultMinListRowHeight, 1)
         .background(HCTheme.background)
-        .animation(.easeInOut(duration: 0.18), value: items.map(\.id))
+        .animation(.easeInOut(duration: 0.18), value: itemSignature(for: items))
+    }
+
+    private func itemSignature(for items: [CultureItem]) -> String {
+        items.reduce(into: "") { signature, item in
+            if !signature.isEmpty {
+                signature.append("|")
+            }
+            signature.append(item.id)
+        }
     }
 
     private func unsave(_ item: CultureItem) {
