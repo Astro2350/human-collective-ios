@@ -47,6 +47,8 @@ Apply the suggested public read schema from:
 supabase_schema.sql
 ```
 
+The archive read path is prepared for a full 365-piece year. Future weekly packs can be staged in Supabase, and public app reads only expose packs whose `start_date` has arrived.
+
 ## Weekly Culture Packs
 
 Weekly packs are curated manually. Each pack should contain a small set of cultural items with:
@@ -94,6 +96,6 @@ Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults
 ## Known Limitations
 
 - Supabase writes and admin tooling are intentionally outside the app.
-- Archive loading is capped to recent packs for the MVP.
+- A full 365-piece archive still requires the remaining curated content to be written, rights-checked, and imported.
 - Full real-device gesture QA should still be repeated on signed TestFlight builds, especially pinch zoom, double tap zoom, and memory behavior with very large source images.
 - The app currently targets portrait-first iPhone usage.

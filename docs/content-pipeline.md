@@ -7,7 +7,9 @@ Human Collective should stay curated, not scraped. This foundation keeps manual 
 - `HumanCollective/Models/ContentSource.swift` defines open-access archives and collection sources.
 - `HumanCollective/Models/CultureItemDraft.swift` defines pre-curation items.
 - `HumanCollective/Models/AdminSeedData.swift` defines the seed payload shape.
-- `Content/admin_seed_sample.json` contains sample sources, 20 curated items, and weekly pack assignments.
+- `Content/admin_seed_sample.json` contains sample sources, 54 curated items, and weekly pack assignments.
+- `Content/full_year_candidate_pool.json` contains 311 source-verified candidates for expanding to a 365-piece archive.
+- `Scripts/find_full_year_candidates.py` regenerates that candidate pool from official open-access museum APIs.
 
 ## Curation Stages
 
@@ -83,6 +85,21 @@ For the current schema:
 `content_sources` and `draft_items` are admin-side foundation data for now. Keep them in JSON until you add private admin tables or an internal CMS. Do not expose admin draft tables to public clients.
 
 Supabase note: public app reads should use explicit `GRANT SELECT` plus RLS read policies. Admin imports should happen from a trusted environment, not from the iOS app.
+
+## Full-Year Archive Target
+
+The app is ready for a 365-piece year archive once the remaining 311 curated items are added. Keep using 7-item weekly packs so one year is 52 to 53 packs, depending on the calendar boundary.
+
+Supabase is set up for that scale with:
+
+- Indexed current-week and archive-week lookups on `culture_packs`.
+- Indexed pack item ordering on `culture_pack_items`.
+- Indexed latitude/longitude values for map-heavy archive browsing.
+- RLS policies that let the public app read current and past packs while keeping future scheduled packs hidden until their start date.
+
+The iOS repository fetches archive packs in bulk, so a full year should load with one pack request and one pack-item request instead of one extra request per week.
+
+The candidate pool is intentionally separate from the live seed. Treat it as source-verified research: every item has official source/image metadata, but final publication still needs editorial review, image-quality checks, coordinate/date verification, and rewritten app copy before import.
 
 ## Quality Checklist
 

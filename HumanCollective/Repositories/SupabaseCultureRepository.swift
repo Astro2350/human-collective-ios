@@ -53,7 +53,11 @@ struct SupabaseCultureRepository: CultureRepository {
             throw CultureRepositoryError.emptyResponse
         }
 
-        return try await hydrate(pack: pack)
+        guard let hydratedPack = try await hydrate(packs: [pack]).first else {
+            throw CultureRepositoryError.emptyResponse
+        }
+
+        return hydratedPack
     }
 
     func fetchArchivePacks() async throws -> [CulturePack] {
@@ -67,11 +71,7 @@ struct SupabaseCultureRepository: CultureRepository {
             ]
         )
 
-        var hydratedPacks: [CulturePack] = []
-        for pack in packs {
-            hydratedPacks.append(try await hydrate(pack: pack))
-        }
-        return hydratedPacks
+        return try await hydrate(packs: packs)
     }
 
     func fetchPack(weekKey: String) async throws -> CulturePack? {
@@ -85,7 +85,7 @@ struct SupabaseCultureRepository: CultureRepository {
         )
 
         guard let pack = packs.first else { return nil }
-        return try await hydrate(pack: pack)
+        return try await hydrate(packs: [pack]).first
     }
 
     func fetchItems(ids: Set<String>) async throws -> [CultureItem] {
@@ -102,25 +102,33 @@ struct SupabaseCultureRepository: CultureRepository {
         return items.map { $0.model }
     }
 
-    private func hydrate(pack: SupabasePackDTO) async throws -> CulturePack {
+    private func hydrate(packs: [SupabasePackDTO]) async throws -> [CulturePack] {
+        guard !packs.isEmpty else { return [] }
+
+        let packIDs = packs.map(\.id)
         let rows: [SupabasePackItemDTO] = try await request(
             table: "culture_pack_items",
             queryItems: [
-                URLQueryItem(name: "select", value: "position,item:culture_items(*)"),
-                URLQueryItem(name: "pack_id", value: "eq.\(pack.id)"),
-                URLQueryItem(name: "order", value: "position.asc")
+                URLQueryItem(name: "select", value: "pack_id,position,item:culture_items(*)"),
+                URLQueryItem(name: "pack_id", value: "in.(\(packIDs.joined(separator: ",")))"),
+                URLQueryItem(name: "order", value: "pack_id.asc,position.asc")
             ]
         )
+        let rowsByPackID = Dictionary(grouping: rows, by: \.packID)
 
-        return CulturePack(
-            id: pack.id,
-            weekKey: pack.weekKey,
-            title: pack.title,
-            subtitle: pack.subtitle ?? "",
-            startDate: Self.dateFormatter.date(from: pack.startDate ?? "") ?? Date(),
-            endDate: Self.dateFormatter.date(from: pack.endDate ?? "") ?? Date(),
-            items: rows.sorted { $0.position < $1.position }.map(\.item.model)
-        )
+        return packs.map { pack in
+            CulturePack(
+                id: pack.id,
+                weekKey: pack.weekKey,
+                title: pack.title,
+                subtitle: pack.subtitle ?? "",
+                startDate: Self.dateFormatter.date(from: pack.startDate ?? "") ?? Date(),
+                endDate: Self.dateFormatter.date(from: pack.endDate ?? "") ?? Date(),
+                items: rowsByPackID[pack.id, default: []]
+                    .sorted { $0.position < $1.position }
+                    .map(\.item.model)
+            )
+        }
     }
 
     private func request<T: Decodable>(
@@ -184,8 +192,15 @@ private struct SupabasePackDTO: Decodable {
 }
 
 private struct SupabasePackItemDTO: Decodable {
+    let packID: String
     let position: Int
     let item: SupabaseCultureItemDTO
+
+    enum CodingKeys: String, CodingKey {
+        case packID = "pack_id"
+        case position
+        case item
+    }
 }
 
 private struct SupabaseCultureItemDTO: Decodable {

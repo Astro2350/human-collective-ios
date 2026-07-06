@@ -1,5 +1,7 @@
 import MapKit
+import SceneKit
 import SwiftUI
+import UIKit
 
 struct ArchiveView: View {
     private let freeArchivePackLimit = 2
@@ -834,7 +836,7 @@ private struct ArchiveThemeItemRow: View {
             .frame(width: 78)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(item.title)
+                Text(item.displayTitle)
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(HCTheme.ink)
                     .lineLimit(2)
@@ -933,20 +935,12 @@ private struct FullArchiveDiscoveryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            ArchiveSectionHeader(title: "Explore")
-
             VStack(alignment: .leading, spacing: 13) {
                 ArchiveToolHeader(title: "Timeline")
 
                 ArchiveTimelineWheel(
                     selectedYear: $selectedYear,
                     bounds: ArchiveTimelineScale.bounds(for: datedItems.map(\.year))
-                )
-
-                ArchiveFilteredResultHeader(
-                    title: ArchiveItemDateParser.displayYear(selectedYear),
-                    subtitle: nil,
-                    count: timeFilteredItems.count
                 )
             }
 
@@ -962,7 +956,7 @@ private struct FullArchiveDiscoveryView: View {
                         selectedLongitude = coordinate.longitude
                     }
                 }
-                .frame(height: 220)
+                .aspectRatio(1, contentMode: .fit)
 
                 ArchiveFilteredResultHeader(
                     title: "Near \(selectedRegion.title)",
@@ -1054,7 +1048,7 @@ private struct ArchiveCompactItemRow: View {
             .frame(width: 56)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(item.title)
+                Text(item.displayTitle)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(HCTheme.ink)
                     .lineLimit(2)
@@ -1244,11 +1238,21 @@ private struct ArchiveTimelineWheel: View {
 
 private enum ArchiveTimelineScale {
     static let defaultYear = 0.0
+    static let oldestReasonableYear = -12_000.0
 
     static func bounds(for years: [Double]) -> ClosedRange<Double> {
-        let minYear = min(years.min() ?? -2200, -2200)
-        let maxYear = max(years.max() ?? 2026, 2026)
+        let validYears = years.filter(isReasonableYear)
+        let minYear = min(validYears.min() ?? -2200, -2200)
+        let maxYear = max(validYears.max() ?? currentYear, currentYear)
         return minYear...maxYear
+    }
+
+    static func isReasonableYear(_ year: Double) -> Bool {
+        oldestReasonableYear...currentYear ~= year
+    }
+
+    static var currentYear: Double {
+        Double(max(2026, Calendar.current.component(.year, from: Date())))
     }
 }
 
@@ -1264,19 +1268,31 @@ private struct ArchiveTimelineItem: Identifiable {
 private enum ArchiveItemDateParser {
     static func estimatedYear(for dateDisplay: String) -> Double? {
         let lowercase = dateDisplay.lowercased()
-        let values = numbers(in: dateDisplay)
+        let values = numbers(in: dateDisplay, isCentury: lowercase.contains("century"))
         guard !values.isEmpty else { return nil }
 
-        let isBCE = lowercase.contains("bce") || lowercase.contains("bc")
+        let hasBCE = lowercase.contains("bce") || lowercase.contains("bc")
+        let hasCE = lowercase.contains("ce") || lowercase.contains("ad")
         let isCentury = lowercase.contains("century")
-        let years = values.map { value -> Double in
+        let years = values.compactMap { value -> Double? in
+            guard value.number > 0 else { return nil }
+
             if isCentury {
-                let midpoint = (Double(value - 1) * 100) + 50
-                return isBCE ? -midpoint : midpoint
+                guard value.number <= 40 else { return nil }
+
+                let midpoint = (Double(value.number - 1) * 100) + 50
+                let isBCE = value.era.map(isBCEEra) ?? (hasBCE && !hasCE)
+                let year = isBCE ? -midpoint : midpoint
+                return ArchiveTimelineScale.isReasonableYear(year) ? year : nil
             }
 
-            return isBCE ? -Double(value) : Double(value)
+            guard value.number <= Int(ArchiveTimelineScale.currentYear) else { return nil }
+
+            let isBCE = value.era.map(isBCEEra) ?? (hasBCE && !hasCE)
+            let year = isBCE ? -Double(value.number) : Double(value.number)
+            return ArchiveTimelineScale.isReasonableYear(year) ? year : nil
         }
+        guard !years.isEmpty else { return nil }
 
         return years.reduce(0, +) / Double(years.count)
     }
@@ -1290,16 +1306,56 @@ private enum ArchiveItemDateParser {
         return "\(roundedYear) CE"
     }
 
-    private static func numbers(in text: String) -> [Int] {
-        let pattern = #"\d+"#
+    private static func numbers(in text: String, isCentury: Bool) -> [DatedNumber] {
+        let pattern = isCentury
+            ? #"(\d{1,2})(?:st|nd|rd|th)?(?:\s*[-–—]\s*(\d{1,2})(?:st|nd|rd|th)?)?\s*(bce|bc|ce|ad)?"#
+            : #"(\d{1,4})(?:\s*[-–—]\s*(\d{1,4}))?\s*(bce|bc|ce|ad)?"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
 
-        let nsText = text as NSString
+        let nsText = text.lowercased() as NSString
         let range = NSRange(location: 0, length: nsText.length)
 
-        return regex.matches(in: text, range: range).compactMap { match in
-            Int(nsText.substring(with: match.range))
+        return regex.matches(in: nsText as String, range: range).flatMap { match -> [DatedNumber] in
+            let era = string(from: match, at: 3, in: nsText)
+            var values: [DatedNumber] = []
+
+            if let firstValue = int(from: match, at: 1, in: nsText) {
+                values.append(DatedNumber(number: firstValue, era: era))
+            }
+
+            if let secondValue = int(from: match, at: 2, in: nsText) {
+                values.append(DatedNumber(number: secondValue, era: era))
+            }
+
+            return values
         }
+    }
+
+    private static func int(from match: NSTextCheckingResult, at index: Int, in text: NSString) -> Int? {
+        guard index < match.numberOfRanges else { return nil }
+
+        let range = match.range(at: index)
+        guard range.location != NSNotFound else { return nil }
+
+        return Int(text.substring(with: range))
+    }
+
+    private static func string(from match: NSTextCheckingResult, at index: Int, in text: NSString) -> String? {
+        guard index < match.numberOfRanges else { return nil }
+
+        let range = match.range(at: index)
+        guard range.location != NSNotFound else { return nil }
+
+        return text.substring(with: range).lowercased()
+    }
+
+    private static func isBCEEra(_ era: String) -> Bool {
+        era == "bce" || era == "bc"
+    }
+
+    private struct DatedNumber {
+        let number: Int
+        let era: String?
     }
 }
 
@@ -1359,7 +1415,7 @@ private struct ArchiveMapExploreView: View {
                             selectedLongitude = coordinate.longitude
                         }
                     }
-                    .frame(width: contentWidth, height: 250)
+                    .frame(width: contentWidth, height: contentWidth)
 
                     ArchiveFilteredResultHeader(
                         title: "Near \(selectedRegion.title)",
@@ -1398,88 +1454,503 @@ private struct ArchiveInteractiveMap: View {
     let selectedCoordinate: CLLocationCoordinate2D
     let onSelectCoordinate: (CLLocationCoordinate2D) -> Void
 
-    @State private var position: MapCameraPosition = .automatic
-
-    private var region: MKCoordinateRegion {
-        ArchiveMapPoint.region(containing: points)
-    }
-
-    private var pointSignature: String {
-        points.map(\.id).joined(separator: "|")
-    }
-
-    private var selectedPointID: String? {
-        points.first { $0.isNear(selectedCoordinate) }?.id
-    }
-
     var body: some View {
-        MapReader { proxy in
-            Map(position: $position, interactionModes: [.pan, .zoom]) {
-                ForEach(points) { point in
-                    Annotation("", coordinate: point.coordinate) {
-                        Button {
-                            onSelectCoordinate(point.coordinate)
-                        } label: {
-                            ArchiveMapDot(isSelected: selectedPointID == point.id)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
+        ArchiveGlobeSceneView(
+            points: points,
+            selectedCoordinate: selectedCoordinate,
+            onSelectCoordinate: onSelectCoordinate
+        )
+        .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .background(.black, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+        .accessibilityLabel("Interactive globe")
+        .accessibilityHint("Drag to rotate, pinch to zoom, or tap a place to filter nearby pieces.")
+    }
+}
 
-                if selectedPointID == nil {
-                    Annotation("", coordinate: selectedCoordinate) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundStyle(HCTheme.clay)
-                            .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
-                            .transition(.scale.combined(with: .opacity))
-                    }
+private struct ArchiveGlobeSceneView: UIViewRepresentable {
+    let points: [ArchiveMapPoint]
+    let selectedCoordinate: CLLocationCoordinate2D
+    let onSelectCoordinate: (CLLocationCoordinate2D) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> SCNView {
+        context.coordinator.makeView()
+    }
+
+    func updateUIView(_ uiView: SCNView, context: Context) {
+        context.coordinator.update(
+            points: points,
+            selectedCoordinate: selectedCoordinate,
+            onSelectCoordinate: onSelectCoordinate
+        )
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private let scene = SCNScene()
+        private let globeContainerNode = SCNNode()
+        private let markerRootNode = SCNNode()
+        private let cameraNode = SCNNode()
+        private var points: [ArchiveMapPoint] = []
+        private var pointSignature = ""
+        private var selectedSignature = ""
+        private var onSelectCoordinate: (CLLocationCoordinate2D) -> Void = { _ in }
+        private var spinLongitude = 15.0
+        private var tiltLatitude = 20.0
+        private var cameraDistance: Float = 4.1
+        private var lastPanTranslation = CGPoint.zero
+        private var angularVelocity = CGPoint.zero
+        private var momentumDisplayLink: CADisplayLink?
+        private var isInteracting = false
+
+        private let globeRadius: CGFloat = 1.32
+        private let markerRadius: CGFloat = 1.355
+        private let horizontalRotationRadiansPerPoint: CGFloat = 0.0046
+        private let tiltDegreesPerPoint = 0.12
+        private let maximumTilt = 34.0
+
+        deinit {
+            stopMomentum()
+        }
+
+        func makeView() -> SCNView {
+            let view = SCNView(frame: .zero)
+            view.scene = scene
+            view.backgroundColor = .black
+            view.isOpaque = false
+            view.antialiasingMode = .multisampling4X
+            view.preferredFramesPerSecond = 60
+            view.autoenablesDefaultLighting = false
+            view.allowsCameraControl = false
+
+            configureScene()
+
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+            panGesture.minimumNumberOfTouches = 1
+            panGesture.maximumNumberOfTouches = 1
+            panGesture.delegate = self
+            view.addGestureRecognizer(panGesture)
+
+            let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+            pinchGesture.delegate = self
+            view.addGestureRecognizer(pinchGesture)
+
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+            tapGesture.delegate = self
+            view.addGestureRecognizer(tapGesture)
+
+            return view
+        }
+
+        func update(
+            points: [ArchiveMapPoint],
+            selectedCoordinate: CLLocationCoordinate2D,
+            onSelectCoordinate: @escaping (CLLocationCoordinate2D) -> Void
+        ) {
+            self.onSelectCoordinate = onSelectCoordinate
+
+            let nextPointSignature = points.map(\.id).joined(separator: "|")
+            if nextPointSignature != pointSignature {
+                self.points = points
+                pointSignature = nextPointSignature
+                rebuildMarkers()
+            }
+
+            let nextSelectedSignature = Self.signature(for: selectedCoordinate)
+            if nextSelectedSignature != selectedSignature {
+                selectedSignature = nextSelectedSignature
+                updateMarkerSelection()
+
+                if !isInteracting {
+                    focus(on: selectedCoordinate, animated: true)
                 }
             }
-            .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-            .mapControls {
-                MapCompass()
-                MapScaleView()
+        }
+
+        @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+            switch gesture.state {
+            case .began:
+                stopMomentum()
+                isInteracting = true
+                lastPanTranslation = .zero
+            case .changed:
+                let translation = gesture.translation(in: gesture.view)
+                let delta = CGPoint(
+                    x: translation.x - lastPanTranslation.x,
+                    y: translation.y - lastPanTranslation.y
+                )
+                lastPanTranslation = translation
+                angularVelocity = gesture.velocity(in: gesture.view)
+                rotateGlobe(deltaX: delta.x, deltaY: delta.y)
+            case .ended, .cancelled, .failed:
+                angularVelocity = gesture.velocity(in: gesture.view)
+                startMomentumIfNeeded()
+            default:
+                break
             }
-            .simultaneousGesture(
-                SpatialTapGesture()
-                    .onEnded { value in
-                        if let coordinate = proxy.convert(value.location, from: .local) {
-                            onSelectCoordinate(coordinate)
-                        }
-                    }
+        }
+
+        @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+            guard gesture.state == .began || gesture.state == .changed else {
+                isInteracting = false
+                return
+            }
+
+            isInteracting = true
+            let nextDistance = cameraDistance / Float(gesture.scale)
+            cameraDistance = min(max(nextDistance, 2.55), 6.4)
+            gesture.scale = 1
+            applyCamera(animated: false)
+        }
+
+        @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+            guard let view = gesture.view as? SCNView else { return }
+
+            let location = gesture.location(in: view)
+            let results = view.hitTest(location, options: [
+                .searchMode: SCNHitTestSearchMode.all.rawValue
+            ])
+
+            for result in results {
+                if let pointID = markerID(in: result.node),
+                   let point = points.first(where: { $0.id == pointID }) {
+                    select(point.coordinate, shouldFocus: true)
+                    return
+                }
+            }
+
+            guard let result = results.first,
+                  let coordinate = coordinate(from: result.worldCoordinates) else {
+                return
+            }
+
+            select(coordinate, shouldFocus: true)
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            gestureRecognizer is UIPinchGestureRecognizer ||
+                otherGestureRecognizer is UIPinchGestureRecognizer
+        }
+
+        private func configureScene() {
+            scene.background.contents = UIColor.black
+
+            let sphere = SCNSphere(radius: globeRadius)
+            sphere.segmentCount = 160
+
+            let material = SCNMaterial()
+            material.lightingModel = .constant
+            material.diffuse.contents = UIImage(named: "EarthBlueMarble") ?? UIColor(red: 0.76, green: 0.82, blue: 0.82, alpha: 1)
+            material.diffuse.mipFilter = .linear
+            material.diffuse.minificationFilter = .linear
+            material.diffuse.magnificationFilter = .linear
+            sphere.firstMaterial = material
+
+            let earthNode = SCNNode(geometry: sphere)
+            globeContainerNode.addChildNode(earthNode)
+
+            globeContainerNode.addChildNode(markerRootNode)
+            scene.rootNode.addChildNode(globeContainerNode)
+
+            let ambientLight = SCNLight()
+            ambientLight.type = .ambient
+            ambientLight.intensity = 180
+            let ambientNode = SCNNode()
+            ambientNode.light = ambientLight
+            scene.rootNode.addChildNode(ambientNode)
+
+            let keyLight = SCNLight()
+            keyLight.type = .omni
+            keyLight.intensity = 300
+            let keyNode = SCNNode()
+            keyNode.light = keyLight
+            keyNode.position = SCNVector3(-2.6, 2.4, 3.5)
+            scene.rootNode.addChildNode(keyNode)
+
+            let fillLight = SCNLight()
+            fillLight.type = .omni
+            fillLight.intensity = 80
+            let fillNode = SCNNode()
+            fillNode.light = fillLight
+            fillNode.position = SCNVector3(2.2, -1.8, 2.4)
+            scene.rootNode.addChildNode(fillNode)
+
+            let camera = SCNCamera()
+            camera.fieldOfView = 34
+            camera.zNear = 0.1
+            camera.zFar = 20
+            cameraNode.camera = camera
+            scene.rootNode.addChildNode(cameraNode)
+            applyCamera(animated: false)
+            updateFocus(to: CLLocationCoordinate2D(latitude: 20, longitude: 15))
+            applyGlobeRotation(animated: false)
+        }
+
+        private func rebuildMarkers() {
+            markerRootNode.childNodes.forEach { $0.removeFromParentNode() }
+
+            for point in points {
+                let node = makeMarkerNode(for: point)
+                markerRootNode.addChildNode(node)
+            }
+
+            updateMarkerSelection()
+        }
+
+        private func makeMarkerNode(for point: ArchiveMapPoint) -> SCNNode {
+            let node = SCNNode()
+            node.name = point.id
+            node.position = Self.position(
+                latitude: point.latitude,
+                longitude: point.longitude,
+                radius: markerRadius
             )
-            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
-                    .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
-            }
-            .onAppear {
-                position = .region(region)
-            }
-            .onChange(of: pointSignature) { _, _ in
-                withAnimation(.easeInOut(duration: 0.24)) {
-                    position = .region(region)
+
+            let dot = SCNSphere(radius: 0.025)
+            dot.segmentCount = 24
+            let dotMaterial = SCNMaterial()
+            dotMaterial.diffuse.contents = Palette.marker
+            dotMaterial.emission.contents = Palette.marker.withAlphaComponent(0.08)
+            dot.firstMaterial = dotMaterial
+            let dotNode = SCNNode(geometry: dot)
+            dotNode.name = point.id
+            node.addChildNode(dotNode)
+
+            let halo = SCNSphere(radius: 0.047)
+            halo.segmentCount = 24
+            let haloMaterial = SCNMaterial()
+            haloMaterial.diffuse.contents = Palette.markerHalo
+            haloMaterial.transparency = 0
+            halo.firstMaterial = haloMaterial
+            let haloNode = SCNNode(geometry: halo)
+            haloNode.name = "\(point.id)-halo"
+            haloNode.opacity = 0
+            node.addChildNode(haloNode)
+
+            return node
+        }
+
+        private func updateMarkerSelection() {
+            let selectedPointID = points.first { Self.signature(for: $0.coordinate) == selectedSignature }?.id
+
+            SCNTransaction.begin()
+            SCNTransaction.animationDuration = 0.16
+
+            for node in markerRootNode.childNodes {
+                let isSelected = node.name == selectedPointID
+                node.scale = isSelected ? SCNVector3(1.55, 1.55, 1.55) : SCNVector3(1, 1, 1)
+
+                for child in node.childNodes {
+                    if child.name?.hasSuffix("-halo") == true {
+                        child.opacity = isSelected ? 1 : 0
+                    } else if let material = child.geometry?.firstMaterial {
+                        material.diffuse.contents = isSelected ? Palette.selectedMarker : Palette.marker
+                        material.emission.contents = isSelected ? Palette.selectedMarker.withAlphaComponent(0.18) : Palette.marker.withAlphaComponent(0.08)
+                    }
                 }
             }
-            .animation(.easeInOut(duration: 0.18), value: selectedPointID)
+
+            SCNTransaction.commit()
+        }
+
+        private func focus(on coordinate: CLLocationCoordinate2D, animated: Bool) {
+            stopMomentum()
+            updateFocus(to: coordinate)
+            applyGlobeRotation(animated: animated)
+        }
+
+        private func select(_ coordinate: CLLocationCoordinate2D, shouldFocus: Bool) {
+            let normalizedCoordinate = CLLocationCoordinate2D(
+                latitude: Self.clampedLatitude(coordinate.latitude),
+                longitude: Self.normalizedLongitude(coordinate.longitude)
+            )
+
+            selectedSignature = Self.signature(for: normalizedCoordinate)
+            updateMarkerSelection()
+
+            if shouldFocus {
+                focus(on: normalizedCoordinate, animated: true)
+            }
+
+            onSelectCoordinate(normalizedCoordinate)
+        }
+
+        private func applyCamera(animated: Bool) {
+            SCNTransaction.begin()
+            SCNTransaction.animationDuration = animated ? 0.18 : 0
+            cameraNode.position = SCNVector3(0, 0, cameraDistance)
+            cameraNode.look(at: SCNVector3(0, 0, 0))
+            SCNTransaction.commit()
+        }
+
+        private func applyGlobeRotation(animated: Bool) {
+            SCNTransaction.begin()
+            SCNTransaction.animationDuration = animated ? 0.22 : 0
+            globeContainerNode.transform = Self.transform(
+                latitude: tiltLatitude,
+                longitude: spinLongitude
+            )
+            SCNTransaction.commit()
+        }
+
+        private func rotateGlobe(deltaX: CGFloat, deltaY: CGFloat = 0) {
+            guard deltaX != 0 || deltaY != 0 else { return }
+
+            spinLongitude = Self.normalizedLongitude(
+                spinLongitude - Double(deltaX * horizontalRotationRadiansPerPoint).radiansToDegrees
+            )
+            tiltLatitude = min(
+                max(tiltLatitude + (Double(deltaY) * tiltDegreesPerPoint), -maximumTilt),
+                maximumTilt
+            )
+            applyGlobeRotation(animated: false)
+        }
+
+        private func startMomentumIfNeeded() {
+            let speed = abs(angularVelocity.x)
+            guard speed > 90 else {
+                finishInteraction()
+                return
+            }
+
+            isInteracting = true
+            momentumDisplayLink?.invalidate()
+            let displayLink = CADisplayLink(target: self, selector: #selector(stepMomentum(_:)))
+            displayLink.add(to: .main, forMode: .common)
+            momentumDisplayLink = displayLink
+        }
+
+        @objc private func stepMomentum(_ displayLink: CADisplayLink) {
+            let deltaTime = max(min(displayLink.targetTimestamp - displayLink.timestamp, 1.0 / 30.0), 1.0 / 120.0)
+            rotateGlobe(deltaX: angularVelocity.x * deltaTime, deltaY: 0)
+
+            let decay = pow(0.91, deltaTime * 60)
+            angularVelocity.x *= decay
+            angularVelocity.y = 0
+
+            if abs(angularVelocity.x) < 14 {
+                stopMomentum()
+                finishInteraction()
+            }
+        }
+
+        private func stopMomentum() {
+            momentumDisplayLink?.invalidate()
+            momentumDisplayLink = nil
+            angularVelocity = .zero
+        }
+
+        private func finishInteraction() {
+            isInteracting = false
+
+            if let coordinate = coordinate(from: SCNVector3(0, 0, Float(globeRadius))) {
+                select(coordinate, shouldFocus: false)
+            }
+        }
+
+        private func updateFocus(to coordinate: CLLocationCoordinate2D) {
+            tiltLatitude = min(max(Self.clampedLatitude(coordinate.latitude), -maximumTilt), maximumTilt)
+            spinLongitude = Self.normalizedLongitude(coordinate.longitude)
+        }
+
+        private func markerID(in node: SCNNode) -> String? {
+            var currentNode: SCNNode? = node
+            let pointIDs = Set(points.map(\.id))
+
+            while let node = currentNode {
+                if let name = node.name, pointIDs.contains(name) {
+                    return name
+                }
+                currentNode = node.parent
+            }
+
+            return nil
+        }
+
+        private func coordinate(from worldPosition: SCNVector3) -> CLLocationCoordinate2D? {
+            let localPosition = globeContainerNode.convertPosition(worldPosition, from: nil)
+            let x = Double(localPosition.x)
+            let y = Double(localPosition.y)
+            let z = Double(localPosition.z)
+            let length = sqrt((x * x) + (y * y) + (z * z))
+
+            guard length > 0.001 else { return nil }
+
+            return CLLocationCoordinate2D(
+                latitude: Self.clampedLatitude(asin(y / length).radiansToDegrees),
+                longitude: Self.normalizedLongitude(atan2(x, z).radiansToDegrees)
+            )
+        }
+
+        private static func position(latitude: Double, longitude: Double, radius: CGFloat) -> SCNVector3 {
+            let latitudeRadians = latitude.degreesToRadians
+            let longitudeRadians = longitude.degreesToRadians
+            let x = Double(radius) * cos(latitudeRadians) * sin(longitudeRadians)
+            let y = Double(radius) * sin(latitudeRadians)
+            let z = Double(radius) * cos(latitudeRadians) * cos(longitudeRadians)
+            return SCNVector3(Float(x), Float(y), Float(z))
+        }
+
+        private static func clampedLatitude(_ latitude: Double) -> Double {
+            min(max(latitude, -78), 78)
+        }
+
+        private static func normalizedLongitude(_ longitude: Double) -> Double {
+            let shifted = (longitude + 180).truncatingRemainder(dividingBy: 360)
+            let positive = shifted < 0 ? shifted + 360 : shifted
+            return positive - 180
+        }
+
+        private static func signature(for coordinate: CLLocationCoordinate2D) -> String {
+            "\(coordinate.latitude.rounded(toPlaces: 3))|\(coordinate.longitude.rounded(toPlaces: 3))"
+        }
+
+        private static func transform(latitude: Double, longitude: Double) -> SCNMatrix4 {
+            let longitudeRotation = SCNMatrix4MakeRotation(
+                Float(-longitude.degreesToRadians),
+                0,
+                1,
+                0
+            )
+            let latitudeRotation = SCNMatrix4MakeRotation(
+                Float(latitude.degreesToRadians),
+                1,
+                0,
+                0
+            )
+
+            return SCNMatrix4Mult(latitudeRotation, longitudeRotation)
+        }
+
+        private enum Palette {
+            static let marker = UIColor(white: 0.11, alpha: 0.72)
+            static let selectedMarker = UIColor(red: 0.55, green: 0.35, blue: 0.24, alpha: 1)
+            static let markerHalo = UIColor(red: 0.98, green: 0.94, blue: 0.86, alpha: 0.88)
         }
     }
 }
 
-private struct ArchiveMapDot: View {
-    let isSelected: Bool
+private extension Double {
+    var degreesToRadians: Double {
+        self * .pi / 180
+    }
 
-    var body: some View {
-        Circle()
-            .fill(isSelected ? HCTheme.clay : HCTheme.blueStone.opacity(0.72))
-            .frame(width: isSelected ? 15 : 10, height: isSelected ? 15 : 10)
-            .overlay {
-                Circle()
-                    .stroke(HCTheme.surface, lineWidth: isSelected ? 2.6 : 2)
-            }
-            .shadow(color: .black.opacity(isSelected ? 0.16 : 0.08), radius: isSelected ? 6 : 3, x: 0, y: isSelected ? 3 : 1)
-            .contentShape(Circle())
+    var radiansToDegrees: Double {
+        self * 180 / .pi
+    }
+
+    func rounded(toPlaces places: Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
     }
 }
 

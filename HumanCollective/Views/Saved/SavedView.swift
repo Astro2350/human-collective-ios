@@ -127,7 +127,7 @@ private struct SavedItemCard: View {
                 .frame(width: 96)
 
             VStack(alignment: .leading, spacing: 7) {
-                Text(item.title)
+                Text(item.displayTitle)
                     .font(.cultureTitle(21))
                     .foregroundStyle(HCTheme.ink)
                     .lineLimit(2)

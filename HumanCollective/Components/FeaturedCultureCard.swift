@@ -28,7 +28,7 @@ struct FeaturedCultureCard: View {
             )
 
             VStack(alignment: .leading, spacing: 10) {
-                Text(item.title)
+                Text(item.displayTitle)
                     .font(.cultureTitle(31))
                     .foregroundStyle(HCTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)

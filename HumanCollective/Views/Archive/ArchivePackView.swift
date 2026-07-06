@@ -96,7 +96,7 @@ private struct ArchivePackFeaturedItemCard: View {
             )
 
             VStack(alignment: .leading, spacing: 10) {
-                Text(item.title)
+                Text(item.displayTitle)
                     .font(.cultureTitle(30))
                     .foregroundStyle(HCTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)

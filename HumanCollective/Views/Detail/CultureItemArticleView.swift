@@ -71,11 +71,11 @@ struct CultureItemArticleView: View {
 
     private func articleHeader(_ item: CultureItem) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(item.title)
+            Text(item.displayTitle)
                 .font(.cultureTitle(42))
                 .foregroundStyle(HCTheme.ink)
-                .lineLimit(4)
-                .minimumScaleFactor(0.86)
+                .lineLimit(3)
+                .minimumScaleFactor(0.82)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let hook = cleanedText(item.hook) {
