@@ -243,10 +243,10 @@ private struct FullArchiveCard: View {
 
     private var subtitle: String {
         if lockedPackCount > 0 {
-            return "Unlock \(lockedPackCount) more weekly \(lockedPackCount == 1 ? "archive" : "archives"), maps, timelines, and creators."
+            return "Unlock \(lockedPackCount) more weekly \(lockedPackCount == 1 ? "archive" : "archives"), the interactive timeline and maps, and creators."
         }
 
-        return "Explore every past piece, map, timeline, and creator in one complete archive."
+        return "Explore every past piece with the interactive timeline and maps, plus creators and sources."
     }
 
     private var accessibilityLabel: String {
@@ -283,7 +283,7 @@ private struct FullArchivePaywallView: View {
                             .accessibilityLabel("Close")
                         }
 
-                        Text("Choose what works for you. Every level unlocks the same archive and helps cover research, upkeep, and new improvements.")
+                        Text("Pick a level. Each one unlocks the full archive, interactive timeline and maps.")
                             .font(.title3)
                             .foregroundStyle(HCTheme.secondaryInk)
                             .lineSpacing(3)
@@ -314,9 +314,9 @@ private struct FullArchivePaywallView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 14) {
-                        PaywallBenefitRow(text: "All past daily pieces and weekly collections")
-                        PaywallBenefitRow(text: "Every map, timeline, creator, and source")
-                        PaywallBenefitRow(text: "Lower levels keep access open; higher levels help fund more updates")
+                        PaywallBenefitRow(text: "Past pieces and weekly collections")
+                        PaywallBenefitRow(text: "Interactive timeline and maps")
+                        PaywallBenefitRow(text: "Creators, sources, and updates")
                     }
 
                     if let message = fullArchiveStore.statusMessage {
@@ -1077,12 +1077,6 @@ private struct FullArchiveDiscoveryView: View {
                 }
                 .aspectRatio(1.58, contentMode: .fit)
 
-                ArchiveFilteredResultHeader(
-                    title: "Near \(selectedRegion.title)",
-                    subtitle: nil,
-                    count: nearbyItems.count
-                )
-
                 ArchiveInlineResultList(
                     items: nearbyItems,
                     savedStore: savedStore,
@@ -1464,9 +1458,12 @@ private enum ArchiveItemDateParser {
                 return ArchiveTimelineScale.isReasonableYear(year) ? year : nil
             }
 
-            guard value.number <= Int(ArchiveTimelineScale.currentYear) else { return nil }
-
             let isBCE = value.era.map(isBCEEra) ?? (hasBCE && !hasCE)
+            let maximumReasonableYear = isBCE
+                ? abs(Int(ArchiveTimelineScale.oldestReasonableYear))
+                : Int(ArchiveTimelineScale.currentYear)
+            guard value.number <= maximumReasonableYear else { return nil }
+
             let year = isBCE ? -Double(value.number) : Double(value.number)
             return ArchiveTimelineScale.isReasonableYear(year) ? year : nil
         }

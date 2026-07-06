@@ -74,10 +74,9 @@ Configure these product IDs in App Store Connect:
 
 - `com.sam.HumanCollective.fullArchive.access`
 - `com.sam.HumanCollective.fullArchive.standard`
-- `com.sam.HumanCollective.fullArchive.supporter`
 - `com.sam.HumanCollective.fullArchive.patron`
 
-Suggested price ladder: lowest available tier for Access, then a few modest higher levels for Standard, Supporter, and Patron. Keep the App Store Connect product copy consistent with the in-app language: support levels, not donations, and the same Full Archive unlock at every level.
+Suggested price ladder: Access at $0.99, Standard at $2.99, and Patron at $4.99. Keep the App Store Connect product copy consistent with the in-app language: support levels, not donations, and the same Full Archive unlock at every level.
 
 ## App Structure
 

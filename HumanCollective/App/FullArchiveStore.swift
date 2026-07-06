@@ -25,7 +25,6 @@ final class FullArchiveStore {
     static let legacyProductID = "com.sam.HumanCollective.fullArchive"
     static let accessProductID = "com.sam.HumanCollective.fullArchive.access"
     static let standardProductID = "com.sam.HumanCollective.fullArchive.standard"
-    static let supporterProductID = "com.sam.HumanCollective.fullArchive.supporter"
     static let patronProductID = "com.sam.HumanCollective.fullArchive.patron"
 
     static let productID = standardProductID
@@ -33,7 +32,6 @@ final class FullArchiveStore {
     private static let productIDs = [
         accessProductID,
         standardProductID,
-        supporterProductID,
         patronProductID,
         legacyProductID
     ]
@@ -274,19 +272,15 @@ final class FullArchiveStore {
     private static let supportDetails: [String: (title: String, subtitle: String)] = [
         accessProductID: (
             title: "Access",
-            subtitle: "Same complete archive at the lowest level."
+            subtitle: "Full archive at the lowest level."
         ),
         standardProductID: (
             title: "Standard",
-            subtitle: "Helps cover ongoing research and updates."
-        ),
-        supporterProductID: (
-            title: "Supporter",
-            subtitle: "Supports new pieces, fixes, and careful improvements."
+            subtitle: "Helps fund research and updates."
         ),
         patronProductID: (
             title: "Patron",
-            subtitle: "Helps keep the archive growing for more people."
+            subtitle: "Helps the archive keep growing."
         ),
         legacyProductID: (
             title: "Full Archive",
