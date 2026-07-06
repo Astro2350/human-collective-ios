@@ -26,7 +26,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
         case .textile: "Textile"
         case .architecture: "Architecture"
         case .manuscript: "Manuscript"
-        case .poster: "Poster"
+        case .poster: "Print"
         case .object: "Object"
         case .map: "Map"
         case .jewelry: "Jewelry"
@@ -56,4 +56,3 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
         }
     }
 }
-
