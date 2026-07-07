@@ -260,92 +260,19 @@ private struct FullArchivePaywallView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(alignment: .top, spacing: 14) {
-                            Text("Full Archive")
-                                .font(.cultureTitle(38))
-                                .foregroundStyle(HCTheme.ink)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(HCTheme.ink)
-                                    .frame(width: 34, height: 34)
-                                    .background(HCTheme.surfaceRaised, in: Circle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Close")
-                        }
-
-                        Text("Pick a level. Each one unlocks the full archive, interactive timeline and maps.")
-                            .font(.title3)
-                            .foregroundStyle(HCTheme.secondaryInk)
-                            .lineSpacing(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Same archive, different support levels")
-                            .font(.cultureKicker())
-                            .textCase(.uppercase)
-                            .foregroundStyle(HCTheme.clay)
-
-                        if fullArchiveStore.supportOptions.isEmpty {
-                            FullArchiveUnavailableOptionsView()
-                        } else {
-                            VStack(spacing: 9) {
-                                ForEach(fullArchiveStore.supportOptions) { option in
-                                    FullArchiveSupportOptionRow(
-                                        option: option,
-                                        isBusy: isBusy,
-                                        isPurchasing: fullArchiveStore.activePurchaseProductID == option.id
-                                    ) {
-                                        Task { await fullArchiveStore.purchase(productID: option.id) }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    VStack(alignment: .leading, spacing: 14) {
-                        PaywallBenefitRow(text: "Past pieces and weekly collections")
-                        PaywallBenefitRow(text: "Interactive timeline and maps")
-                        PaywallBenefitRow(text: "Creators, sources, and updates")
-                    }
-
-                    if let message = fullArchiveStore.statusMessage {
-                        Text(message)
-                            .font(.footnote)
-                            .foregroundStyle(HCTheme.clay)
-                            .lineSpacing(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .padding(HCTheme.pagePadding)
-            }
-
-            VStack(spacing: 12) {
-                Button {
-                    Task { await fullArchiveStore.restorePurchases() }
-                } label: {
-                    Text("Restore Purchases")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HCTheme.secondaryInk)
-                }
-                .buttonStyle(.plain)
-                .disabled(isBusy)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                header
+                supportOptions
+                benefits
+                statusMessage
+                restoreButton
             }
             .padding(.horizontal, HCTheme.pagePadding)
-            .padding(.top, 12)
-            .padding(.bottom, HCTheme.pagePadding)
-            .background(HCTheme.background)
+            .padding(.top, 20)
+            .padding(.bottom, 30)
         }
+        .scrollBounceBehavior(.basedOnSize)
         .background(HCTheme.background)
         .task {
             if !fullArchiveStore.hasFullArchiveAccess {
@@ -357,6 +284,94 @@ private struct FullArchivePaywallView: View {
                 dismiss()
             }
         }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 14) {
+                Text("Full Archive")
+                    .font(.cultureTitle(38))
+                    .foregroundStyle(HCTheme.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(HCTheme.ink)
+                        .frame(width: 34, height: 34)
+                        .background(HCTheme.surfaceRaised, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+            }
+
+            Text("Pick a level. Each one unlocks the full archive, interactive timeline and maps.")
+                .font(.title3)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var supportOptions: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Same archive, different support levels")
+                .font(.cultureKicker())
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.clay)
+
+            if fullArchiveStore.supportOptions.isEmpty {
+                FullArchiveUnavailableOptionsView()
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(fullArchiveStore.supportOptions) { option in
+                        FullArchiveSupportOptionRow(
+                            option: option,
+                            isBusy: isBusy,
+                            isPurchasing: fullArchiveStore.activePurchaseProductID == option.id
+                        ) {
+                            Task { await fullArchiveStore.purchase(productID: option.id) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var benefits: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            PaywallBenefitRow(text: "Past pieces and weekly collections")
+            PaywallBenefitRow(text: "Interactive timeline and maps")
+            PaywallBenefitRow(text: "Creators, sources, and updates")
+        }
+        .padding(.top, 2)
+    }
+
+    @ViewBuilder
+    private var statusMessage: some View {
+        if let message = fullArchiveStore.statusMessage {
+            Text(message)
+                .font(.footnote)
+                .foregroundStyle(HCTheme.clay)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var restoreButton: some View {
+        Button {
+            Task { await fullArchiveStore.restorePurchases() }
+        } label: {
+            Text("Restore Purchases")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(HCTheme.secondaryInk)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .disabled(isBusy)
+        .padding(.top, 2)
     }
 
     private var isBusy: Bool {
