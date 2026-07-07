@@ -24,13 +24,13 @@ Human Collective should stay curated, not scraped. This foundation keeps manual 
    - Stable `id`
    - Title and maker, if known
    - Culture/place/date/category
-   - Direct image URL
-   - Source URL
-   - License or rights label
-   - One-sentence hook
-   - Short story
-   - Significance line
-   - Tags and curator note
+- Direct image URL
+- Source URL
+- License or rights label
+- One-sentence hook
+- Original Deep Dive text in the `story` field, usually 500 to 800 characters
+- Significance line
+- Tags and curator note
 
 4. Assign items to `weekly_packs`.
    A pack should usually have 5 to 7 items. The first item is treated as the featured item in the app.
@@ -110,6 +110,7 @@ Before an item is promoted:
 - The image URL resolves directly to an image.
 - The source URL opens the museum/archive/file page.
 - The story is original writing, not copied from a museum label.
+- The Deep Dive gives enough context to read for a moment, not just a two-sentence summary.
 - The hook is short and specific.
 - The item adds variety to its weekly pack.
 

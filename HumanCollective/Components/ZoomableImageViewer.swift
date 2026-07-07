@@ -161,13 +161,10 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
         context.coordinator.task?.cancel()
         context.coordinator.imageView?.image = nil
         scrollView.setZoomScale(1, animated: false)
-        context.coordinator.isZoomed?.wrappedValue = false
-        context.coordinator.isLoading?.wrappedValue = true
-        context.coordinator.didFail?.wrappedValue = false
+        context.coordinator.updateState(isZoomed: false, isLoading: true, didFail: false)
 
         guard let url else {
-            context.coordinator.isLoading?.wrappedValue = false
-            context.coordinator.didFail?.wrappedValue = true
+            context.coordinator.updateState(isLoading: false, didFail: true)
             return
         }
 
@@ -198,6 +195,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
     static func dismantleUIView(_ uiView: UIScrollView, coordinator: Coordinator) {
         coordinator.isActive = false
         coordinator.task?.cancel()
+        coordinator.cancelPendingStateUpdate()
         coordinator.imageView?.image = nil
         coordinator.scrollView?.delegate = nil
         coordinator.isZoomed = nil
@@ -214,6 +212,7 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
         var didFail: Binding<Bool>?
         var task: Task<Void, Never>?
         var currentURL: URL?
+        private var pendingStateUpdate: Task<Void, Never>?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             imageView
@@ -221,7 +220,34 @@ private struct ZoomableRemoteImage: UIViewRepresentable {
 
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
             guard isActive else { return }
-            isZoomed?.wrappedValue = scrollView.zoomScale > scrollView.minimumZoomScale + 0.01
+            updateState(isZoomed: scrollView.zoomScale > scrollView.minimumZoomScale + 0.01)
+        }
+
+        func updateState(
+            isZoomed nextIsZoomed: Bool? = nil,
+            isLoading nextIsLoading: Bool? = nil,
+            didFail nextDidFail: Bool? = nil
+        ) {
+            pendingStateUpdate?.cancel()
+            pendingStateUpdate = Task { @MainActor [weak self] in
+                await Task.yield()
+                guard let self, self.isActive, !Task.isCancelled else { return }
+
+                if let nextIsZoomed {
+                    self.isZoomed?.wrappedValue = nextIsZoomed
+                }
+                if let nextIsLoading {
+                    self.isLoading?.wrappedValue = nextIsLoading
+                }
+                if let nextDidFail {
+                    self.didFail?.wrappedValue = nextDidFail
+                }
+            }
+        }
+
+        func cancelPendingStateUpdate() {
+            pendingStateUpdate?.cancel()
+            pendingStateUpdate = nil
         }
 
         @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
