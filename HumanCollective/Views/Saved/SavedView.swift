@@ -106,19 +106,11 @@ struct SavedView: View {
 
 private struct SavedEmptyRow: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Image(systemName: "bookmark")
-                .font(.system(size: 22, weight: .regular))
-                .foregroundStyle(HCTheme.mutedInk)
-                .frame(width: 42, height: 42)
-                .background(HCTheme.surfaceDeep, in: Circle())
-
-            Text("Saved pieces will live here.")
-                .font(.cultureTitle(25))
-                .foregroundStyle(HCTheme.ink)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 22)
+        ContentUnavailableView("No Saved Pieces", systemImage: "bookmark")
+            .tint(HCTheme.clay)
+            .foregroundStyle(HCTheme.secondaryInk)
+            .frame(maxWidth: .infinity, minHeight: 380)
+            .accessibilityElement(children: .combine)
     }
 }
 

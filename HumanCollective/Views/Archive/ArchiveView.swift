@@ -149,8 +149,6 @@ struct ArchiveView: View {
             .background(HCTheme.background)
             .sheet(isPresented: $isShowingFullArchivePaywall) {
                 FullArchivePaywallView(fullArchiveStore: fullArchiveStore)
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
             }
             .onChange(of: visiblePackSignature) { _, _ in
                 visiblePastWeekCount = pastWeekBatchSize
@@ -258,6 +256,7 @@ private struct FullArchivePaywallView: View {
     let fullArchiveStore: FullArchiveStore
 
     @Environment(\.dismiss) private var dismiss
+    @State private var measuredContentHeight: CGFloat = 560
 
     var body: some View {
         ScrollView {
@@ -271,9 +270,21 @@ private struct FullArchivePaywallView: View {
             .padding(.horizontal, HCTheme.pagePadding)
             .padding(.top, 20)
             .padding(.bottom, 30)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: PaywallContentHeightPreferenceKey.self, value: proxy.size.height)
+                }
+            }
         }
         .scrollBounceBehavior(.basedOnSize)
         .background(HCTheme.background)
+        .presentationDetents([.height(sheetDetentHeight)])
+        .presentationDragIndicator(.visible)
+        .onPreferenceChange(PaywallContentHeightPreferenceKey.self) { height in
+            guard abs(measuredContentHeight - height) > 1 else { return }
+            measuredContentHeight = height
+        }
         .task {
             if !fullArchiveStore.hasFullArchiveAccess {
                 await fullArchiveStore.loadProducts()
@@ -345,6 +356,7 @@ private struct FullArchivePaywallView: View {
             PaywallBenefitRow(text: "Past pieces and weekly collections")
             PaywallBenefitRow(text: "Interactive timeline and maps")
             PaywallBenefitRow(text: "Creators, sources, and updates")
+            PaywallBenefitRow(text: "A portion of proceeds supports museums and cultural institutions")
         }
         .padding(.top, 2)
     }
@@ -374,6 +386,11 @@ private struct FullArchivePaywallView: View {
         .padding(.top, 2)
     }
 
+    private var sheetDetentHeight: CGFloat {
+        let availableHeight = UIScreen.main.bounds.height * 0.78
+        return min(max(measuredContentHeight + 18, 420), availableHeight)
+    }
+
     private var isBusy: Bool {
         switch fullArchiveStore.purchaseState {
         case .loading, .purchasing, .restoring:
@@ -381,6 +398,14 @@ private struct FullArchivePaywallView: View {
         case .idle, .unlocked, .unavailable, .failed:
             return false
         }
+    }
+}
+
+private struct PaywallContentHeightPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 560
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
