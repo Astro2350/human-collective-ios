@@ -108,16 +108,15 @@ struct CultureAsyncImage: View {
     }
 
     private var placeholder: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo")
-                .font(.system(size: 28, weight: .light))
-
-            Text("Image unavailable")
-                .font(.caption.weight(.medium))
-        }
-        .foregroundStyle(HCTheme.secondaryInk.opacity(0.72))
-        .multilineTextAlignment(.center)
-        .padding(12)
+        LinearGradient(
+            colors: [
+                HCTheme.surfaceDeep,
+                HCTheme.surfaceRaised.opacity(0.84),
+                HCTheme.surfaceDeep
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -150,7 +149,9 @@ struct CultureAsyncImage: View {
     }
 
     static func normalizedImageURL(from imageURL: String) -> URL? {
-        URL(string: imageURL)
+        let trimmedURL = imageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURL.isEmpty else { return nil }
+        return URL(string: trimmedURL)
     }
 }
 

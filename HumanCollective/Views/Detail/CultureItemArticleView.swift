@@ -351,10 +351,12 @@ struct CultureItemArticleView: View {
     private func cleanedLicense(_ value: String?) -> String? {
         guard let license = cleanedText(value) else { return nil }
 
-        let internalNote = "; verify file license before production import"
+        if let noteRange = license.range(of: "; verify", options: .caseInsensitive) {
+            return license[..<noteRange.lowerBound]
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
         return license
-            .replacingOccurrences(of: internalNote, with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

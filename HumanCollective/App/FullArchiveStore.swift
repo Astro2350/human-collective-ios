@@ -79,6 +79,18 @@ final class FullArchiveStore {
             }
     }
 
+    var canOfferFullArchivePurchase: Bool {
+        if hasFullArchiveAccess {
+            return true
+        }
+
+        if case .unavailable = purchaseState {
+            return false
+        }
+
+        return true
+    }
+
     var statusMessage: String? {
         switch purchaseState {
         case .failed(let message):
@@ -272,15 +284,15 @@ final class FullArchiveStore {
     private static let supportDetails: [String: (title: String, subtitle: String)] = [
         accessProductID: (
             title: "Access",
-            subtitle: "Full archive at the lowest level."
+            subtitle: "Unlocks everything."
         ),
         standardProductID: (
             title: "Standard",
-            subtitle: "Helps fund research and updates."
+            subtitle: "More museum and app support."
         ),
         patronProductID: (
             title: "Patron",
-            subtitle: "Helps the archive keep growing."
+            subtitle: "Most museum and app support."
         ),
         legacyProductID: (
             title: "Full Archive",

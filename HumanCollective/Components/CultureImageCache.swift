@@ -4,6 +4,8 @@ import UIKit
 actor CultureImageCache {
     static let shared = CultureImageCache()
 
+    private static let maximumDownloadAttempts = 3
+
     private let cache = NSCache<NSURL, NSData>()
     private let imageCache = NSCache<NSURL, UIImage>()
     private var inFlight: [URL: Task<Data, Error>] = [:]
@@ -28,18 +30,27 @@ actor CultureImageCache {
             return cachedImage
         }
 
-        let data = try await data(for: url)
+        do {
+            let data = try await data(for: url)
 
-        if let cachedImage = cachedImage(for: url) {
-            return cachedImage
+            if let cachedImage = cachedImage(for: url) {
+                return cachedImage
+            }
+
+            guard let image = UIImage(data: data) else {
+                throw CultureImageCacheError.decodingFailed
+            }
+
+            imageCache.setObject(image, forKey: url as NSURL, cost: Self.imageCost(image))
+            return image
+        } catch {
+            if let fallbackImage = Self.bundledFallbackImage(for: url) {
+                imageCache.setObject(fallbackImage, forKey: url as NSURL, cost: Self.imageCost(fallbackImage))
+                return fallbackImage
+            }
+
+            throw error
         }
-
-        guard let image = UIImage(data: data) else {
-            throw CultureImageCacheError.decodingFailed
-        }
-
-        imageCache.setObject(image, forKey: url as NSURL, cost: Self.imageCost(image))
-        return image
     }
 
     func data(for url: URL) async throws -> Data {
@@ -52,19 +63,7 @@ actor CultureImageCache {
         }
 
         let task = Task(priority: .userInitiated) {
-            var request = URLRequest(url: url)
-            request.cachePolicy = .returnCacheDataElseLoad
-            request.timeoutInterval = 20
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-            try Task.checkCancellation()
-
-            if let response = response as? HTTPURLResponse,
-               !(200..<300).contains(response.statusCode) {
-                throw CultureImageCacheError.requestFailed
-            }
-
-            return data
+            try await Self.downloadDataWithRetry(for: url)
         }
 
         inFlight[url] = task
@@ -90,6 +89,75 @@ actor CultureImageCache {
                 }
             }
         }
+    }
+
+    private nonisolated static func downloadDataWithRetry(for url: URL) async throws -> Data {
+        var lastError: Error?
+
+        for attempt in 1...maximumDownloadAttempts {
+            do {
+                return try await downloadData(for: url)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                lastError = error
+                guard attempt < maximumDownloadAttempts else { break }
+                try await Task.sleep(for: .milliseconds(250 * attempt))
+            }
+        }
+
+        throw lastError ?? CultureImageCacheError.requestFailed
+    }
+
+    private nonisolated static func downloadData(for url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.cachePolicy = .returnCacheDataElseLoad
+        request.timeoutInterval = 24
+        request.setValue("HumanCollective/1.0 (iOS)", forHTTPHeaderField: "User-Agent")
+        request.setValue("image/jpeg,image/png,image/webp,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try Task.checkCancellation()
+
+        if let response = response as? HTTPURLResponse,
+           !(200..<300).contains(response.statusCode) {
+            throw CultureImageCacheError.requestFailed
+        }
+
+        guard !data.isEmpty else {
+            throw CultureImageCacheError.decodingFailed
+        }
+
+        return data
+    }
+
+    private nonisolated static func bundledFallbackImage(for url: URL) -> UIImage? {
+        guard let assetName = bundledFallbackAssetName(for: url) else { return nil }
+        return UIImage(named: assetName)
+    }
+
+    private nonisolated static func bundledFallbackAssetName(for url: URL) -> String? {
+        if url.host?.localizedCaseInsensitiveContains("artic.edu") == true {
+            let pathComponents = url.pathComponents
+            if let iiifIndex = pathComponents.firstIndex(of: "iiif"),
+               pathComponents.indices.contains(iiifIndex + 2),
+               pathComponents[iiifIndex + 1] == "2" {
+                return "ArchiveFallback_\(pathComponents[iiifIndex + 2])"
+            }
+        }
+
+        return "ArchiveFallbackURL_\(fnv1a64Hex(url.absoluteString))"
+    }
+
+    private nonisolated static func fnv1a64Hex(_ value: String) -> String {
+        var hash: UInt64 = 0xcbf29ce484222325
+
+        for byte in value.utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x100000001b3
+        }
+
+        return String(format: "%016llx", hash)
     }
 
     private static func imageCost(_ image: UIImage) -> Int {

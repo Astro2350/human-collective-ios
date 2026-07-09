@@ -4,7 +4,7 @@ struct MockCultureRepository: CultureRepository {
     private let packs: [CulturePack]
 
     init() {
-        self.packs = Self.makePacks()
+        self.packs = Self.makePacks().compactMap(CultureContentQuality.appStoreReadyPack)
     }
 
     func fetchCurrentPack() async throws -> CulturePack {
@@ -32,6 +32,7 @@ struct MockCultureRepository: CultureRepository {
         return packs
             .flatMap(\.items)
             .filter { ids.contains($0.id) }
+            .filter(CultureContentQuality.isAppStoreReady)
     }
 
     private static func makePacks() -> [CulturePack] {
@@ -230,7 +231,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Lewis_chessmen.jpg?width=900",
             sourceName: "British Museum",
             sourceURL: "https://www.britishmuseum.org/collection/object/H_1831-1101-84",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "Medieval game pieces with worried little faces.",
             story: """
             The Lewis Chessmen are memorable because they make strategy look human. Queens hold their cheeks, kings sit stiffly, and warriors bite their shields with a seriousness that now feels strangely charming. They were carved from walrus ivory and found on the Isle of Lewis, part of a wider medieval world of trade, games, and courtly display. What could have been plain game equipment becomes a tiny cast of characters. Their appeal is immediate: you can understand rank, anxiety, humor, and personality before reading a single label.
@@ -255,7 +256,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Terracotta_warriors.jpg/1280px-Terracotta_warriors.jpg",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Terracotta_warriors.jpg",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "An army made from earth, rank, repetition, and individual faces.",
             story: """
             The Terracotta Warriors were made for the tomb of Qin Shi Huang, but they do not feel like anonymous background decoration. Their power comes from scale and variation working together: rows of bodies repeat, while faces, armor, hair, and posture keep pulling attention back to individuals. Clay becomes military order, political theater, and a kind of afterlife infrastructure. The cool part is that the figures are massive as a group, but the details still reward close looking. They make empire visible through thousands of crafted human forms.
@@ -280,7 +281,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Portrait_Vessel_of_a_Ruler%2C_100_BC_-_500_AD%2C_Moche%2C_north_coast_of_Peru%2C_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG/960px-Portrait_Vessel_of_a_Ruler%2C_100_BC_-_500_AD%2C_Moche%2C_north_coast_of_Peru%2C_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Portrait_Vessel_of_a_Ruler,_100_BC_-_500_AD,_Moche,_north_coast_of_Peru,_ceramic_and_pigment_-_Art_Institute_of_Chicago_-_DSC00321.JPG",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "A vessel that treats the human face as a place worth studying.",
             story: """
             Moche portrait vessels make looking at a face feel like the main event. The object is a container, but it is also a likeness shaped around cheeks, brow, mouth, and bearing. That combination makes it feel different from a flat portrait: the person becomes volume, surface, and use all at once. These vessels show how carefully Moche artists observed human presence, status, and expression. It belongs in a daily slot because it is instantly readable, but the longer you sit with it, the stranger and more impressive the format becomes.
@@ -405,7 +406,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/The_Rhinoceros_%28NGA_1964.8.697%29_enhanced.png/960px-The_Rhinoceros_%28NGA_1964.8.697%29_enhanced.png",
             sourceName: "National Gallery of Art",
             sourceURL: "https://www.nga.gov/artworks/47903-rhinoceros",
-            license: "Public domain artwork; verify image file license before production import",
+            license: "Public domain artwork",
             hook: "A rhinoceros drawn like a tiny armored tank by someone who never saw it.",
             story: """
             Durer's rhinoceros is one of the best examples of an image being wrong and unforgettable at the same time. The artist based it on reports and sketches rather than direct observation, so the animal becomes a mix of fact, rumor, armor, scales, and imagination. That is exactly why it is fun to look at. It feels like a creature from a game before games existed, with plates and textures that make it more fantastic than realistic. For centuries, this print helped shape how Europeans pictured a rhinoceros, proving that a compelling image can become its own kind of truth.
@@ -430,7 +431,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Minoan_vase_with_octopus_motif_-_DPLA_-_07d764d5ed7063fed136ae3969ef190d.jpg",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Minoan_vase_with_octopus_motif_-_DPLA_-_07d764d5ed7063fed136ae3969ef190d.jpg",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "A sea creature wraps itself around a vessel made for human hands.",
             story: """
             This octopus does not sit politely inside a border. It stretches around the vase, using the round surface like water and making the vessel feel alive. The design works because animal, pattern, and object shape are all solving the same visual problem. Arms become movement, the body becomes a center, and the pot becomes an underwater space. It is one of those objects that feels modern because the decoration understands the form so completely.
@@ -455,7 +456,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Rosetta_Stone.JPG/960px-Rosetta_Stone.JPG",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Rosetta_Stone.JPG",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "A broken slab that helped reopen an ancient writing system.",
             story: """
             The Rosetta Stone matters because the same decree appears in three scripts, including Greek and Egyptian hieroglyphs. That repetition gave scholars a way to compare signs, sounds, and meanings across writing systems. The object is not flashy in the usual sense, but its plainness is part of the power: a damaged administrative text became one of the most important translation tools in history. It turns a chunk of stone into a hinge between lost knowledge and readable language.
@@ -605,7 +606,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Agamemnon_mask_NAMA_Athens_Greece.jpg?width=900",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Agamemnon_mask_NAMA_Athens_Greece.jpg",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "A sheet of gold pressed into the memory of a face.",
             story: """
             This gold funerary mask is famous partly because of its dramatic modern nickname, but the stronger point is simpler: burial becomes presence. A thin sheet of precious metal is shaped into eyes, nose, mouth, beard, and expression, making a face endure after the body is hidden. The mask asks viewers to think about memory as material. Gold is not only valuable here; it is a way to make mourning visible, durable, and difficult to ignore.
@@ -630,7 +631,7 @@ struct MockCultureRepository: CultureRepository {
             imageURL: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Astrolabe-Persian-18C.jpg?width=900",
             sourceName: "Wikimedia Commons",
             sourceURL: "https://commons.wikimedia.org/wiki/File:Astrolabe-Persian-18C.jpg",
-            license: "Open access image; verify file license before production import",
+            license: "Open access image",
             hook: "A handheld model of sky, time, and calculation.",
             story: """
             An astrolabe makes the sky usable. Its engraved circles, plates, and pointer turn observation into a portable tool for time, position, and calculation. What makes this kind of object so good for close looking is that beauty and function are inseparable: the lines are not just decoration, but instructions and measurements. It shows science as something crafted, carried, touched, and read by hand.

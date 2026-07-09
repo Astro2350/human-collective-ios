@@ -148,6 +148,75 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
+enum CultureContentQuality {
+    static func appStoreReadyPack(_ pack: CulturePack) -> CulturePack? {
+        let readyItems = pack.items.filter(isAppStoreReady)
+        guard !readyItems.isEmpty else { return nil }
+
+        return CulturePack(
+            id: pack.id,
+            weekKey: pack.weekKey,
+            title: pack.title,
+            subtitle: pack.subtitle,
+            startDate: pack.startDate,
+            endDate: pack.endDate,
+            items: readyItems
+        )
+    }
+
+    static func isAppStoreReady(_ item: CultureItem) -> Bool {
+        hasUsefulText(item.title, minimumLength: 2) &&
+            hasValidURL(item.imageURL) &&
+            hasValidURL(item.sourceURL) &&
+            hasUsefulText(item.hook, minimumLength: 12) &&
+            hasUsefulText(item.story, minimumLength: 40) &&
+            hasUsefulText(item.whyItMatters, minimumLength: 20)
+    }
+
+    private static func hasValidURL(_ value: String) -> Bool {
+        let trimmedValue = normalized(value)
+        guard !trimmedValue.isEmpty,
+              let url = URL(string: trimmedValue),
+              let scheme = url.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              url.host != nil else {
+            return false
+        }
+
+        return !containsTemporaryContent(trimmedValue)
+    }
+
+    private static func hasUsefulText(_ value: String, minimumLength: Int) -> Bool {
+        let trimmedValue = normalized(value)
+        guard trimmedValue.count >= minimumLength else { return false }
+        return !containsTemporaryContent(trimmedValue)
+    }
+
+    private static func normalized(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func containsTemporaryContent(_ value: String) -> Bool {
+        let loweredValue = value.lowercased()
+        let temporaryMarkers = [
+            "placeholder",
+            "lorem ipsum",
+            "coming soon",
+            "todo",
+            "needs copy",
+            "needs image",
+            "needs rights",
+            "needs review",
+            "draft copy",
+            "sample content"
+        ]
+
+        return temporaryMarkers.contains { loweredValue.contains($0) }
+    }
+}
+
 private enum CultureItemTitleFormatter {
     private static let idealLimit = 46
     private static let displayTitleCache = NSCache<NSString, NSString>()

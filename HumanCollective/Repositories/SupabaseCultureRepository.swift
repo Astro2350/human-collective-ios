@@ -99,7 +99,9 @@ struct SupabaseCultureRepository: CultureRepository {
             ]
         )
 
-        return items.map { $0.model }
+        return items
+            .map(\.model)
+            .filter(CultureContentQuality.isAppStoreReady)
     }
 
     private func hydrate(packs: [SupabasePackDTO]) async throws -> [CulturePack] {
@@ -116,8 +118,8 @@ struct SupabaseCultureRepository: CultureRepository {
         )
         let rowsByPackID = Dictionary(grouping: rows, by: \.packID)
 
-        return packs.map { pack in
-            CulturePack(
+        return packs.compactMap { pack in
+            let hydratedPack = CulturePack(
                 id: pack.id,
                 weekKey: pack.weekKey,
                 title: pack.title,
@@ -128,6 +130,8 @@ struct SupabaseCultureRepository: CultureRepository {
                     .sorted { $0.position < $1.position }
                     .map(\.item.model)
             )
+
+            return CultureContentQuality.appStoreReadyPack(hydratedPack)
         }
     }
 

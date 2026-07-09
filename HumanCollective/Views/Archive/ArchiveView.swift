@@ -63,7 +63,8 @@ struct ArchiveView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         ScreenHeader("Archive")
 
-                        if !fullArchiveStore.hasFullArchiveAccess {
+                        if !fullArchiveStore.hasFullArchiveAccess,
+                           fullArchiveStore.canOfferFullArchivePurchase {
                             FullArchiveCard(
                                 lockedPackCount: lockedPackCount
                             ) {
@@ -318,7 +319,7 @@ private struct FullArchivePaywallView: View {
                 .accessibilityLabel("Close")
             }
 
-            Text("Pick a level. Each one unlocks the full archive, interactive timeline and maps.")
+            Text("Every level unlocks the archive. Higher levels send more support to museums and app upkeep.")
                 .font(.title3)
                 .foregroundStyle(HCTheme.secondaryInk)
                 .lineSpacing(3)
@@ -328,7 +329,7 @@ private struct FullArchivePaywallView: View {
 
     private var supportOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Same archive, different support levels")
+            Text("Same access, more support")
                 .font(.cultureKicker())
                 .textCase(.uppercase)
                 .foregroundStyle(HCTheme.clay)
@@ -353,10 +354,9 @@ private struct FullArchivePaywallView: View {
 
     private var benefits: some View {
         VStack(alignment: .leading, spacing: 13) {
-            PaywallBenefitRow(text: "Past pieces and weekly collections")
-            PaywallBenefitRow(text: "Interactive timeline and maps")
-            PaywallBenefitRow(text: "Creators, sources, and updates")
-            PaywallBenefitRow(text: "A portion of proceeds supports museums and cultural institutions")
+            PaywallBenefitRow(text: "Past pieces, timeline, and maps")
+            PaywallBenefitRow(text: "Creators and sources")
+            PaywallBenefitRow(text: "Museum support and app upkeep")
         }
         .padding(.top, 2)
     }
@@ -387,8 +387,8 @@ private struct FullArchivePaywallView: View {
     }
 
     private var sheetDetentHeight: CGFloat {
-        let availableHeight = UIScreen.main.bounds.height * 0.78
-        return min(max(measuredContentHeight + 18, 420), availableHeight)
+        let availableHeight = UIScreen.main.bounds.height * 0.86
+        return min(max(measuredContentHeight + 64, 470), availableHeight)
     }
 
     private var isBusy: Bool {
@@ -462,11 +462,11 @@ private struct FullArchiveSupportOptionRow: View {
 private struct FullArchiveUnavailableOptionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text("Support options are being set up.")
+            Text("Full Archive purchases are unavailable right now.")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(HCTheme.ink)
 
-            Text("Each level will unlock the same Full Archive once this is ready.")
+            Text("Restore an existing purchase or try again later.")
                 .font(.caption)
                 .foregroundStyle(HCTheme.secondaryInk)
                 .lineSpacing(2)
