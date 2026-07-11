@@ -412,7 +412,7 @@
     {
       "id": "sutton-hoo-helmet",
       "content_source_id": "wikimedia-commons",
-      "source_object_id": "Sutton_Hoo_helmet_fig1",
+      "source_object_id": "Sutton_Hoo_helmet_2016.JPG",
       "title": "Sutton Hoo Helmet",
       "maker": "Unknown Anglo-Saxon metalworker",
       "culture": "Anglo-Saxon",
@@ -420,13 +420,13 @@
       "region": "Suffolk",
       "date_display": "early 7th century",
       "category": "artifact",
-      "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sutton_Hoo_helmet_fig1_-_reconstructed-known.svg?width=900",
-      "source_name": "Reconstruction by Goran tek-en via Wikimedia Commons",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Sutton_Hoo_helmet_fig1_-_reconstructed-known.svg",
-      "license": "CC BY-SA 4.0; attribution required",
-      "hook": "A helmet rebuilt from fragments into the outline of a person.",
-      "story": "The Sutton Hoo helmet is both armor and image. Its reconstructed face suggests protection, rank, and theatrical presence.",
-      "why_it_matters": "It shows how archaeology often asks us to imagine the whole from the broken.",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Sutton_Hoo_helmet_2016.JPG/960px-Sutton_Hoo_helmet_2016.JPG",
+      "source_name": "Photo by Geni via Wikimedia Commons",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Sutton_Hoo_helmet_2016.JPG",
+      "license": "GFDL or CC BY-SA 4.0; attribution required",
+      "hook": "A masked Anglo-Saxon helmet from a ship burial in Suffolk.",
+      "story": "The Sutton Hoo helmet was found in the Mound 1 ship burial, one of the most important archaeological discoveries in England. Made in the early 7th century, it protected the head while turning the wearer into a face: arched brows, a nose guard, a moustache, and dark eye openings built from iron and decorated metalwork. The helmet was recovered in fragments and reconstructed, but its effect is still immediate. It belonged to a burial world of weapons, gold, silver, feasting gear, and objects connected to places far beyond England.",
+      "why_it_matters": "It makes early Anglo-Saxon power visible as armor, portrait, and burial treasure.",
       "latitude": 52.089,
       "longitude": 1.338,
       "primary_week_key": "2026-W28",
@@ -436,7 +436,7 @@
         "burial",
         "metalwork"
       ],
-      "curator_note": "Image is a reconstruction diagram; replace with object photo if licensing allows."
+      "curator_note": "Verified front helmet photo from Wikimedia Commons; avoid schematic reconstruction images."
     },
     {
       "id": "code-of-hammurabi-stele",
