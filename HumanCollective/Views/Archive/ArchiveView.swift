@@ -1336,7 +1336,7 @@ private struct ArchiveTimelineWheel: View {
             get: { Int(selectedYear.rounded()) },
             set: { year in
                 withAnimation(.easeInOut(duration: 0.16)) {
-                    selectedYear = Double(year)
+                    selectedYear = ArchiveTimelineScale.clampedYear(Double(year), to: bounds)
                 }
             }
         )
@@ -1348,9 +1348,9 @@ private struct ArchiveTimelineWheel: View {
         let start = (lowerBound / 25) * 25
         let end = ((upperBound + 24) / 25) * 25
         var values = Array(stride(from: start, through: end, by: 25))
-        values.append(contentsOf: [lowerBound, 0, upperBound])
+        values.append(contentsOf: [lowerBound, 1, upperBound])
         return Array(Set(values))
-            .filter { lowerBound...upperBound ~= $0 }
+            .filter { $0 != 0 && lowerBound...upperBound ~= $0 }
             .sorted()
     }
 
@@ -1392,20 +1392,64 @@ private struct ArchiveTimelineWheel: View {
             .accessibilityLabel("Time")
             .accessibilityValue("\(ArchiveItemDateParser.displayYear(selectedYear)), \(ArchiveHistoricalPeriod.title(for: selectedYear))")
 
-            HStack {
-                Text(ArchiveItemDateParser.displayYear(bounds.lowerBound))
+            HStack(alignment: .firstTextBaseline) {
+                ArchiveTimelineEndpointLabel(
+                    title: "Oldest",
+                    year: bounds.lowerBound,
+                    alignment: .leading
+                )
+
                 Spacer()
-                Text(ArchiveItemDateParser.displayYear(bounds.upperBound))
+
+                ArchiveTimelineEndpointLabel(
+                    title: "Newest",
+                    year: bounds.upperBound,
+                    alignment: .trailing
+                )
             }
-            .font(.caption2.weight(.semibold))
-            .textCase(.uppercase)
-            .foregroundStyle(HCTheme.mutedInk)
         }
         .padding(8)
         .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
                 .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
+        }
+        .onAppear {
+            clampSelectionToBounds()
+        }
+        .onChange(of: bounds.lowerBound) { _, _ in
+            clampSelectionToBounds()
+        }
+        .onChange(of: bounds.upperBound) { _, _ in
+            clampSelectionToBounds()
+        }
+    }
+
+    private func clampSelectionToBounds() {
+        let clampedYear = ArchiveTimelineScale.clampedYear(selectedYear, to: bounds)
+        guard clampedYear != selectedYear else { return }
+        selectedYear = clampedYear
+    }
+}
+
+private struct ArchiveTimelineEndpointLabel: View {
+    let title: String
+    let year: Double
+    let alignment: HorizontalAlignment
+
+    var body: some View {
+        VStack(alignment: alignment, spacing: 2) {
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.mutedInk.opacity(0.78))
+
+            Text(ArchiveItemDateParser.displayYear(year))
+                .font(.caption.weight(.semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(HCTheme.mutedInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.86)
         }
     }
 }
@@ -1442,18 +1486,33 @@ private enum ArchiveHistoricalPeriod {
 }
 
 private enum ArchiveTimelineScale {
-    static let defaultYear = 0.0
+    static let defaultYear = 1.0
     static let oldestReasonableYear = -12_000.0
 
     static func bounds(for years: [Double]) -> ClosedRange<Double> {
         let validYears = years.filter(isReasonableYear)
-        let minYear = min(validYears.min() ?? -2200, -2200)
-        let maxYear = max(validYears.max() ?? currentYear, currentYear)
-        return minYear...maxYear
+        guard let oldestYear = validYears.min(),
+              let newestYear = validYears.max() else {
+            return -2200...currentYear
+        }
+
+        if oldestYear == newestYear {
+            let lowerYear = clampedYear(oldestYear - 50)
+            let upperYear = clampedYear(newestYear + 50)
+            return lowerYear...upperYear
+        }
+
+        return oldestYear...newestYear
     }
 
     static func isReasonableYear(_ year: Double) -> Bool {
         oldestReasonableYear...currentYear ~= year
+    }
+
+    static func clampedYear(_ year: Double, to bounds: ClosedRange<Double>? = nil) -> Double {
+        let defaultRange = oldestReasonableYear...currentYear
+        let validRange = bounds ?? defaultRange
+        return min(max(year, validRange.lowerBound), validRange.upperBound)
     }
 
     static var currentYear: Double {
@@ -1483,8 +1542,8 @@ private enum ArchiveItemDateParser {
         let values = numbers(in: dateDisplay, isCentury: lowercase.contains("century"))
         guard !values.isEmpty else { return nil }
 
-        let hasBCE = lowercase.contains("bce") || lowercase.contains("bc")
-        let hasCE = lowercase.contains("ce") || lowercase.contains("ad")
+        let hasBCE = containsEra(in: lowercase, pattern: #"bce|bc"#)
+        let hasCE = containsEra(in: lowercase, pattern: #"ce|ad"#)
         let isCentury = lowercase.contains("century")
         let years = values.compactMap { value -> Double? in
             guard value.number > 0 else { return nil }
@@ -1518,7 +1577,18 @@ private enum ArchiveItemDateParser {
             return "\(abs(roundedYear)) BCE"
         }
 
+        if roundedYear == 0 {
+            return "1 CE"
+        }
+
         return "\(roundedYear) CE"
+    }
+
+    private static func containsEra(in text: String, pattern: String) -> Bool {
+        text.range(
+            of: #"\b("# + pattern + #")\b"#,
+            options: .regularExpression
+        ) != nil
     }
 
     private static func numbers(in text: String, isCentury: Bool) -> [DatedNumber] {
