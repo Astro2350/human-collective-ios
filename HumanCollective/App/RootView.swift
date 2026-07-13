@@ -3,7 +3,7 @@ import SwiftUI
 struct RootView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
-    let fullArchiveStore: FullArchiveStore
+    let supportStore: SupportStore
 
     @AppStorage("humanCulture.hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var notificationManager = DailyNotificationManager()
@@ -14,7 +14,7 @@ struct RootView: View {
                 MainTabView(
                     repository: repository,
                     savedStore: savedStore,
-                    fullArchiveStore: fullArchiveStore
+                    supportStore: supportStore
                 )
             } else {
                 OnboardingView {
@@ -33,7 +33,7 @@ struct RootView: View {
 private struct MainTabView: View {
     let repository: any CultureRepository
     let savedStore: SavedStore
-    let fullArchiveStore: FullArchiveStore
+    let supportStore: SupportStore
 
     @State private var selectedTab: AppTab = .today
     @State private var rootTabBarHiddenDepth = 0
@@ -44,7 +44,9 @@ private struct MainTabView: View {
                 NavigationStack {
                     TodayView(
                         repository: repository,
-                        savedStore: savedStore
+                        savedStore: savedStore,
+                        supportStore: supportStore,
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                     )
                 }
             }
@@ -54,7 +56,6 @@ private struct MainTabView: View {
                     ArchiveView(
                         repository: repository,
                         savedStore: savedStore,
-                        fullArchiveStore: fullArchiveStore,
                         rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                     )
                 }
@@ -79,6 +80,18 @@ private struct MainTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .humanCultureOpenToday)) { _ in
             selectedTab = .today
+        }
+        .onOpenURL { url in
+            guard url.scheme == "humancollective" else { return }
+
+            switch url.host {
+            case "today":
+                selectedTab = .today
+            case "saved":
+                selectedTab = .saved
+            default:
+                break
+            }
         }
         .animation(.easeInOut(duration: 0.18), value: rootTabBarHiddenDepth)
         .sensoryFeedback(.selection, trigger: selectedTab)

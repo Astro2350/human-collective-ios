@@ -3,25 +3,20 @@ import SwiftUI
 import UIKit
 
 struct ArchiveView: View {
-    private let freeArchivePackLimit = 2
     private let pastWeekBatchSize = 5
 
     let savedStore: SavedStore
-    let fullArchiveStore: FullArchiveStore
     @Binding private var rootTabBarHiddenDepth: Int
 
-    @State private var isShowingFullArchivePaywall = false
     @State private var visiblePastWeekCount = 5
     @State private var viewModel: ArchiveViewModel
 
     init(
         repository: any CultureRepository,
         savedStore: SavedStore,
-        fullArchiveStore: FullArchiveStore,
         rootTabBarHiddenDepth: Binding<Int>
     ) {
         self.savedStore = savedStore
-        self.fullArchiveStore = fullArchiveStore
         _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ArchiveViewModel(repository: repository))
     }
@@ -54,39 +49,24 @@ struct ArchiveView: View {
     private func archiveList(_ packs: [CulturePack]) -> some View {
         GeometryReader { proxy in
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
-            let visiblePacks = visibleArchivePacks(from: packs)
+            let visiblePacks = packs
             let visiblePackSignature = ArchiveItemCollection.packIDSignature(visiblePacks)
-            let lockedPackCount = max(packs.count - visiblePacks.count, 0)
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        ScreenHeader("Archive")
-
-                        if !fullArchiveStore.hasFullArchiveAccess,
-                           fullArchiveStore.canOfferFullArchivePurchase {
-                            FullArchiveCard(
-                                lockedPackCount: lockedPackCount
-                            ) {
-                                isShowingFullArchivePaywall = true
-                            }
-                            .frame(width: contentWidth, alignment: .leading)
-                        }
-                    }
+                    ScreenHeader("Archive")
                     .zIndex(1)
 
                     if visiblePacks.isEmpty {
                         ArchiveInlineEmptyState()
                             .frame(width: contentWidth, alignment: .leading)
                     } else {
-                        if fullArchiveStore.hasFullArchiveAccess {
-                            FullArchiveDiscoveryView(
-                                items: ArchiveItemCollection.uniqueItems(visiblePacks.flatMap(\.items)),
-                                savedStore: savedStore,
-                                rootTabBarHiddenDepth: $rootTabBarHiddenDepth
-                            )
-                            .frame(width: contentWidth, alignment: .leading)
-                        }
+                        ArchiveDiscoveryView(
+                            items: ArchiveItemCollection.uniqueItems(visiblePacks.flatMap(\.items)),
+                            savedStore: savedStore,
+                            rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                        )
+                        .frame(width: contentWidth, alignment: .leading)
 
                         if let featuredPack = visiblePacks.first {
                             archivePackLink(featuredPack) {
@@ -148,22 +128,11 @@ struct ArchiveView: View {
                 .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
             .background(HCTheme.background)
-            .sheet(isPresented: $isShowingFullArchivePaywall) {
-                FullArchivePaywallView(fullArchiveStore: fullArchiveStore)
-            }
             .onChange(of: visiblePackSignature) { _, _ in
                 visiblePastWeekCount = pastWeekBatchSize
             }
         }
         .background(HCTheme.background)
-    }
-
-    private func visibleArchivePacks(from packs: [CulturePack]) -> [CulturePack] {
-        if fullArchiveStore.hasFullArchiveAccess {
-            return packs
-        }
-
-        return Array(packs.prefix(freeArchivePackLimit))
     }
 
     private func loadIfNeeded() async {
@@ -187,318 +156,6 @@ struct ArchiveView: View {
             label()
         }
         .buttonStyle(.cultureCard)
-    }
-}
-
-private struct FullArchiveCard: View {
-    let lockedPackCount: Int
-    let action: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(systemName: "lock")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(HCTheme.clay.opacity(0.9))
-                    .frame(width: 24, height: 24)
-                    .background(HCTheme.editorGold.opacity(0.14), in: Circle())
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Full Archive")
-                        .font(.cultureKicker())
-                        .textCase(.uppercase)
-                        .foregroundStyle(HCTheme.clay.opacity(0.92))
-
-                    Text(subtitle)
-                        .font(.footnote)
-                        .foregroundStyle(HCTheme.secondaryInk)
-                        .lineSpacing(1)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 0)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(HCTheme.mutedInk.opacity(0.72))
-            }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                action()
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(accessibilityLabel)
-            .accessibilityAddTraits(.isButton)
-
-            Rectangle()
-                .fill(HCTheme.line.opacity(0.75))
-                .frame(height: HCTheme.hairline)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var subtitle: String {
-        if lockedPackCount > 0 {
-            return "Unlock \(lockedPackCount) more weekly \(lockedPackCount == 1 ? "archive" : "archives"), the interactive timeline and maps, and creators."
-        }
-
-        return "Explore every past piece with the interactive timeline and maps, plus creators and sources."
-    }
-
-    private var accessibilityLabel: String {
-        "Full Archive. \(subtitle)"
-    }
-}
-
-private struct FullArchivePaywallView: View {
-    let fullArchiveStore: FullArchiveStore
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var measuredContentHeight: CGFloat = 560
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                header
-                supportOptions
-                benefits
-                statusMessage
-                restoreButton
-            }
-            .padding(.horizontal, HCTheme.pagePadding)
-            .padding(.top, 20)
-            .padding(.bottom, 30)
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .preference(key: PaywallContentHeightPreferenceKey.self, value: proxy.size.height)
-                }
-            }
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .background(HCTheme.background)
-        .presentationDetents([.height(sheetDetentHeight)])
-        .presentationDragIndicator(.visible)
-        .onPreferenceChange(PaywallContentHeightPreferenceKey.self) { height in
-            guard abs(measuredContentHeight - height) > 1 else { return }
-            measuredContentHeight = height
-        }
-        .task {
-            if !fullArchiveStore.hasFullArchiveAccess {
-                await fullArchiveStore.loadProducts()
-            }
-        }
-        .onChange(of: fullArchiveStore.hasFullArchiveAccess) { _, isUnlocked in
-            if isUnlocked {
-                dismiss()
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 14) {
-                Text("Full Archive")
-                    .font(.cultureTitle(38))
-                    .foregroundStyle(HCTheme.ink)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(HCTheme.ink)
-                        .frame(width: 34, height: 34)
-                        .background(HCTheme.surfaceRaised, in: Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Close")
-            }
-
-            Text("Every level unlocks the archive. Higher levels send more support to museums and app upkeep.")
-                .font(.title3)
-                .foregroundStyle(HCTheme.secondaryInk)
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var supportOptions: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Same access, more support")
-                .font(.cultureKicker())
-                .textCase(.uppercase)
-                .foregroundStyle(HCTheme.clay)
-
-            if fullArchiveStore.supportOptions.isEmpty {
-                FullArchiveUnavailableOptionsView()
-            } else {
-                VStack(spacing: 10) {
-                    ForEach(fullArchiveStore.supportOptions) { option in
-                        FullArchiveSupportOptionRow(
-                            option: option,
-                            isBusy: isBusy,
-                            isPurchasing: fullArchiveStore.activePurchaseProductID == option.id
-                        ) {
-                            Task { await fullArchiveStore.purchase(productID: option.id) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private var benefits: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            PaywallBenefitRow(text: "Past pieces, timeline, and maps")
-            PaywallBenefitRow(text: "Creators and sources")
-            PaywallBenefitRow(text: "Museum support and app upkeep")
-        }
-        .padding(.top, 2)
-    }
-
-    @ViewBuilder
-    private var statusMessage: some View {
-        if let message = fullArchiveStore.statusMessage {
-            Text(message)
-                .font(.footnote)
-                .foregroundStyle(HCTheme.clay)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var restoreButton: some View {
-        Button {
-            Task { await fullArchiveStore.restorePurchases() }
-        } label: {
-            Text("Restore Purchases")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HCTheme.secondaryInk)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-        .disabled(isBusy)
-        .padding(.top, 2)
-    }
-
-    private var sheetDetentHeight: CGFloat {
-        let availableHeight = UIScreen.main.bounds.height * 0.86
-        return min(max(measuredContentHeight + 64, 470), availableHeight)
-    }
-
-    private var isBusy: Bool {
-        switch fullArchiveStore.purchaseState {
-        case .loading, .purchasing, .restoring:
-            return true
-        case .idle, .unlocked, .unavailable, .failed:
-            return false
-        }
-    }
-}
-
-private struct PaywallContentHeightPreferenceKey: PreferenceKey {
-    static let defaultValue: CGFloat = 560
-
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-private struct FullArchiveSupportOptionRow: View {
-    let option: FullArchiveStore.SupportOption
-    let isBusy: Bool
-    let isPurchasing: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(option.title)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(HCTheme.ink)
-
-                    Text(option.subtitle)
-                        .font(.caption)
-                        .foregroundStyle(HCTheme.secondaryInk)
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 8)
-
-                HStack(spacing: 7) {
-                    if isPurchasing {
-                        ProgressView()
-                            .controlSize(.small)
-                            .tint(HCTheme.blueStone)
-                    }
-
-                    Text(option.displayPrice)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HCTheme.blueStone)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 11)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
-                    .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
-            }
-        }
-        .buttonStyle(.plain)
-        .disabled(isBusy)
-        .accessibilityLabel("\(option.title), \(option.displayPrice). \(option.subtitle)")
-    }
-}
-
-private struct FullArchiveUnavailableOptionsView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text("Full Archive purchases are unavailable right now.")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(HCTheme.ink)
-
-            Text("Restore an existing purchase or try again later.")
-                .font(.caption)
-                .foregroundStyle(HCTheme.secondaryInk)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HCTheme.surface, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
-                .stroke(HCTheme.line.opacity(0.55), lineWidth: HCTheme.hairline)
-        }
-    }
-}
-
-private struct PaywallBenefitRow: View {
-    let text: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(HCTheme.clay)
-                .frame(width: 22, height: 22)
-                .background(HCTheme.editorGold.opacity(0.14), in: Circle())
-
-            Text(text)
-                .font(.callout)
-                .foregroundStyle(HCTheme.secondaryInk)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
     }
 }
 
@@ -1063,7 +720,7 @@ private struct ArchiveDiscoveryData {
     }
 }
 
-private struct FullArchiveDiscoveryView: View {
+private struct ArchiveDiscoveryView: View {
     private let data: ArchiveDiscoveryData
     let savedStore: SavedStore
     @Binding var rootTabBarHiddenDepth: Int

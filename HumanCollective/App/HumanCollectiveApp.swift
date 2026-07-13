@@ -2,12 +2,14 @@ import Observation
 import SwiftUI
 import UIKit
 import UserNotifications
+import WidgetKit
 
 @main
 @MainActor
 struct HumanCollectiveApp: App {
     @UIApplicationDelegateAdaptor(HumanCultureAppDelegate.self) private var appDelegate
-    @State private var fullArchiveStore = FullArchiveStore()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var supportStore = SupportStore()
     @State private var savedStore = SavedStore()
     private let repository: any CultureRepository = CultureRepositoryFactory.make()
 
@@ -20,11 +22,16 @@ struct HumanCollectiveApp: App {
             RootView(
                 repository: repository,
                 savedStore: savedStore,
-                fullArchiveStore: fullArchiveStore
+                supportStore: supportStore
             )
                 .preferredColorScheme(.light)
                 .task {
-                    fullArchiveStore.start()
+                    supportStore.start()
+                    WidgetCenter.shared.reloadAllTimelines()
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    guard newPhase == .active else { return }
+                    WidgetCenter.shared.reloadAllTimelines()
                 }
         }
     }

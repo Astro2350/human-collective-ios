@@ -22,10 +22,12 @@ struct CulturePack: Identifiable, Codable, Hashable, Sendable {
         guard !candidates.isEmpty else { return nil }
 
         let calendar = Calendar.cultureCalendar
-        let start = calendar.startOfDay(for: startDate)
-        let target = calendar.startOfDay(for: date)
-        let rawDayOffset = calendar.dateComponents([.day], from: start, to: target).day ?? 0
-        let index = min(max(rawDayOffset, 0), candidates.count - 1)
+        guard let index = DailyArtifactDaySelector.index(
+            startDate: startDate,
+            on: date,
+            itemCount: candidates.count,
+            calendar: calendar
+        ) else { return nil }
 
         return CultureDailySelection(
             item: candidates[index],

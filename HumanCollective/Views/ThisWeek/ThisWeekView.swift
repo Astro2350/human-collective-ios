@@ -2,11 +2,21 @@ import SwiftUI
 
 struct TodayView: View {
     let savedStore: SavedStore
+    let supportStore: SupportStore
+    @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var viewModel: ThisWeekViewModel
+    @State private var selectedSetup: TodaySetupDestination?
 
-    init(repository: any CultureRepository, savedStore: SavedStore) {
+    init(
+        repository: any CultureRepository,
+        savedStore: SavedStore,
+        supportStore: SupportStore,
+        rootTabBarHiddenDepth: Binding<Int>
+    ) {
         self.savedStore = savedStore
+        self.supportStore = supportStore
+        _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ThisWeekViewModel(repository: repository))
     }
 
@@ -14,8 +24,28 @@ struct TodayView: View {
         content
             .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
+            .overlay(alignment: .bottomTrailing) {
+                TodaySettingsMenu { destination in
+                    selectedSetup = destination
+                }
+                .padding(.trailing, HCTheme.pagePadding)
+                .padding(.bottom, 74)
+            }
             .task {
                 await loadIfNeeded()
+            }
+            .navigationDestination(item: $selectedSetup) { destination in
+                Group {
+                    switch destination {
+                    case .widgets:
+                        WidgetSetupView()
+                    case .wallpaper:
+                        WallpaperSetupView()
+                    case .support:
+                        SupportHumanCollectiveView(supportStore: supportStore)
+                    }
+                }
+                .rootTabBarHidden($rootTabBarHiddenDepth)
             }
     }
 
@@ -106,6 +136,53 @@ struct TodayView: View {
         let urls = [CultureAsyncImage.normalizedImageURL(from: item.imageURL)].compactMap { $0 }
 
         await CultureImageCache.shared.prefetch(urls)
+    }
+}
+
+private enum TodaySetupDestination: String, Identifiable {
+    case widgets
+    case wallpaper
+    case support
+
+    var id: String { rawValue }
+}
+
+private struct TodaySettingsMenu: View {
+    let selectSetup: (TodaySetupDestination) -> Void
+
+    var body: some View {
+        Menu {
+            Button {
+                selectSetup(.widgets)
+            } label: {
+                Label("Widgets", systemImage: "square.grid.2x2")
+            }
+
+            Button {
+                selectSetup(.wallpaper)
+            } label: {
+                Label("Wallpaper", systemImage: "photo.on.rectangle.angled")
+            }
+
+            Button {
+                selectSetup(.support)
+            } label: {
+                Label("Support The Human Collective", systemImage: "heart")
+            }
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 21, weight: .semibold))
+                .foregroundStyle(HCTheme.ink)
+                .frame(width: 54, height: 54)
+                .background(HCTheme.surface, in: Circle())
+                .overlay {
+                    Circle()
+                        .stroke(HCTheme.line.opacity(0.7), lineWidth: HCTheme.hairline)
+                }
+                .shadow(color: Color.black.opacity(0.14), radius: 10, y: 4)
+        }
+        .accessibilityLabel("Artifact settings")
+        .accessibilityHint("Opens widget, wallpaper, and support options")
     }
 }
 
