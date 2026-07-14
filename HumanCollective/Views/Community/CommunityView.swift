@@ -194,13 +194,19 @@ private struct CommunityArtworkCard: View {
                 imageURL: artwork.imageURL,
                 aspectRatio: 1.04,
                 cornerRadius: HCTheme.cardRadius,
-                accessibilityLabel: "Creation by \(artwork.creatorName)"
+                accessibilityLabel: "\(artwork.title), by \(artwork.creatorName)"
             )
 
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(artwork.creatorName)
-                    .font(.cultureTitle(23))
-                    .foregroundStyle(HCTheme.ink)
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(artwork.title)
+                        .font(.cultureTitle(23))
+                        .foregroundStyle(HCTheme.ink)
+
+                    Text(artwork.creatorName)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(HCTheme.mutedInk)
+                }
 
                 Spacer(minLength: 8)
 
@@ -256,6 +262,7 @@ private struct CommunitySubmissionView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var previewImage: UIImage?
     @State private var preparedJPEG: Data?
+    @State private var artworkTitle = ""
     @State private var creatorName = ""
     @State private var significance = ""
     @State private var category: CultureCategory
@@ -353,7 +360,16 @@ private struct CommunitySubmissionView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Name")
+                    Text("Title")
+                        .font(.headline)
+
+                    TextField("Artwork title", text: $artworkTitle)
+                        .disabled(submissionState == .submitting)
+                    Divider()
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Creator")
                         .font(.headline)
 
                     TextField("Your name", text: $creatorName)
@@ -460,6 +476,7 @@ private struct CommunitySubmissionView: View {
     private var validationMessage: String? {
         CommunitySubmissionValidator.message(
             jpegData: preparedJPEG,
+            title: artworkTitle,
             creatorName: creatorName,
             significance: significance,
             rightsConfirmed: rightsConfirmed
@@ -504,6 +521,7 @@ private struct CommunitySubmissionView: View {
         do {
             _ = try await repository.submit(
                 CommunitySubmissionDraft(
+                    title: artworkTitle.trimmingCharacters(in: .whitespacesAndNewlines),
                     creatorName: creatorName.trimmingCharacters(in: .whitespacesAndNewlines),
                     significance: significance.trimmingCharacters(in: .whitespacesAndNewlines),
                     category: category,

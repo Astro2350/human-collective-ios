@@ -16,7 +16,7 @@ class CommunityAdminClient:
     def pending(self) -> list[dict]:
         return self._query(
             """
-            select id, contributor_id, creator_name, significance, category, image_path, created_at
+            select id, contributor_id, title, creator_name, significance, category, image_path, created_at
             from public.community_submissions
             where status = 'pending'
             order by created_at;
@@ -26,7 +26,7 @@ class CommunityAdminClient:
     def submission(self, submission_id: uuid.UUID) -> dict:
         rows = self._query(
             f"""
-            select id, contributor_id, creator_name, significance, category, image_path, status, created_at
+            select id, contributor_id, title, creator_name, significance, category, image_path, status, created_at
             from public.community_submissions
             where id = '{submission_id}'::uuid
             limit 1;
@@ -69,13 +69,14 @@ class CommunityAdminClient:
                 self._execute(
                     f"""
                     insert into public.community_artworks (
-                      id, contributor_id, creator_name, significance, category, image_path, published_at, is_active
+                      id, contributor_id, title, creator_name, significance, category, image_path, published_at, is_active
                     )
-                    select id, contributor_id, creator_name, significance, category, '{public_path}', now(), true
+                    select id, contributor_id, title, creator_name, significance, category, '{public_path}', now(), true
                     from public.community_submissions
                     where id = '{submission_id}'::uuid
                     on conflict (id) do update
                     set contributor_id = excluded.contributor_id,
+                        title = excluded.title,
                         creator_name = excluded.creator_name,
                         significance = excluded.significance,
                         category = excluded.category,
@@ -199,7 +200,7 @@ def print_pending(rows: list[dict]) -> None:
         print("No pending community submissions.")
         return
     for row in rows:
-        print(f"{row['id']}  {row['created_at']}  {row['creator_name']}  [{row['category']}]")
+        print(f"{row['id']}  {row['created_at']}  {row['title']} — {row['creator_name']}  [{row['category']}]")
         print(f"  {row['significance']}")
 
 

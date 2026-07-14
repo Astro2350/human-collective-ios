@@ -71,6 +71,7 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: "invalid_submission" }, 400);
   }
 
+  const title = normalizedText(form.get("title"));
   const creatorName = normalizedText(form.get("creator_name"));
   const significance = normalizedText(form.get("significance"));
   const category = normalizedText(form.get("category")) || "other";
@@ -80,6 +81,8 @@ Deno.serve(async (request) => {
   const image = form.get("image");
 
   if (
+    title.length < 2 ||
+    title.length > 120 ||
     creatorName.length < 2 ||
     creatorName.length > 60 ||
     significance.length < 40 ||
@@ -120,6 +123,7 @@ Deno.serve(async (request) => {
       p_submission_id: submissionID,
       p_installation_hash: installationHash,
       p_submitter_ip_hash: ipHash,
+      p_title: title,
       p_creator_name: creatorName,
       p_significance: significance,
       p_image_path: imagePath,

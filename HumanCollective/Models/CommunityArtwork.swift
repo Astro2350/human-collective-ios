@@ -3,6 +3,7 @@ import Foundation
 struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     let contributorID: UUID
+    let title: String
     let creatorName: String
     let significance: String
     let category: CultureCategory
@@ -11,6 +12,7 @@ struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
 }
 
 struct CommunitySubmissionDraft: Sendable {
+    let title: String
     let creatorName: String
     let significance: String
     let category: CultureCategory
@@ -21,6 +23,7 @@ struct CommunitySubmissionDraft: Sendable {
 enum CommunitySubmissionValidator {
     static func message(
         jpegData: Data?,
+        title: String,
         creatorName: String,
         significance: String,
         rightsConfirmed: Bool
@@ -29,9 +32,17 @@ enum CommunitySubmissionValidator {
             return "Choose a clear, high-resolution photo."
         }
 
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedTitle.count >= 2 else {
+            return "Add the artwork title."
+        }
+        guard trimmedTitle.count <= 120 else {
+            return "Keep the artwork title to 120 characters or fewer."
+        }
+
         let trimmedName = creatorName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedName.count >= 2 else {
-            return "Add the name you want shown with the work."
+            return "Add the creator’s name. Use Unknown if it isn’t known."
         }
         guard trimmedName.count <= 60 else {
             return "Keep the name to 60 characters or fewer."

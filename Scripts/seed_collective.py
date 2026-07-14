@@ -249,6 +249,7 @@ def build_sql(items: list[ResolvedItem]) -> str:
             "(" + ", ".join([
                 f"'{item.artwork_id}'::uuid",
                 f"'{item.contributor_id}'::uuid",
+                sql_literal(item.title),
                 sql_literal(item.creator_name),
                 sql_literal(item.significance),
                 sql_literal(item.category),
@@ -273,13 +274,14 @@ on conflict (id) do update
 set installation_hash = excluded.installation_hash;
 
 insert into public.community_artworks (
-  id, contributor_id, creator_name, significance, category, image_path,
+  id, contributor_id, title, creator_name, significance, category, image_path,
   published_at, is_active, seed_key, source_name, source_url, rights_label
 )
 values
   {artwork_rows}
 on conflict (seed_key) where seed_key is not null do update
 set contributor_id = excluded.contributor_id,
+    title = excluded.title,
     creator_name = excluded.creator_name,
     significance = excluded.significance,
     category = excluded.category,

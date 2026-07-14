@@ -18,6 +18,7 @@ final class CommunityFeatureTests: XCTestCase {
         XCTAssertEqual(
             CommunitySubmissionValidator.message(
                 jpegData: nil,
+                title: "Handmade Bowl",
                 creatorName: "Sam",
                 significance: String(repeating: "a", count: 40),
                 rightsConfirmed: true
@@ -28,6 +29,7 @@ final class CommunityFeatureTests: XCTestCase {
         XCTAssertEqual(
             CommunitySubmissionValidator.message(
                 jpegData: Data([0x01]),
+                title: "Handmade Bowl",
                 creatorName: "Sam",
                 significance: "Too short",
                 rightsConfirmed: true
@@ -36,10 +38,24 @@ final class CommunityFeatureTests: XCTestCase {
         )
     }
 
+    func testSubmissionValidationRequiresArtworkTitle() {
+        XCTAssertEqual(
+            CommunitySubmissionValidator.message(
+                jpegData: Data([0x01]),
+                title: "",
+                creatorName: "Sam",
+                significance: String(repeating: "a", count: 40),
+                rightsConfirmed: true
+            ),
+            "Add the artwork title."
+        )
+    }
+
     func testSubmissionValidationAcceptsACompleteDraft() {
         XCTAssertNil(
             CommunitySubmissionValidator.message(
                 jpegData: Data([0x01]),
+                title: "Handmade Bowl",
                 creatorName: "Sam",
                 significance: String(repeating: "a", count: 40),
                 rightsConfirmed: true

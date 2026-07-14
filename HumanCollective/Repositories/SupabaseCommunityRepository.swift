@@ -20,7 +20,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         var queryItems = [
             URLQueryItem(
                 name: "select",
-                value: "id,contributor_id,creator_name,significance,category,image_path,published_at"
+                value: "id,contributor_id,title,creator_name,significance,category,image_path,published_at"
             ),
             URLQueryItem(name: "is_active", value: "eq.true"),
             URLQueryItem(name: "order", value: "published_at.desc"),
@@ -54,6 +54,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
 
         let installationID = CommunityInstallationIdentity.current().uuidString.lowercased()
         let body = MultipartFormData(boundary: boundary)
+            .adding(name: "title", value: draft.title)
             .adding(name: "creator_name", value: draft.creatorName)
             .adding(name: "significance", value: draft.significance)
             .adding(name: "category", value: draft.category.rawValue)
@@ -141,6 +142,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         return CommunityArtwork(
             id: row.id,
             contributorID: row.contributorID,
+            title: row.title,
             creatorName: row.creatorName,
             significance: row.significance,
             category: row.category,
@@ -161,6 +163,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
 private struct CommunityArtworkDTO: Decodable {
     let id: UUID
     let contributorID: UUID
+    let title: String
     let creatorName: String
     let significance: String
     let category: CultureCategory
@@ -170,6 +173,7 @@ private struct CommunityArtworkDTO: Decodable {
     enum CodingKeys: String, CodingKey {
         case id
         case contributorID = "contributor_id"
+        case title
         case creatorName = "creator_name"
         case significance
         case category
