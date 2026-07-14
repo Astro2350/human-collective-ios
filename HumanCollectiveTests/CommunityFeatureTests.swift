@@ -4,6 +4,14 @@ import XCTest
 @testable import Human_Collective
 
 final class CommunityFeatureTests: XCTestCase {
+    func testCommunityCategoriesHaveStablePublicValues() {
+        XCTAssertEqual(
+            CommunityCategory.allCases.map(\.rawValue),
+            ["art", "craft", "photography", "design", "writing", "other"]
+        )
+        XCTAssertEqual(CommunityCategory.photography.title, "Photography")
+    }
+
     func testImageProcessorCreatesBoundedJPEGAndRemovesMetadata() throws {
         let sourceJPEG = try XCTUnwrap(makeJPEG(size: CGSize(width: 4_800, height: 3_200)))
         let output = try CommunityImageProcessor.prepareJPEG(from: sourceJPEG)

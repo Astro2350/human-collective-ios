@@ -15,24 +15,26 @@ final class CommunityFeedViewModel {
     private(set) var artworks: [CommunityArtwork] = []
 
     @ObservationIgnored private let repository: any CommunityRepository
+    @ObservationIgnored private var requestedCategory: CommunityCategory?
 
     init(repository: any CommunityRepository) {
         self.repository = repository
     }
 
-    func loadIfNeeded() async {
+    func loadIfNeeded(category: CommunityCategory?) async {
         guard state == .idle else { return }
-        await refresh(showLoading: true)
+        await refresh(category: category, showLoading: true)
     }
 
-    func refresh(showLoading: Bool = false) async {
+    func refresh(category: CommunityCategory?, showLoading: Bool = false) async {
+        requestedCategory = category
         if showLoading {
             state = .loading
         }
 
         do {
-            let fetched = try await repository.fetchFeed()
-            guard !Task.isCancelled else { return }
+            let fetched = try await repository.fetchFeed(category: category)
+            guard !Task.isCancelled, requestedCategory == category else { return }
             artworks = fetched
             state = .loaded
         } catch is CancellationError {

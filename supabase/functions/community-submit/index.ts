@@ -12,6 +12,7 @@ import {
 const maximumImageBytes = 5 * 1024 * 1024;
 const maximumRequestBytes = maximumImageBytes + 64 * 1024;
 const termsVersion = "2026-07-14";
+const allowedCategories = new Set(["art", "craft", "photography", "design", "writing", "other"]);
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -36,6 +37,7 @@ Deno.serve(async (request) => {
 
   const creatorName = normalizedText(form.get("creator_name"));
   const significance = normalizedText(form.get("significance"));
+  const category = normalizedText(form.get("category")) || "other";
   const installationID = normalizedText(form.get("installation_id"));
   const acceptedRights = normalizedText(form.get("rights_confirmed")) === "true";
   const image = form.get("image");
@@ -45,6 +47,7 @@ Deno.serve(async (request) => {
     creatorName.length > 60 ||
     significance.length < 40 ||
     significance.length > 600 ||
+    !allowedCategories.has(category) ||
     !isInstallationID(installationID) ||
     !acceptedRights ||
     !(image instanceof File) ||
@@ -82,6 +85,7 @@ Deno.serve(async (request) => {
     p_significance: significance,
     p_image_path: imagePath,
     p_terms_version: termsVersion,
+    p_category: category,
   });
 
   if (reservationError) {

@@ -5,7 +5,7 @@ The Collective is a chronological feed of approved, user-submitted creations. An
 ## Public submission flow
 
 1. The app removes image metadata, normalizes the photo to JPEG, and enforces quality and size limits.
-2. `community-submit` validates the photo, creator name, significance statement, ownership confirmation, installation identifier, and rate limits.
+2. `community-submit` validates the photo, category, creator name, significance statement, ownership confirmation, installation identifier, and rate limits.
 3. The image is stored in the private `community-submissions` bucket and its record is marked `pending`.
 4. A moderator previews the work and approves or rejects it.
 5. Approval copies the normalized image into the public `community-artworks` bucket and creates the sanitized feed record.
@@ -20,6 +20,7 @@ Approve only when all of the following are true:
 - The image is clear enough to present well in the feed.
 - The submission appears to be a human-made original work.
 - The creator name and significance statement are appropriate for public display.
+- The selected category accurately describes the submitted creation.
 - The significance statement adds genuine context rather than promotion or spam.
 - The image does not expose sensitive personal information.
 - There is no apparent copyright, harassment, hate, sexual-content, or safety concern.

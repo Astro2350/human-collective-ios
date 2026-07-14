@@ -8,6 +8,7 @@ struct CommunityView: View {
 
     @State private var viewModel: CommunityFeedViewModel
     @State private var presentedSheet: CommunitySheet?
+    @State private var selectedCategory: CommunityCategory?
 
     init(repository: any CommunityRepository, blockedStore: BlockedCommunityStore) {
         self.repository = repository
@@ -19,24 +20,47 @@ struct CommunityView: View {
         content
             .toolbar(.hidden, for: .navigationBar)
             .background(HCTheme.background)
+            .overlay(alignment: .bottomTrailing) {
+                Button {
+                    presentedSheet = .contribute
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 56, height: 56)
+                        .background(HCTheme.blueStone, in: Circle())
+                        .shadow(color: .black.opacity(0.16), radius: 10, y: 5)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Share a creation")
+                .padding(.trailing, HCTheme.pagePadding)
+                .padding(.bottom, HCTheme.rootTabBarContentClearance - 18)
+            }
             .sheet(item: $presentedSheet) { destination in
                 switch destination {
                 case .contribute:
-                    CommunitySubmissionView(repository: repository) {
-                        Task { await viewModel.refresh() }
+                    CommunitySubmissionView(
+                        repository: repository,
+                        initialCategory: selectedCategory ?? .art
+                    ) {
+                        Task { await viewModel.refresh(category: selectedCategory) }
                     }
                 case .report(let artwork):
                     CommunityReportView(artwork: artwork, repository: repository)
                 }
             }
             .task {
-                await viewModel.loadIfNeeded()
+                await viewModel.loadIfNeeded(category: selectedCategory)
 
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(30))
                     guard !Task.isCancelled else { return }
-                    await viewModel.refresh()
+                    await viewModel.refresh(category: selectedCategory)
                 }
+            }
+            .task(id: selectedCategory) {
+                guard viewModel.state != .idle else { return }
+                await viewModel.refresh(category: selectedCategory)
             }
     }
 
@@ -47,7 +71,7 @@ struct CommunityView: View {
             CultureLoadingView()
         case .failed(let message):
             CultureErrorView(message: message) {
-                Task { await viewModel.refresh(showLoading: true) }
+                Task { await viewModel.refresh(category: selectedCategory, showLoading: true) }
             }
         case .loaded:
             feed
@@ -55,18 +79,19 @@ struct CommunityView: View {
     }
 
     private var feed: some View {
-        let visibleArtworks = viewModel.artworks.filter { !blockedStore.contains($0.contributorID) }
+        let visibleArtworks = viewModel.artworks.filter { artwork in
+            !blockedStore.contains(artwork.contributorID) &&
+                (selectedCategory == nil || artwork.category == selectedCategory)
+        }
 
         return ScrollView {
             LazyVStack(alignment: .leading, spacing: 22) {
                 ScreenHeader("Collective")
 
-                CommunityIntroduction {
-                    presentedSheet = .contribute
-                }
+                CommunityCategoryPicker(selection: $selectedCategory)
 
                 if visibleArtworks.isEmpty {
-                    Text("No creations have been published yet.")
+                    Text(emptyMessage)
                         .font(.callout)
                         .foregroundStyle(HCTheme.mutedInk)
                         .padding(.top, 14)
@@ -85,8 +110,15 @@ struct CommunityView: View {
         }
         .background(HCTheme.background)
         .refreshable {
-            await viewModel.refresh()
+            await viewModel.refresh(category: selectedCategory)
         }
+    }
+
+    private var emptyMessage: String {
+        guard let selectedCategory else {
+            return "No creations have been published yet."
+        }
+        return "No \(selectedCategory.title.lowercased()) creations yet."
     }
 }
 
@@ -102,22 +134,41 @@ private enum CommunitySheet: Identifiable {
     }
 }
 
-private struct CommunityIntroduction: View {
-    let contribute: () -> Void
+private struct CommunityCategoryPicker: View {
+    @Binding var selection: CommunityCategory?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Things people make, and why they matter.")
-                .font(.callout)
-                .foregroundStyle(HCTheme.secondaryInk)
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 8) {
+                categoryButton(title: "All", category: nil)
 
-            Button(action: contribute) {
-                Label("Share a creation", systemImage: "plus")
-                    .font(.headline)
+                ForEach(CommunityCategory.allCases) { category in
+                    categoryButton(title: category.title, category: category)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(HCTheme.blueStone)
         }
+        .scrollClipDisabled()
+    }
+
+    private func categoryButton(title: String, category: CommunityCategory?) -> some View {
+        let isSelected = selection == category
+
+        return Button(title) {
+            selection = category
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(isSelected ? Color.white : HCTheme.secondaryInk)
+        .padding(.horizontal, 14)
+        .frame(height: 36)
+        .background(isSelected ? HCTheme.blueStone : HCTheme.surface, in: Capsule())
+        .overlay {
+            if !isSelected {
+                Capsule()
+                    .stroke(HCTheme.line.opacity(0.7), lineWidth: HCTheme.hairline)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -165,9 +216,13 @@ private struct CommunityArtworkCard: View {
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text(artwork.publishedAt, style: .relative)
-                .font(.caption)
-                .foregroundStyle(HCTheme.mutedInk)
+            HStack(spacing: 6) {
+                Text(artwork.category.title)
+                Text("·")
+                Text(artwork.publishedAt, style: .relative)
+            }
+            .font(.caption)
+            .foregroundStyle(HCTheme.mutedInk)
 
             Divider()
         }
@@ -192,10 +247,21 @@ private struct CommunitySubmissionView: View {
     @State private var preparedJPEG: Data?
     @State private var creatorName = ""
     @State private var significance = ""
+    @State private var category: CommunityCategory
     @State private var rightsConfirmed = false
     @State private var isPreparingImage = false
     @State private var imageError: String?
     @State private var submissionState: SubmissionState = .idle
+
+    init(
+        repository: any CommunityRepository,
+        initialCategory: CommunityCategory,
+        onSubmitted: @escaping () -> Void
+    ) {
+        self.repository = repository
+        self.onSubmitted = onSubmitted
+        _category = State(initialValue: initialCategory)
+    }
 
     var body: some View {
         NavigationStack {
@@ -253,6 +319,22 @@ private struct CommunitySubmissionView: View {
                     Text(imageError)
                         .font(.footnote)
                         .foregroundStyle(.red)
+                }
+
+                HStack {
+                    Text("Category")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Picker("Category", selection: $category) {
+                        ForEach(CommunityCategory.allCases) { category in
+                            Text(category.title).tag(category)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .disabled(submissionState == .submitting)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -403,6 +485,7 @@ private struct CommunitySubmissionView: View {
                 CommunitySubmissionDraft(
                     creatorName: creatorName.trimmingCharacters(in: .whitespacesAndNewlines),
                     significance: significance.trimmingCharacters(in: .whitespacesAndNewlines),
+                    category: category,
                     jpegData: preparedJPEG,
                     rightsConfirmed: rightsConfirmed
                 )

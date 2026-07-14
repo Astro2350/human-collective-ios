@@ -9,7 +9,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         self.configuration = configuration
     }
 
-    func fetchFeed() async throws -> [CommunityArtwork] {
+    func fetchFeed(category: CommunityCategory?) async throws -> [CommunityArtwork] {
         guard var components = URLComponents(
             url: configuration.url.appendingPathComponent("rest/v1/community_artworks"),
             resolvingAgainstBaseURL: false
@@ -17,15 +17,19 @@ struct SupabaseCommunityRepository: CommunityRepository {
             throw CommunityRepositoryError.invalidResponse
         }
 
-        components.queryItems = [
+        var queryItems = [
             URLQueryItem(
                 name: "select",
-                value: "id,contributor_id,creator_name,significance,image_path,published_at"
+                value: "id,contributor_id,creator_name,significance,category,image_path,published_at"
             ),
             URLQueryItem(name: "is_active", value: "eq.true"),
             URLQueryItem(name: "order", value: "published_at.desc"),
             URLQueryItem(name: "limit", value: "100")
         ]
+        if let category {
+            queryItems.append(URLQueryItem(name: "category", value: "eq.\(category.rawValue)"))
+        }
+        components.queryItems = queryItems
 
         guard let url = components.url else {
             throw CommunityRepositoryError.invalidResponse
@@ -52,6 +56,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         let body = MultipartFormData(boundary: boundary)
             .adding(name: "creator_name", value: draft.creatorName)
             .adding(name: "significance", value: draft.significance)
+            .adding(name: "category", value: draft.category.rawValue)
             .adding(name: "installation_id", value: installationID)
             .adding(name: "rights_confirmed", value: draft.rightsConfirmed ? "true" : "false")
             .adding(
@@ -138,6 +143,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
             contributorID: row.contributorID,
             creatorName: row.creatorName,
             significance: row.significance,
+            category: row.category,
             imageURL: imageURL,
             publishedAt: date
         )
@@ -157,6 +163,7 @@ private struct CommunityArtworkDTO: Decodable {
     let contributorID: UUID
     let creatorName: String
     let significance: String
+    let category: CommunityCategory
     let imagePath: String
     let publishedAt: String
 
@@ -165,6 +172,7 @@ private struct CommunityArtworkDTO: Decodable {
         case contributorID = "contributor_id"
         case creatorName = "creator_name"
         case significance
+        case category
         case imagePath = "image_path"
         case publishedAt = "published_at"
     }
