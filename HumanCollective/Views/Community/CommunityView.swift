@@ -135,19 +135,29 @@ private enum CommunitySheet: Identifiable {
 }
 
 private struct CommunityCategoryPicker: View {
+    private enum Layout {
+        static let pillSpacing: CGFloat = 10
+        static let pillHorizontalPadding: CGFloat = 18
+        static let pillMinimumWidth: CGFloat = 76
+        static let pillHeight: CGFloat = 38
+    }
+
     @Binding var selection: CultureCategory?
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 8) {
+            HStack(spacing: Layout.pillSpacing) {
                 categoryButton(title: "All", category: nil)
 
                 ForEach(CultureCategory.collectiveCases) { category in
                     categoryButton(title: category.title, category: category)
                 }
             }
+            .padding(.trailing, HCTheme.pagePadding)
         }
-        .scrollClipDisabled()
+        .contentShape(Rectangle())
+        .scrollBounceBehavior(.always, axes: .horizontal)
+        .padding(.trailing, -HCTheme.pagePadding)
     }
 
     private func categoryButton(title: String, category: CultureCategory?) -> some View {
@@ -158,8 +168,9 @@ private struct CommunityCategoryPicker: View {
         }
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(isSelected ? Color.white : HCTheme.secondaryInk)
-        .padding(.horizontal, 14)
-        .frame(height: 36)
+        .padding(.horizontal, Layout.pillHorizontalPadding)
+        .frame(minWidth: Layout.pillMinimumWidth)
+        .frame(height: Layout.pillHeight)
         .background(isSelected ? HCTheme.blueStone : HCTheme.surface, in: Capsule())
         .overlay {
             if !isSelected {
