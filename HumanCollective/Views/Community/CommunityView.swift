@@ -1,0 +1,522 @@
+import PhotosUI
+import SwiftUI
+import UIKit
+
+struct CommunityView: View {
+    let repository: any CommunityRepository
+    let blockedStore: BlockedCommunityStore
+
+    @State private var viewModel: CommunityFeedViewModel
+    @State private var presentedSheet: CommunitySheet?
+
+    init(repository: any CommunityRepository, blockedStore: BlockedCommunityStore) {
+        self.repository = repository
+        self.blockedStore = blockedStore
+        _viewModel = State(initialValue: CommunityFeedViewModel(repository: repository))
+    }
+
+    var body: some View {
+        content
+            .toolbar(.hidden, for: .navigationBar)
+            .background(HCTheme.background)
+            .sheet(item: $presentedSheet) { destination in
+                switch destination {
+                case .contribute:
+                    CommunitySubmissionView(repository: repository) {
+                        Task { await viewModel.refresh() }
+                    }
+                case .report(let artwork):
+                    CommunityReportView(artwork: artwork, repository: repository)
+                }
+            }
+            .task {
+                await viewModel.loadIfNeeded()
+
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(30))
+                    guard !Task.isCancelled else { return }
+                    await viewModel.refresh()
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            CultureLoadingView()
+        case .failed(let message):
+            CultureErrorView(message: message) {
+                Task { await viewModel.refresh(showLoading: true) }
+            }
+        case .loaded:
+            feed
+        }
+    }
+
+    private var feed: some View {
+        let visibleArtworks = viewModel.artworks.filter { !blockedStore.contains($0.contributorID) }
+
+        return ScrollView {
+            LazyVStack(alignment: .leading, spacing: 22) {
+                ScreenHeader("Collective")
+
+                CommunityIntroduction {
+                    presentedSheet = .contribute
+                }
+
+                if visibleArtworks.isEmpty {
+                    Text("No creations have been published yet.")
+                        .font(.callout)
+                        .foregroundStyle(HCTheme.mutedInk)
+                        .padding(.top, 14)
+                } else {
+                    ForEach(visibleArtworks) { artwork in
+                        CommunityArtworkCard(
+                            artwork: artwork,
+                            onReport: { presentedSheet = .report(artwork) },
+                            onHideContributor: { blockedStore.block(artwork.contributorID) }
+                        )
+                    }
+                }
+            }
+            .padding(HCTheme.pagePadding)
+            .padding(.bottom, HCTheme.rootTabBarContentClearance)
+        }
+        .background(HCTheme.background)
+        .refreshable {
+            await viewModel.refresh()
+        }
+    }
+}
+
+private enum CommunitySheet: Identifiable {
+    case contribute
+    case report(CommunityArtwork)
+
+    var id: String {
+        switch self {
+        case .contribute: "contribute"
+        case .report(let artwork): "report-\(artwork.id.uuidString)"
+        }
+    }
+}
+
+private struct CommunityIntroduction: View {
+    let contribute: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Things people make, and why they matter.")
+                .font(.callout)
+                .foregroundStyle(HCTheme.secondaryInk)
+
+            Button(action: contribute) {
+                Label("Share a creation", systemImage: "plus")
+                    .font(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(HCTheme.blueStone)
+        }
+    }
+}
+
+private struct CommunityArtworkCard: View {
+    let artwork: CommunityArtwork
+    let onReport: () -> Void
+    let onHideContributor: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            CultureAsyncImage(
+                imageURL: artwork.imageURL,
+                aspectRatio: 1.04,
+                cornerRadius: HCTheme.cardRadius,
+                accessibilityLabel: "Creation by \(artwork.creatorName)"
+            )
+
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(artwork.creatorName)
+                    .font(.cultureTitle(23))
+                    .foregroundStyle(HCTheme.ink)
+
+                Spacer(minLength: 8)
+
+                Menu {
+                    Button(action: onReport) {
+                        Label("Report artwork", systemImage: "exclamationmark.bubble")
+                    }
+
+                    Button(role: .destructive, action: onHideContributor) {
+                        Label("Hide this creator", systemImage: "eye.slash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.headline)
+                        .foregroundStyle(HCTheme.secondaryInk)
+                        .frame(width: 36, height: 36)
+                }
+                .accessibilityLabel("Artwork options")
+            }
+
+            Text(artwork.significance)
+                .font(.body)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(artwork.publishedAt, style: .relative)
+                .font(.caption)
+                .foregroundStyle(HCTheme.mutedInk)
+
+            Divider()
+        }
+    }
+}
+
+private struct CommunitySubmissionView: View {
+    private enum SubmissionState: Equatable {
+        case idle
+        case submitting
+        case submitted
+        case failed(String)
+    }
+
+    @Environment(\.dismiss) private var dismiss
+
+    let repository: any CommunityRepository
+    let onSubmitted: () -> Void
+
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var previewImage: UIImage?
+    @State private var preparedJPEG: Data?
+    @State private var creatorName = ""
+    @State private var significance = ""
+    @State private var rightsConfirmed = false
+    @State private var isPreparingImage = false
+    @State private var imageError: String?
+    @State private var submissionState: SubmissionState = .idle
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if submissionState == .submitted {
+                    submittedContent
+                } else {
+                    submissionForm
+                }
+            }
+            .navigationTitle("Share a Creation")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .disabled(submissionState == .submitting)
+                }
+            }
+        }
+        .interactiveDismissDisabled(submissionState == .submitting)
+        .onChange(of: selectedPhoto) { _, item in
+            Task { await prepare(item) }
+        }
+    }
+
+    private var submissionForm: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                    if let previewImage {
+                        Image(uiImage: previewImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: 300)
+                            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+                            .accessibilityLabel("Selected creation")
+                    } else {
+                        Label("Choose a photo", systemImage: "photo.badge.plus")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 130)
+                            .background(HCTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+                    }
+                }
+                .disabled(isPreparingImage || submissionState == .submitting)
+
+                if isPreparingImage {
+                    HStack {
+                        ProgressView()
+                        Text("Preparing your photo…")
+                    }
+                }
+
+                if let imageError {
+                    Text(imageError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Name")
+                        .font(.headline)
+
+                    TextField("Your name", text: $creatorName)
+                        .textContentType(.name)
+                        .disabled(submissionState == .submitting)
+                    Divider()
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Significance")
+                        .font(.headline)
+
+                    TextEditor(text: $significance)
+                        .frame(minHeight: 120)
+                        .scrollContentBackground(.hidden)
+                        .padding(10)
+                        .background(HCTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(alignment: .topLeading) {
+                            if significance.isEmpty {
+                                Text("Why it matters to you")
+                                    .foregroundStyle(HCTheme.mutedInk)
+                                    .padding(.horizontal, 15)
+                                    .padding(.vertical, 18)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                        .disabled(submissionState == .submitting)
+
+                    Text("\(significance.count)/600")
+                        .font(.caption)
+                        .foregroundStyle(significance.count > 600 ? .red : HCTheme.mutedInk)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+
+                Toggle(isOn: $rightsConfirmed) {
+                    Text("I created this work and give Human Collective permission to display it.")
+                }
+                .disabled(submissionState == .submitting)
+
+                if case .failed(let message) = submissionState {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                Button {
+                    Task { await submit() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if submissionState == .submitting {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                        Text(submissionState == .submitting ? "Submitting…" : "Submit for review")
+                            .font(.headline)
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(HCTheme.blueStone)
+                .disabled(!canSubmit)
+            }
+            .padding(HCTheme.pagePadding)
+        }
+        .background(HCTheme.background)
+        .scrollDismissesKeyboard(.interactively)
+    }
+
+    private var submittedContent: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 54))
+                .foregroundStyle(HCTheme.moss)
+
+            Text("Submitted for review")
+                .font(.cultureTitle(30))
+                .foregroundStyle(HCTheme.ink)
+                .multilineTextAlignment(.center)
+
+            Text("If selected, it will appear in Collective.")
+                .font(.body)
+                .foregroundStyle(HCTheme.secondaryInk)
+                .lineSpacing(4)
+                .multilineTextAlignment(.center)
+
+            Button("Done") { dismiss() }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(HCTheme.blueStone)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(HCTheme.background)
+    }
+
+    private var canSubmit: Bool {
+        preparedJPEG != nil &&
+            creatorName.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 &&
+            creatorName.trimmingCharacters(in: .whitespacesAndNewlines).count <= 60 &&
+            significance.trimmingCharacters(in: .whitespacesAndNewlines).count >= 40 &&
+            significance.trimmingCharacters(in: .whitespacesAndNewlines).count <= 600 &&
+            rightsConfirmed &&
+            submissionState != .submitting
+    }
+
+    @MainActor
+    private func prepare(_ item: PhotosPickerItem?) async {
+        previewImage = nil
+        preparedJPEG = nil
+        imageError = nil
+        guard let item else { return }
+
+        isPreparingImage = true
+        defer { isPreparingImage = false }
+
+        do {
+            guard let sourceData = try await item.loadTransferable(type: Data.self) else {
+                throw CommunityImageProcessingError.unreadable
+            }
+
+            let jpeg = try await Task.detached(priority: .userInitiated) {
+                try CommunityImageProcessor.prepareJPEG(from: sourceData)
+            }.value
+
+            guard selectedPhoto == item, let image = UIImage(data: jpeg) else { return }
+            preparedJPEG = jpeg
+            previewImage = image
+        } catch is CancellationError {
+            return
+        } catch {
+            imageError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func submit() async {
+        guard canSubmit, let preparedJPEG else { return }
+        submissionState = .submitting
+
+        do {
+            _ = try await repository.submit(
+                CommunitySubmissionDraft(
+                    creatorName: creatorName.trimmingCharacters(in: .whitespacesAndNewlines),
+                    significance: significance.trimmingCharacters(in: .whitespacesAndNewlines),
+                    jpegData: preparedJPEG,
+                    rightsConfirmed: rightsConfirmed
+                )
+            )
+            submissionState = .submitted
+            onSubmitted()
+        } catch {
+            submissionState = .failed(error.localizedDescription)
+        }
+    }
+}
+
+private struct CommunityReportView: View {
+    private enum ReportState: Equatable {
+        case idle
+        case sending
+        case sent
+        case failed(String)
+    }
+
+    @Environment(\.dismiss) private var dismiss
+
+    let artwork: CommunityArtwork
+    let repository: any CommunityRepository
+
+    @State private var reason: CommunityReportReason = .inappropriate
+    @State private var details = ""
+    @State private var state: ReportState = .idle
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Reason", selection: $reason) {
+                        ForEach(CommunityReportReason.allCases) { reason in
+                            Text(reason.title).tag(reason)
+                        }
+                    }
+                }
+
+                Section("Additional details (optional)") {
+                    TextEditor(text: $details)
+                        .frame(minHeight: 120)
+
+                    Text("\(details.count)/500")
+                        .font(.caption)
+                        .foregroundStyle(details.count > 500 ? .red : HCTheme.mutedInk)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+
+                if case .failed(let message) = state {
+                    Section {
+                        Text(message)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                }
+
+                Section {
+                    Button {
+                        Task { await sendReport() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if state == .sending { ProgressView() }
+                            Text(state == .sending ? "Sending…" : "Send report")
+                            Spacer()
+                        }
+                    }
+                    .disabled(details.count > 500 || state == .sending)
+                }
+            }
+            .navigationTitle(state == .sent ? "Report Received" : "Report Artwork")
+            .navigationBarTitleDisplayMode(.inline)
+            .scrollContentBackground(.hidden)
+            .background(HCTheme.background)
+            .overlay {
+                if state == .sent {
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(HCTheme.moss)
+                        Text("Thank you. We’ll review this artwork.")
+                            .font(.cultureTitle(24))
+                            .multilineTextAlignment(.center)
+                        Button("Done") { dismiss() }
+                            .buttonStyle(.borderedProminent)
+                            .tint(HCTheme.blueStone)
+                    }
+                    .padding(28)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(HCTheme.background)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .disabled(state == .sending)
+                }
+            }
+        }
+        .interactiveDismissDisabled(state == .sending)
+    }
+
+    @MainActor
+    private func sendReport() async {
+        guard details.count <= 500 else { return }
+        state = .sending
+
+        do {
+            try await repository.report(artworkID: artwork.id, reason: reason, details: details)
+            state = .sent
+        } catch {
+            state = .failed(error.localizedDescription)
+        }
+    }
+}

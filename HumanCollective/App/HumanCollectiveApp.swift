@@ -11,7 +11,9 @@ struct HumanCollectiveApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var supportStore = SupportStore()
     @State private var savedStore = SavedStore()
+    @State private var blockedCommunityStore = BlockedCommunityStore()
     private let repository: any CultureRepository = CultureRepositoryFactory.make()
+    private let communityRepository: any CommunityRepository = CommunityRepositoryFactory.make()
 
     init() {
         AppChrome.configure()
@@ -21,7 +23,9 @@ struct HumanCollectiveApp: App {
         WindowGroup {
             RootView(
                 repository: repository,
+                communityRepository: communityRepository,
                 savedStore: savedStore,
+                blockedCommunityStore: blockedCommunityStore,
                 supportStore: supportStore
             )
                 .preferredColorScheme(.light)

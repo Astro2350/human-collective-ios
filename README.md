@@ -2,7 +2,7 @@
 
 Human Collective is a calm SwiftUI iOS app for a daily editorial view of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world.
 
-The app is intentionally simple. It does not include social features, likes, comments, recommendations, gamification, or an infinite feed.
+The app is intentionally simple. Its moderated Collective feed lets people share creations without accounts, likes, comments, recommendations, gamification, or an infinite feed.
 
 ## Requirements
 
@@ -41,6 +41,8 @@ The optional `SupabaseCultureRepository` uses the Supabase REST API against:
 - `culture_pack_items`
 - `culture_items`
 
+Anonymous community submissions use the `community-submit` and `community-report` Edge Functions. Images remain private until a moderator approves them for the public `community_artworks` feed. The phone never receives the service-role key and cannot write directly to moderation tables.
+
 Apply the suggested public read schema from:
 
 ```bash
@@ -65,6 +67,8 @@ Weekly packs are curated manually. Each pack should contain a small set of cultu
 Mock content lives in `HumanCollective/Repositories/MockCultureRepository.swift`. A larger sample seed payload lives in `Content/admin_seed_sample.json`.
 
 The manual curation workflow is documented in `docs/content-pipeline.md`.
+
+Community review and publishing are documented in `docs/community-moderation.md`.
 
 ## Full Archive In-App Purchases
 
@@ -94,7 +98,7 @@ Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults
 
 ## Known Limitations
 
-- Supabase writes and admin tooling are intentionally outside the app.
+- Community submissions require the two Edge Functions, private/public Storage buckets, and a trusted moderation environment.
 - A full 365-piece archive still requires the remaining curated content to be written, rights-checked, and imported.
 - Full real-device gesture QA should still be repeated on signed TestFlight builds, especially pinch zoom, double tap zoom, and memory behavior with very large source images.
 - The app currently targets portrait-first iPhone usage.

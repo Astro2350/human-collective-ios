@@ -2,7 +2,9 @@ import SwiftUI
 
 struct RootView: View {
     let repository: any CultureRepository
+    let communityRepository: any CommunityRepository
     let savedStore: SavedStore
+    let blockedCommunityStore: BlockedCommunityStore
     let supportStore: SupportStore
 
     @AppStorage("humanCulture.hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -13,7 +15,9 @@ struct RootView: View {
             if hasCompletedOnboarding {
                 MainTabView(
                     repository: repository,
+                    communityRepository: communityRepository,
                     savedStore: savedStore,
+                    blockedCommunityStore: blockedCommunityStore,
                     supportStore: supportStore
                 )
             } else {
@@ -32,7 +36,9 @@ struct RootView: View {
 
 private struct MainTabView: View {
     let repository: any CultureRepository
+    let communityRepository: any CommunityRepository
     let savedStore: SavedStore
+    let blockedCommunityStore: BlockedCommunityStore
     let supportStore: SupportStore
 
     @State private var selectedTab: AppTab = .today
@@ -57,6 +63,15 @@ private struct MainTabView: View {
                         repository: repository,
                         savedStore: savedStore,
                         rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                    )
+                }
+            }
+
+            tabLayer(.collective) {
+                NavigationStack {
+                    CommunityView(
+                        repository: communityRepository,
+                        blockedStore: blockedCommunityStore
                     )
                 }
             }
@@ -114,12 +129,14 @@ private struct MainTabView: View {
 enum AppTab: CaseIterable {
     case today
     case archive
+    case collective
     case saved
 
     var title: String {
         switch self {
         case .today: "Today"
         case .archive: "Archive"
+        case .collective: "Collective"
         case .saved: "Saved"
         }
     }
@@ -128,6 +145,7 @@ enum AppTab: CaseIterable {
         switch self {
         case .today: "calendar"
         case .archive: "books.vertical"
+        case .collective: "person.3"
         case .saved: "bookmark"
         }
     }
