@@ -291,20 +291,23 @@ private struct CommunitySubmissionView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                    if let previewImage {
-                        Image(uiImage: previewImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity, maxHeight: 300)
-                            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-                            .accessibilityLabel("Selected creation")
-                    } else {
-                        Label("Choose a photo", systemImage: "photo.badge.plus")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 130)
-                            .background(HCTheme.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+                    ZStack {
+                        HCTheme.surface
+
+                        if let previewImage {
+                            Image(uiImage: previewImage)
+                                .resizable()
+                                .scaledToFit()
+                                .padding(8)
+                                .accessibilityLabel("Selected creation")
+                        } else {
+                            Label("Choose a photo", systemImage: "photo.badge.plus")
+                                .font(.headline)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
                 }
                 .disabled(isPreparingImage || submissionState == .submitting)
 
