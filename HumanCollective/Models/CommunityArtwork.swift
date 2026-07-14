@@ -5,7 +5,7 @@ struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
     let contributorID: UUID
     let creatorName: String
     let significance: String
-    let category: CommunityCategory
+    let category: CultureCategory
     let imageURL: String
     let publishedAt: Date
 }
@@ -13,30 +13,42 @@ struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
 struct CommunitySubmissionDraft: Sendable {
     let creatorName: String
     let significance: String
-    let category: CommunityCategory
+    let category: CultureCategory
     let jpegData: Data
     let rightsConfirmed: Bool
 }
 
-enum CommunityCategory: String, CaseIterable, Identifiable, Codable, Hashable, Sendable {
-    case art
-    case craft
-    case photography
-    case design
-    case writing
-    case other
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .art: "Art"
-        case .craft: "Craft"
-        case .photography: "Photography"
-        case .design: "Design"
-        case .writing: "Writing"
-        case .other: "Other"
+enum CommunitySubmissionValidator {
+    static func message(
+        jpegData: Data?,
+        creatorName: String,
+        significance: String,
+        rightsConfirmed: Bool
+    ) -> String? {
+        guard jpegData != nil else {
+            return "Choose a clear, high-resolution photo."
         }
+
+        let trimmedName = creatorName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedName.count >= 2 else {
+            return "Add the name you want shown with the work."
+        }
+        guard trimmedName.count <= 60 else {
+            return "Keep the name to 60 characters or fewer."
+        }
+
+        let trimmedSignificance = significance.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedSignificance.count >= 40 else {
+            return "Add a little more about why it matters (40 characters minimum)."
+        }
+        guard trimmedSignificance.count <= 600 else {
+            return "Keep the significance to 600 characters or fewer."
+        }
+        guard rightsConfirmed else {
+            return "Confirm that you created the work and permit us to display it."
+        }
+
+        return nil
     }
 }
 

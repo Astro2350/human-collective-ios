@@ -1,7 +1,7 @@
 import Foundation
 
 protocol CommunityRepository {
-    func fetchFeed(category: CommunityCategory?) async throws -> [CommunityArtwork]
+    func fetchFeed(category: CultureCategory?) async throws -> [CommunityArtwork]
     func submit(_ draft: CommunitySubmissionDraft) async throws -> UUID
     func report(artworkID: UUID, reason: CommunityReportReason, details: String) async throws
 }
@@ -41,7 +41,7 @@ enum CommunityRepositoryFactory {
 }
 
 private struct UnavailableCommunityRepository: CommunityRepository {
-    func fetchFeed(category: CommunityCategory?) async throws -> [CommunityArtwork] {
+    func fetchFeed(category: CultureCategory?) async throws -> [CommunityArtwork] {
         []
     }
 

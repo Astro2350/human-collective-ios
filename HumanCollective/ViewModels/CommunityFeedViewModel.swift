@@ -15,18 +15,18 @@ final class CommunityFeedViewModel {
     private(set) var artworks: [CommunityArtwork] = []
 
     @ObservationIgnored private let repository: any CommunityRepository
-    @ObservationIgnored private var requestedCategory: CommunityCategory?
+    @ObservationIgnored private var requestedCategory: CultureCategory?
 
     init(repository: any CommunityRepository) {
         self.repository = repository
     }
 
-    func loadIfNeeded(category: CommunityCategory?) async {
+    func loadIfNeeded(category: CultureCategory?) async {
         guard state == .idle else { return }
         await refresh(category: category, showLoading: true)
     }
 
-    func refresh(category: CommunityCategory?, showLoading: Bool = false) async {
+    func refresh(category: CultureCategory?, showLoading: Bool = false) async {
         requestedCategory = category
         if showLoading {
             state = .loading

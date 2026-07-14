@@ -43,6 +43,23 @@ NON_PERSON_MAKER_WORDS = {
 }
 
 CATEGORY_LABELS = {
+    "car": "vehicle",
+    "watch": "watch",
+    "furniture": "piece of furniture",
+    "fashion": "fashion piece",
+    "food": "food creation",
+    "drink": "drink",
+    "instrument": "musical instrument",
+    "invention": "invention",
+    "machine": "machine",
+    "film": "film work",
+    "music": "musical work",
+    "game": "game",
+    "book": "book",
+    "monument": "monument",
+    "public_space": "public space",
+    "engineering_feat": "work of engineering",
+    "architecture": "work of architecture",
     "textile": "textile",
     "jewelry": "piece of jewelry",
     "painting": "painting",
@@ -442,6 +459,42 @@ def title_terms(title):
 
 def normalized_category(item):
     title = item["title"].lower()
+    if any(token in title for token in ["automobile", "motorcar", "carriage", "bicycle", "motorcycle"]):
+        return "car"
+    if any(token in title for token in ["watch", "timepiece", "wristwatch"]):
+        return "watch"
+    if any(token in title for token in ["chair", "table", "cabinet", "desk", "stool", "sofa"]):
+        return "furniture"
+    if any(token in title for token in ["fashion", "costume", "dress", "gown", "shoe", "hat", "handbag"]):
+        return "fashion"
+    if any(token in title for token in ["food", "bread", "meal", "recipe", "cuisine", "cake"]):
+        return "food"
+    if any(token in title for token in ["drink", "beverage", "wine", "coffee", "tea", "beer", "cocktail"]):
+        return "drink"
+    if any(token in title for token in ["guitar", "piano", "drum", "flute", "violin", "lute", "harp", "trumpet"]):
+        return "instrument"
+    if any(token in title for token in ["invention", "patent", "prototype"]):
+        return "invention"
+    if any(token in title for token in ["machine", "engine", "typewriter", "printing press"]):
+        return "machine"
+    if any(token in title for token in ["film", "cinema", "motion picture", "movie"]):
+        return "film"
+    if any(token in title for token in ["sheet music", "musical score"]):
+        return "music"
+    if any(token in title for token in ["game", "chess", "dice", "playing card"]):
+        return "game"
+    if any(token in title for token in ["manuscript", "page", "folio", "codex"]):
+        return "manuscript"
+    if any(token in title for token in ["book", "novel", "volume"]):
+        return "book"
+    if any(token in title for token in ["monument", "memorial", "obelisk", "mausoleum"]):
+        return "monument"
+    if any(token in title for token in ["public square", "plaza", "public park", "public garden"]):
+        return "public_space"
+    if any(token in title for token in ["bridge", "aqueduct", "dam", "canal", "railway", "skyscraper"]):
+        return "engineering_feat"
+    if any(token in title for token in ["architecture", "building", "house", "palace", "temple", "cathedral"]):
+        return "architecture"
     if "atlas mountains" in title:
         return "poster"
     if "bull" in title and "ring" in title:
@@ -454,15 +507,13 @@ def normalized_category(item):
         return "jewelry"
     if re.search(r"\b(?:finger\s+)?ring\b(?:\s+with|\s*\()", title):
         return "jewelry"
-    if any(token in title for token in ["page", "folio", "book", "manuscript", "bible", "florilegium"]):
-        return "manuscript"
     if any(token in title for token in ["quilt", "needlework", "tapestry", "textile", "tunic", "fabric", "carpet", "lace", "basket"]):
         return "textile"
     if "mask" in title:
         return "mask"
     if any(token in title for token in ["figure", "statuette", "statue", "sculpture", "head", "crèche", "creche"]):
         return "sculpture"
-    if any(token in title for token in ["sword guard", "tsuba", "smallsword", "tool", "instrument", "compass", "astrolabe"]):
+    if any(token in title for token in ["sword guard", "tsuba", "smallsword", "tool", "compass", "astrolabe"]):
         return "tool"
     if "map" in title or "globe" in title or re.search(r"\batlas\b", title):
         return "map"

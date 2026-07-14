@@ -5,11 +5,46 @@ import XCTest
 
 final class CommunityFeatureTests: XCTestCase {
     func testCommunityCategoriesHaveStablePublicValues() {
+        let publicValues = Set(CultureCategory.allCases.map(\.rawValue))
+        XCTAssertTrue([
+            "painting", "sculpture", "architecture", "car", "watch", "furniture", "fashion",
+            "food", "drink", "instrument", "invention", "machine", "tool", "film", "music",
+            "game", "book", "monument", "public_space", "engineering_feat"
+        ].allSatisfy(publicValues.contains))
+        XCTAssertEqual(CultureCategory.engineeringFeat.title, "Engineering Feats")
+    }
+
+    func testSubmissionValidationExplainsTheFirstMissingRequirement() {
         XCTAssertEqual(
-            CommunityCategory.allCases.map(\.rawValue),
-            ["art", "craft", "photography", "design", "writing", "other"]
+            CommunitySubmissionValidator.message(
+                jpegData: nil,
+                creatorName: "Sam",
+                significance: String(repeating: "a", count: 40),
+                rightsConfirmed: true
+            ),
+            "Choose a clear, high-resolution photo."
         )
-        XCTAssertEqual(CommunityCategory.photography.title, "Photography")
+
+        XCTAssertEqual(
+            CommunitySubmissionValidator.message(
+                jpegData: Data([0x01]),
+                creatorName: "Sam",
+                significance: "Too short",
+                rightsConfirmed: true
+            ),
+            "Add a little more about why it matters (40 characters minimum)."
+        )
+    }
+
+    func testSubmissionValidationAcceptsACompleteDraft() {
+        XCTAssertNil(
+            CommunitySubmissionValidator.message(
+                jpegData: Data([0x01]),
+                creatorName: "Sam",
+                significance: String(repeating: "a", count: 40),
+                rightsConfirmed: true
+            )
+        )
     }
 
     func testImageProcessorCreatesBoundedJPEGAndRemovesMetadata() throws {

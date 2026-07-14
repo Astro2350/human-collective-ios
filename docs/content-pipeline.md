@@ -1,6 +1,8 @@
 # Content Pipeline
 
-Human Collective should stay curated, not scraped. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
+Human Collective should stay curated, not scraped. Its scope is anything humans intentionally created—not only traditional art or historical objects. This foundation keeps manual editorial work clean while leaving room for a later admin tool or import script.
+
+The daily-artifact search should deliberately include paintings, sculptures, architecture, cars, watches, furniture, fashion, food, drinks, instruments, inventions, machines, tools, films, music, games, books, monuments, public spaces, and engineering feats. Candidate selection makes a best-effort diversity pass across those categories before filling the rest by quality score.
 
 ## Files
 
@@ -9,7 +11,7 @@ Human Collective should stay curated, not scraped. This foundation keeps manual 
 - `HumanCollective/Models/AdminSeedData.swift` defines the seed payload shape.
 - `Content/admin_seed_sample.json` contains sample sources, 54 curated items, and weekly pack assignments.
 - `Content/full_year_candidate_pool.json` contains 311 source-verified candidates for expanding to a 365-piece archive.
-- `Scripts/find_full_year_candidates.py` regenerates that candidate pool from official open-access museum APIs.
+- `Scripts/find_full_year_candidates.py` regenerates that candidate pool from official open-access museum APIs and the Library of Congress National Screening Room.
 
 ## Curation Stages
 

@@ -12,7 +12,43 @@ import {
 const maximumImageBytes = 5 * 1024 * 1024;
 const maximumRequestBytes = maximumImageBytes + 64 * 1024;
 const termsVersion = "2026-07-14";
-const allowedCategories = new Set(["art", "craft", "photography", "design", "writing", "other"]);
+const allowedCategories = new Set([
+  "painting",
+  "sculpture",
+  "architecture",
+  "car",
+  "watch",
+  "furniture",
+  "fashion",
+  "food",
+  "drink",
+  "instrument",
+  "invention",
+  "machine",
+  "tool",
+  "film",
+  "music",
+  "game",
+  "book",
+  "monument",
+  "public_space",
+  "engineering_feat",
+  "artifact",
+  "textile",
+  "manuscript",
+  "poster",
+  "object",
+  "map",
+  "jewelry",
+  "pottery",
+  "mask",
+  "photography",
+  "craft",
+  "art",
+  "design",
+  "writing",
+  "other",
+]);
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -39,7 +75,8 @@ Deno.serve(async (request) => {
   const significance = normalizedText(form.get("significance"));
   const category = normalizedText(form.get("category")) || "other";
   const installationID = normalizedText(form.get("installation_id"));
-  const acceptedRights = normalizedText(form.get("rights_confirmed")) === "true";
+  const acceptedRights =
+    normalizedText(form.get("rights_confirmed")) === "true";
   const image = form.get("image");
 
   if (
@@ -77,16 +114,19 @@ Deno.serve(async (request) => {
   const ipAddress = requestIPAddress(request);
   const ipHash = ipAddress ? await privateHash(ipAddress) : null;
 
-  const { error: reservationError } = await client.rpc("create_community_submission", {
-    p_submission_id: submissionID,
-    p_installation_hash: installationHash,
-    p_submitter_ip_hash: ipHash,
-    p_creator_name: creatorName,
-    p_significance: significance,
-    p_image_path: imagePath,
-    p_terms_version: termsVersion,
-    p_category: category,
-  });
+  const { error: reservationError } = await client.rpc(
+    "create_community_submission",
+    {
+      p_submission_id: submissionID,
+      p_installation_hash: installationHash,
+      p_submitter_ip_hash: ipHash,
+      p_creator_name: creatorName,
+      p_significance: significance,
+      p_image_path: imagePath,
+      p_terms_version: termsVersion,
+      p_category: category,
+    },
+  );
 
   if (reservationError) {
     if (reservationError.message.includes("community_rate_limited")) {
@@ -97,7 +137,10 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "submissions_unavailable" }, 403);
     }
 
-    console.error("Community submission reservation failed", reservationError.code);
+    console.error(
+      "Community submission reservation failed",
+      reservationError.code,
+    );
     return jsonResponse({ error: "submission_failed" }, 500);
   }
 

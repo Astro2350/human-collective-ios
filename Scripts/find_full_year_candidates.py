@@ -18,8 +18,20 @@ MET_SEARCH_URL = "https://collectionapi.metmuseum.org/public/collection/v1/searc
 MET_OBJECT_URL = "https://collectionapi.metmuseum.org/public/collection/v1/objects"
 CLEVELAND_URL = "https://openaccess-api.clevelandart.org/api/artworks/"
 ARTIC_SEARCH_URL = "https://api.artic.edu/api/v1/artworks/search"
+LOC_FILM_URL = "https://www.loc.gov/collections/national-screening-room/"
 
-QUERY_TERMS = [
+BROAD_QUERY_TERMS = [
+    "painting", "sculpture", "architecture", "building", "automobile", "car",
+    "carriage", "bicycle", "motorcycle", "watch", "timepiece", "furniture",
+    "chair", "table", "cabinet", "fashion", "costume", "food", "bread", "recipe",
+    "menu", "drink", "tea", "coffee", "wine", "musical instrument", "guitar",
+    "piano", "drum", "flute", "violin", "invention", "machine", "engine", "tool", "hand tool", "camera",
+    "typewriter", "film", "cinema", "movie poster", "sheet music", "music",
+    "board game", "playing cards", "book", "monument", "memorial", "public square",
+    "plaza", "park", "bridge", "aqueduct", "engineering",
+]
+
+QUERY_TERMS = BROAD_QUERY_TERMS + [
     "dog", "cat", "rabbit", "frog", "owl", "monkey", "fish", "turtle", "bird",
     "horse", "bull", "lion", "elephant", "deer", "dragon", "bear", "fox",
     "animal", "creature", "mask", "face", "portrait vessel", "head", "figurine",
@@ -36,7 +48,8 @@ QUERY_TERMS = [
 SOURCE_LIMITS = {
     "The Metropolitan Museum of Art": 110,
     "Cleveland Museum of Art": 220,
-    "Art Institute of Chicago": 220
+    "Art Institute of Chicago": 220,
+    "Library of Congress": 12,
 }
 
 COUNTRY_COORDS = {
@@ -85,6 +98,13 @@ COUNTRY_COORDS = {
 }
 
 STRONG_TERMS = {
+    "painting", "sculpture", "architecture", "building", "automobile", "car",
+    "carriage", "bicycle", "motorcycle", "watch", "timepiece", "furniture",
+    "chair", "table", "cabinet", "fashion", "costume", "food", "bread", "recipe",
+    "menu", "drink", "tea", "coffee", "wine", "guitar", "piano", "drum", "flute",
+    "violin", "invention", "machine", "engine", "camera", "typewriter", "film",
+    "cinema", "music", "card", "monument", "memorial", "square", "plaza", "park",
+    "bridge", "aqueduct", "engineering",
     "dog", "cat", "rabbit", "frog", "owl", "monkey", "fish", "turtle", "bird",
     "horse", "bull", "lion", "elephant", "deer", "dragon", "bear", "fox",
     "animal", "mask", "face", "vessel", "jar", "bowl", "toy", "game",
@@ -92,6 +112,44 @@ STRONG_TERMS = {
     "manuscript", "astrolabe", "instrument", "guardian", "sphinx", "griffin",
     "kimono", "armor", "sword", "basket", "screen", "dress", "hat", "crown",
     "pin", "brooch", "teapot", "clock", "key"
+}
+
+EXPANDED_CATEGORY_MINIMUMS = {
+    "painting": 3,
+    "sculpture": 3,
+    "architecture": 3,
+    "car": 3,
+    "watch": 3,
+    "furniture": 3,
+    "fashion": 3,
+    "food": 3,
+    "drink": 3,
+    "instrument": 3,
+    "invention": 3,
+    "machine": 3,
+    "tool": 3,
+    "film": 3,
+    "music": 3,
+    "game": 3,
+    "book": 3,
+    "monument": 3,
+    "public_space": 3,
+    "engineering_feat": 3,
+}
+
+CATEGORY_LIMITS = {
+    "painting": 42,
+    "object": 70,
+    "architecture": 24,
+    "car": 18,
+    "furniture": 24,
+    "fashion": 24,
+    "food": 18,
+    "drink": 24,
+    "instrument": 18,
+    "music": 24,
+    "monument": 18,
+    "engineering_feat": 18,
 }
 
 WEAK_TITLE_PATTERNS = [
@@ -156,12 +214,46 @@ def has_any_term(text, terms):
 
 
 def category_for(text):
+    if has_any_term(text, ["automobile", "car", "motorcar", "carriage", "bicycle", "motorcycle"]):
+        return "car"
+    if has_any_term(text, ["watch", "timepiece", "wristwatch", "pocket watch"]):
+        return "watch"
+    if has_any_term(text, ["furniture", "chair", "table", "cabinet", "desk", "stool", "sofa"]):
+        return "furniture"
+    if has_any_term(text, ["fashion", "costume", "dress", "gown", "shoe", "hat", "handbag"]):
+        return "fashion"
+    if has_any_term(text, ["food", "bread", "meal", "recipe", "cuisine", "fruit", "cake"]):
+        return "food"
+    if has_any_term(text, ["drink", "beverage", "wine", "coffee", "tea", "beer", "cocktail"]):
+        return "drink"
+    if has_any_term(text, ["musical instrument", "guitar", "piano", "drum", "flute", "violin", "lute", "harp", "trumpet"]):
+        return "instrument"
+    if has_any_term(text, ["invention", "patent", "prototype"]):
+        return "invention"
+    if has_any_term(text, ["machine", "engine", "typewriter", "sewing machine", "printing press"]):
+        return "machine"
+    if has_any_term(text, ["film", "cinema", "motion picture", "movie"]):
+        return "film"
+    if has_any_term(text, ["sheet music", "musical score", "music"]):
+        return "music"
+    if has_any_term(text, ["game", "chess", "dice", "playing card", "board game"]):
+        return "game"
+    if has_any_term(text, ["manuscript", "page", "codex", "folio"]):
+        return "manuscript"
+    if has_any_term(text, ["book", "novel", "volume"]):
+        return "book"
+    if has_any_term(text, ["monument", "memorial", "obelisk", "mausoleum"]):
+        return "monument"
+    if has_any_term(text, ["public square", "plaza", "public park", "public garden"]):
+        return "public_space"
+    if has_any_term(text, ["engineering", "bridge", "aqueduct", "dam", "canal", "railway", "skyscraper"]):
+        return "engineering_feat"
+    if has_any_term(text, ["architecture", "building", "house", "palace", "temple", "cathedral"]):
+        return "architecture"
     if has_any_term(text, ["mask", "helmet", "theater face"]):
         return "mask"
     if has_any_term(text, ["map", "globe", "atlas"]):
         return "map"
-    if has_any_term(text, ["book", "manuscript", "page", "codex", "folio"]):
-        return "manuscript"
     if has_any_term(text, ["textile", "robe", "garment", "cloth", "tapestry", "carpet"]):
         return "textile"
     if has_any_term(text, ["painting", "watercolor", "canvas", "panel"]):
@@ -170,7 +262,7 @@ def category_for(text):
         return "jewelry"
     if has_any_term(text, ["vase", "vessel", "jar", "bowl", "cup", "rhyton", "ceramic", "pottery"]):
         return "pottery"
-    if has_any_term(text, ["tool", "astrolabe", "compass", "instrument", "knife", "spoon", "seal"]):
+    if has_any_term(text, ["tool", "astrolabe", "compass", "knife", "spoon", "seal"]):
         return "tool"
     if has_any_term(text, ["poster", "print", "screenprint"]):
         return "poster"
@@ -216,8 +308,6 @@ def score_candidate(candidate):
         score += 2
     if candidate.get("category") in {"mask", "map", "jewelry", "pottery", "tool", "manuscript", "textile"}:
         score += 3
-    if "photograph" in text or "negative" in text:
-        score -= 10
     if candidate.get("category") == "painting":
         score -= 4
     return score
@@ -352,7 +442,7 @@ def met_detail(object_id):
 def cleveland_search_items():
     records = []
     seen = set()
-    for term in QUERY_TERMS:
+    for index, term in enumerate(QUERY_TERMS):
         data = get_json(CLEVELAND_URL, {
             "q": term,
             "has_image": "1",
@@ -364,7 +454,7 @@ def cleveland_search_items():
             if object_id and object_id not in seen:
                 seen.add(object_id)
                 records.append(record)
-            if len(records) >= 900:
+            if index >= len(BROAD_QUERY_TERMS) - 1 and len(records) >= 1800:
                 return records
     return records
 
@@ -428,7 +518,7 @@ def artic_search_items():
         "api_link",
         "web_url"
     ])
-    for term in QUERY_TERMS:
+    for index, term in enumerate(QUERY_TERMS):
         data = get_json(ARTIC_SEARCH_URL, {
             "q": term,
             "query[term][is_public_domain]": "true",
@@ -440,7 +530,7 @@ def artic_search_items():
             if object_id and object_id not in seen:
                 seen.add(object_id)
                 records.append(record)
-            if len(records) >= 900:
+            if index >= len(BROAD_QUERY_TERMS) - 1 and len(records) >= 1800:
                 return records
     return records
 
@@ -478,6 +568,60 @@ def artic_candidate(record):
         "tags": tags_for(blob),
         "source_type": classification,
         "source_classification": subjects
+    }
+    raw["selection_score"] = score_candidate(raw)
+    return raw
+
+
+def loc_film_items():
+    data = get_json(LOC_FILM_URL, {
+        "fo": "json",
+        "c": "100",
+        "dates": "1900-1929",
+        "fa": "location:united states",
+    })
+    return (data or {}).get("results") or []
+
+
+def loc_film_candidate(record):
+    title = clean(record.get("title"))
+    source_url = clean(record.get("url"))
+    source_id = (clean(record.get("id")) or "").rstrip("/").rsplit("/", 1)[-1]
+    image_urls = record.get("image_url") or []
+    image_url = clean(image_urls[0] if image_urls else None)
+    year_match = re.search(r"\b(18|19|20)\d{2}\b", clean(record.get("date")) or "")
+    year = int(year_match.group(0)) if year_match else None
+
+    if not title or not source_url or not source_id or not image_url or not year or year > 1929 or is_weak_title(title):
+        return None
+
+    if image_url.endswith(".gif"):
+        image_url = image_url[:-4] + ".jpg"
+
+    contributors = record.get("contributor") or []
+    locations = record.get("location") or []
+    maker = clean(contributors[0] if contributors else None) or "Creator unknown"
+    region = clean(", ".join(locations[1:3])) if len(locations) > 1 else None
+    raw = {
+        "id": f"loc-film-{slugify(title)}-{source_id}",
+        "content_source_id": "loc-national-screening-room",
+        "source_object_id": source_id,
+        "title": title,
+        "maker": maker,
+        "culture": "American film",
+        "country": "United States",
+        "region": region,
+        "date_display": str(year),
+        "category": "film",
+        "image_url": image_url,
+        "source_name": "Library of Congress",
+        "source_url": source_url,
+        "license": "Public domain (published 1929 or earlier) / Library of Congress",
+        "latitude": COUNTRY_COORDS["united states"][0],
+        "longitude": COUNTRY_COORDS["united states"][1],
+        "tags": ["film"],
+        "source_type": "Film",
+        "source_classification": "National Screening Room",
     }
     raw["selection_score"] = score_candidate(raw)
     return raw
@@ -536,6 +680,9 @@ def main():
         seen_sources.add(source_key)
         candidates.append(raw)
 
+    for record in loc_film_items():
+        add_candidate(loc_film_candidate(record))
+
     for record in cleveland_search_items():
         add_candidate(cleveland_candidate(record))
 
@@ -551,19 +698,33 @@ def main():
     candidates.sort(key=lambda item: (item["selection_score"], item["source_name"], item["title"]), reverse=True)
 
     selected = []
+    selected_ids = set()
     source_counts = Counter()
     category_counts = Counter()
-    for raw in candidates:
+
+    def select(raw):
         source_name = raw["source_name"]
-        if source_counts[source_name] >= SOURCE_LIMITS[source_name]:
-            continue
-        if raw["category"] == "painting" and category_counts["painting"] >= 42:
-            continue
-        if raw["category"] == "object" and category_counts["object"] >= 115:
-            continue
+        if raw["id"] in selected_ids or source_counts[source_name] >= SOURCE_LIMITS[source_name]:
+            return False
+        category_limit = CATEGORY_LIMITS.get(raw["category"])
+        if category_limit is not None and category_counts[raw["category"]] >= category_limit:
+            return False
         selected.append(make_candidate(raw))
+        selected_ids.add(raw["id"])
         source_counts[source_name] += 1
         category_counts[raw["category"]] += 1
+        return True
+
+    for category, minimum in EXPANDED_CATEGORY_MINIMUMS.items():
+        for raw in candidates:
+            if raw["category"] != category:
+                continue
+            select(raw)
+            if category_counts[category] >= minimum or len(selected) == TARGET_COUNT:
+                break
+
+    for raw in candidates:
+        select(raw)
         if len(selected) == TARGET_COUNT:
             break
 
@@ -577,6 +738,15 @@ def main():
         "source_summary": dict(source_counts),
         "category_summary": dict(category_counts),
         "candidate_content_sources": [
+            {
+                "id": "loc-national-screening-room",
+                "name": "Library of Congress",
+                "type": "archive",
+                "base_url": "https://www.loc.gov/collections/national-screening-room/",
+                "api_url": "https://www.loc.gov/collections/national-screening-room/?fo=json",
+                "rights_summary": "U.S. films published in 1929 or earlier, with source records and still images.",
+                "preferred_credit_line": "Public domain / Library of Congress"
+            },
             {
                 "id": "artic-public-domain",
                 "name": "Art Institute of Chicago",
@@ -599,6 +769,7 @@ def main():
         "notes": [
             "These are source-verified candidates, not final published daily copy.",
             "Each item has an official source URL and open-access image metadata from the source API.",
+            "Selection makes a best-effort pass across the expanded human-made categories before filling by score.",
             "Review rights, image quality, coordinates, date parsing, and rewrite final app copy before Supabase import."
         ],
         "candidate_curated_items": selected,

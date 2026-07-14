@@ -8,7 +8,7 @@ struct CommunityView: View {
 
     @State private var viewModel: CommunityFeedViewModel
     @State private var presentedSheet: CommunitySheet?
-    @State private var selectedCategory: CommunityCategory?
+    @State private var selectedCategory: CultureCategory?
 
     init(repository: any CommunityRepository, blockedStore: BlockedCommunityStore) {
         self.repository = repository
@@ -41,7 +41,7 @@ struct CommunityView: View {
                 case .contribute:
                     CommunitySubmissionView(
                         repository: repository,
-                        initialCategory: selectedCategory ?? .art
+                        initialCategory: selectedCategory ?? .painting
                     ) {
                         Task { await viewModel.refresh(category: selectedCategory) }
                     }
@@ -115,10 +115,10 @@ struct CommunityView: View {
     }
 
     private var emptyMessage: String {
-        guard let selectedCategory else {
+        guard selectedCategory != nil else {
             return "No creations have been published yet."
         }
-        return "No \(selectedCategory.title.lowercased()) creations yet."
+        return "No creations here yet."
     }
 }
 
@@ -135,14 +135,14 @@ private enum CommunitySheet: Identifiable {
 }
 
 private struct CommunityCategoryPicker: View {
-    @Binding var selection: CommunityCategory?
+    @Binding var selection: CultureCategory?
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 8) {
                 categoryButton(title: "All", category: nil)
 
-                ForEach(CommunityCategory.allCases) { category in
+                ForEach(CultureCategory.collectiveCases) { category in
                     categoryButton(title: category.title, category: category)
                 }
             }
@@ -150,7 +150,7 @@ private struct CommunityCategoryPicker: View {
         .scrollClipDisabled()
     }
 
-    private func categoryButton(title: String, category: CommunityCategory?) -> some View {
+    private func categoryButton(title: String, category: CultureCategory?) -> some View {
         let isSelected = selection == category
 
         return Button(title) {
@@ -247,15 +247,16 @@ private struct CommunitySubmissionView: View {
     @State private var preparedJPEG: Data?
     @State private var creatorName = ""
     @State private var significance = ""
-    @State private var category: CommunityCategory
+    @State private var category: CultureCategory
     @State private var rightsConfirmed = false
     @State private var isPreparingImage = false
     @State private var imageError: String?
     @State private var submissionState: SubmissionState = .idle
+    @State private var hasAttemptedSubmission = false
 
     init(
         repository: any CommunityRepository,
-        initialCategory: CommunityCategory,
+        initialCategory: CultureCategory,
         onSubmitted: @escaping () -> Void
     ) {
         self.repository = repository
@@ -331,7 +332,7 @@ private struct CommunitySubmissionView: View {
                     Spacer()
 
                     Picker("Category", selection: $category) {
-                        ForEach(CommunityCategory.allCases) { category in
+                        ForEach(CultureCategory.collectiveCases) { category in
                             Text(category.title).tag(category)
                         }
                     }
@@ -388,6 +389,12 @@ private struct CommunitySubmissionView: View {
                         .foregroundStyle(.red)
                 }
 
+                if hasAttemptedSubmission, let validationMessage {
+                    Text(validationMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
                 Button {
                     Task { await submit() }
                 } label: {
@@ -404,7 +411,7 @@ private struct CommunitySubmissionView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(HCTheme.blueStone)
-                .disabled(!canSubmit)
+                .disabled(submissionState == .submitting || isPreparingImage)
             }
             .padding(HCTheme.pagePadding)
         }
@@ -439,14 +446,13 @@ private struct CommunitySubmissionView: View {
         .background(HCTheme.background)
     }
 
-    private var canSubmit: Bool {
-        preparedJPEG != nil &&
-            creatorName.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 &&
-            creatorName.trimmingCharacters(in: .whitespacesAndNewlines).count <= 60 &&
-            significance.trimmingCharacters(in: .whitespacesAndNewlines).count >= 40 &&
-            significance.trimmingCharacters(in: .whitespacesAndNewlines).count <= 600 &&
-            rightsConfirmed &&
-            submissionState != .submitting
+    private var validationMessage: String? {
+        CommunitySubmissionValidator.message(
+            jpegData: preparedJPEG,
+            creatorName: creatorName,
+            significance: significance,
+            rightsConfirmed: rightsConfirmed
+        )
     }
 
     @MainActor
@@ -480,7 +486,8 @@ private struct CommunitySubmissionView: View {
 
     @MainActor
     private func submit() async {
-        guard canSubmit, let preparedJPEG else { return }
+        hasAttemptedSubmission = true
+        guard validationMessage == nil, let preparedJPEG else { return }
         submissionState = .submitting
 
         do {

@@ -9,7 +9,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         self.configuration = configuration
     }
 
-    func fetchFeed(category: CommunityCategory?) async throws -> [CommunityArtwork] {
+    func fetchFeed(category: CultureCategory?) async throws -> [CommunityArtwork] {
         guard var components = URLComponents(
             url: configuration.url.appendingPathComponent("rest/v1/community_artworks"),
             resolvingAgainstBaseURL: false
@@ -163,7 +163,7 @@ private struct CommunityArtworkDTO: Decodable {
     let contributorID: UUID
     let creatorName: String
     let significance: String
-    let category: CommunityCategory
+    let category: CultureCategory
     let imagePath: String
     let publishedAt: String
 
