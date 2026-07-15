@@ -1,6 +1,6 @@
 # Human Collective
 
-Human Collective is a calm SwiftUI iOS app for a daily editorial view of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world.
+Human Collective is a calm SwiftUI iOS app for a daily editorial view of human-made culture: objects, artifacts, artworks, architecture, textiles, manuscripts, masks, maps, and other open-access cultural pieces from around the world. A piece can be ancient or made yesterday; cultural significance, editorial quality, and usable rights matter more than age.
 
 The app is intentionally simple. Its moderated Collective feed lets people share creations without accounts, likes, comments, recommendations, gamification, or an infinite feed.
 

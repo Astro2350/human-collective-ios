@@ -299,9 +299,9 @@ def caption_for(item: dict) -> str:
     hashtags = [
         "#HumanCollective",
         "#DailyArtifact",
-        "#ArtHistory",
-        "#CulturalHeritage",
-        "#OpenAccessArt",
+        "#HumanMade",
+        "#MaterialCulture",
+        "#OpenCulture",
     ]
 
     for value in [

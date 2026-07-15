@@ -13,7 +13,7 @@ struct OnboardingView: View {
         ),
         OnboardingPage(
             title: "Objects. Places. Stories.",
-            subtitle: "Made by people, across time.",
+            subtitle: "Made yesterday or millennia ago.",
             symbolName: "globe.europe.africa"
         ),
         OnboardingPage(

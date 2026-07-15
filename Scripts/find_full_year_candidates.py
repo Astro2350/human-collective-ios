@@ -13,6 +13,10 @@ TARGET_COUNT = 311
 ROOT = Path(__file__).resolve().parents[1]
 SEED_PATH = ROOT / "Content" / "admin_seed_sample.json"
 OUTPUT_PATH = ROOT / "Content" / "full_year_candidate_pool.json"
+CONTENT_AGE_POLICY = (
+    "There is no minimum age: contemporary creations are eligible when their cultural "
+    "significance is clear and their image or media rights are safe to use."
+)
 
 MET_SEARCH_URL = "https://collectionapi.metmuseum.org/public/collection/v1/search"
 MET_OBJECT_URL = "https://collectionapi.metmuseum.org/public/collection/v1/objects"
@@ -574,6 +578,8 @@ def artic_candidate(record):
 
 
 def loc_film_items():
+    # This date range is specific to the source's public-domain rights boundary. It is
+    # not a product-wide age rule; contemporary candidates can come from rights-safe sources.
     data = get_json(LOC_FILM_URL, {
         "fo": "json",
         "c": "100",
@@ -769,6 +775,7 @@ def main():
         "notes": [
             "These are source-verified candidates, not final published daily copy.",
             "Each item has an official source URL and open-access image metadata from the source API.",
+            CONTENT_AGE_POLICY,
             "Selection makes a best-effort pass across the expanded human-made categories before filling by score.",
             "Review rights, image quality, coordinates, date parsing, and rewrite final app copy before Supabase import."
         ],

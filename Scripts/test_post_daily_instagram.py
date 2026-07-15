@@ -12,6 +12,20 @@ import post_daily_instagram as subject  # noqa: E402
 
 
 class PostingHardeningTests(unittest.TestCase):
+    def test_caption_does_not_assume_a_piece_is_old_or_fine_art(self):
+        caption = subject.caption_for(
+            {
+                "title": "A Culturally Significant New Design",
+                "hook": "Made yesterday and already changing how people create.",
+                "category": "design",
+                "source_name": "Open Design Archive",
+            }
+        )
+
+        self.assertIn("#HumanMade", caption)
+        self.assertIn("#OpenCulture", caption)
+        self.assertNotIn("#ArtHistory", caption)
+
     def test_classifies_meta_account_lock(self):
         error = subject.classify_http_error(
             "instagram",

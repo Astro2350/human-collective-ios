@@ -4,6 +4,8 @@ Human Collective should stay curated, not scraped. Its scope is anything humans 
 
 The daily-artifact search should deliberately include paintings, sculptures, architecture, cars, watches, furniture, fashion, food, drinks, instruments, inventions, machines, tools, films, music, games, books, monuments, public spaces, and engineering feats. Candidate selection makes a best-effort diversity pass across those categories before filling the rest by quality score.
 
+There is no minimum age. A creation made yesterday is eligible when its significance to human culture can be explained and its image or media rights are safe to use. Age and licensing are separate checks: a contemporary piece should never be excluded merely for being new, and being old does not automatically make a piece eligible.
+
 ## Files
 
 - `HumanCollective/Models/ContentSource.swift` defines open-access archives and collection sources.
@@ -60,7 +62,7 @@ Use snake_case keys so the payload stays close to Supabase table columns.
 2. Choose a loose editorial theme.
    Keep it human-readable, like `Work and Shelter`, `Maps and Memory`, or `Ceremony at the Table`.
 3. Select 5 to 7 curated items.
-   Mix categories, regions, time periods, and object scales. Avoid making the pack feel like a search result.
+   Mix categories, regions, dates, and object scales. Include contemporary work when it has a clear cultural reason to be there. Avoid making the pack feel like a search result.
 4. Put the strongest visual item first.
    The app uses the first `item_ids` entry as the featured piece.
 5. Read the pack aloud.
@@ -107,6 +109,7 @@ The candidate pool is intentionally separate from the live seed. Treat it as sou
 
 Before an item is promoted:
 
+- The piece is culturally significant; age is not an eligibility requirement.
 - The work is public-domain, open-access, or otherwise safe to include.
 - The app is not using modern copyrighted performance, audio, video, or theater clips.
 - The image URL resolves directly to an image.

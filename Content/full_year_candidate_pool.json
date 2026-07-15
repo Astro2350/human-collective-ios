@@ -66,6 +66,7 @@
   "notes": [
     "These are source-verified candidates, not final published daily copy.",
     "Each item has an official source URL and open-access image metadata from the source API.",
+    "There is no minimum age: contemporary creations are eligible when their cultural significance is clear and their image or media rights are safe to use.",
     "Selection makes a best-effort pass across the expanded human-made categories before filling by score.",
     "Review rights, image quality, coordinates, date parsing, and rewrite final app copy before Supabase import."
   ],
