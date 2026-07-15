@@ -85,23 +85,25 @@ struct CommunityView: View {
         }
 
         return ScrollView {
-            LazyVStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 22) {
                 ScreenHeader("Collective")
 
                 CommunityCategoryPicker(selection: $selectedCategory)
 
-                if visibleArtworks.isEmpty {
-                    Text(emptyMessage)
-                        .font(.callout)
-                        .foregroundStyle(HCTheme.mutedInk)
-                        .padding(.top, 14)
-                } else {
-                    ForEach(visibleArtworks) { artwork in
-                        CommunityArtworkCard(
-                            artwork: artwork,
-                            onReport: { presentedSheet = .report(artwork) },
-                            onHideContributor: { blockedStore.block(artwork.contributorID) }
-                        )
+                LazyVStack(alignment: .leading, spacing: 22) {
+                    if visibleArtworks.isEmpty {
+                        Text(emptyMessage)
+                            .font(.callout)
+                            .foregroundStyle(HCTheme.mutedInk)
+                            .padding(.top, 14)
+                    } else {
+                        ForEach(visibleArtworks) { artwork in
+                            CommunityArtworkCard(
+                                artwork: artwork,
+                                onReport: { presentedSheet = .report(artwork) },
+                                onHideContributor: { blockedStore.block(artwork.contributorID) }
+                            )
+                        }
                     }
                 }
             }
@@ -156,7 +158,7 @@ private struct CommunityCategoryPicker: View {
             .padding(.trailing, HCTheme.pagePadding)
         }
         .contentShape(Rectangle())
-        .scrollBounceBehavior(.always, axes: .horizontal)
+        .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
         .padding(.trailing, -HCTheme.pagePadding)
     }
 

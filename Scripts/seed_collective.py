@@ -145,20 +145,39 @@ def resolve_item(raw: dict) -> ResolvedItem:
             else "Public domain (dated 1929 or earlier) / Library of Congress"
         )
         source_title = loc_item.get("title")
+    elif provider == "openverse":
+        data = get_json(f"https://api.openverse.org/v1/images/{source_id}/")
+        license_name = str(data.get("license") or "").lower()
+        if license_name not in {"cc0", "pdm"}:
+            raise RuntimeError(f"Openverse record {source_id} is not CC0 or public domain marked.")
+        image_url = data.get("url")
+        source_labels = {
+            "flickr": "Flickr",
+            "wikimedia": "Wikimedia Commons",
+            "wordpress": "WordPress Photo Directory",
+        }
+        source_name = f"{source_labels.get(data.get('source'), 'Openverse')} via Openverse"
+        source_url = data.get("foreign_landing_url")
+        license_version = data.get("license_version") or "1.0"
+        license_label = "CC0" if license_name == "cc0" else "Public Domain Mark"
+        image_creator = data.get("creator") or "Unknown photographer"
+        rights_label = f"{license_label} {license_version} / image by {image_creator} / Openverse"
+        source_title = data.get("title")
     else:
         raise RuntimeError(f"Unsupported provider: {provider}")
 
     if not image_url or not source_url or not source_title:
         raise RuntimeError(f"Incomplete source record for {seed_key}.")
     actual_title = normalized_title(source_title)
-    expected_title = normalized_title(raw["title"])
-    expected_keywords = title_keywords(raw["title"])
+    expected_source_title = raw.get("source_title") or raw["title"]
+    expected_title = normalized_title(expected_source_title)
+    expected_keywords = title_keywords(expected_source_title)
     if (
         actual_title != expected_title
         and expected_title not in actual_title
         and not expected_keywords.issubset(title_keywords(source_title))
     ):
-        raise RuntimeError(f"Title mismatch for {seed_key}: {source_title!r} != {raw['title']!r}")
+        raise RuntimeError(f"Title mismatch for {seed_key}: {source_title!r} != {expected_source_title!r}")
 
     creator_name = raw["creator_name"].strip()
     artwork_id = uuid.uuid5(ARTWORK_NAMESPACE, seed_key)
@@ -199,9 +218,20 @@ def validate_manifest(data: dict) -> list[dict]:
 
 
 def download_image(item: ResolvedItem, seed_directory: pathlib.Path) -> dict:
-    request = urllib.request.Request(item.image_url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        source = response.read()
+    source = None
+    for attempt in range(3):
+        request = urllib.request.Request(item.image_url, headers={"User-Agent": USER_AGENT})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                source = response.read()
+            break
+        except Exception:
+            if attempt == 2:
+                raise
+            time.sleep(attempt + 1)
+
+    if source is None:
+        raise RuntimeError(f"Unable to download image for {item.seed_key}.")
 
     with Image.open(io.BytesIO(source)) as opened:
         image = ImageOps.exif_transpose(opened).convert("RGB")
@@ -265,6 +295,7 @@ def build_sql(items: list[ResolvedItem]) -> str:
 
     contributor_rows = ",\n  ".join(contributor_values)
     artwork_rows = ",\n  ".join(artwork_values)
+    active_seed_keys = ", ".join(sql_literal(item.seed_key) for item in items)
     return f"""begin;
 
 insert into public.community_contributors (id, installation_hash)
@@ -272,6 +303,11 @@ values
   {contributor_rows}
 on conflict (id) do update
 set installation_hash = excluded.installation_hash;
+
+update public.community_artworks
+set is_active = false
+where seed_key is not null
+  and seed_key not in ({active_seed_keys});
 
 insert into public.community_artworks (
   id, contributor_id, title, creator_name, significance, category, image_path,
