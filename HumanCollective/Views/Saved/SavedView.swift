@@ -33,24 +33,23 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
+        List {
+            ScreenHeader("Profile")
+                .profileListRow(top: HCTheme.pagePadding, bottom: 18)
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 28) {
-                    ScreenHeader("Profile")
+            SubmissionSection(receipts: profileStore.submissions)
 
-                    SubmissionSection(receipts: profileStore.submissions)
+            SavedSection(items: savedItems, onSelect: select, onUnsave: unsave)
 
-                    SavedSection(items: savedItems, onSelect: select, onUnsave: unsave)
-                }
-                .frame(width: contentWidth, alignment: .leading)
-                .padding(HCTheme.pagePadding)
-                .padding(.bottom, HCTheme.rootTabBarContentClearance)
-            }
-            .refreshable {
-                await refreshProfile()
-            }
+            Color.clear
+                .frame(height: HCTheme.rootTabBarContentClearance)
+                .profileListRow(top: 0, bottom: 0, horizontal: 0)
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.defaultMinListRowHeight, 1)
+        .refreshable {
+            await refreshProfile()
         }
         .toolbar(.hidden, for: .navigationBar)
         .background(HCTheme.background)
@@ -96,23 +95,20 @@ private struct SubmissionSection: View {
     let receipts: [ProfileSubmissionReceipt]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("My Submissions")
-                .font(.cultureTitle(24))
-                .foregroundStyle(HCTheme.ink)
-
+        Section {
             if receipts.isEmpty {
                 Text("Pieces you submit will appear here with their review status.")
                     .font(.callout)
                     .foregroundStyle(HCTheme.mutedInk)
+                    .profileListRow()
             } else {
                 ForEach(receipts) { receipt in
                     SubmissionReceiptRow(receipt: receipt)
-                    if receipt.id != receipts.last?.id {
-                        Divider()
-                    }
+                        .profileListRow(top: 7, bottom: 7)
                 }
             }
+        } header: {
+            ProfileSectionHeader("My Submissions")
         }
     }
 }
@@ -164,15 +160,12 @@ private struct SavedSection: View {
     let onUnsave: (CultureItem) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Saved")
-                .font(.cultureTitle(24))
-                .foregroundStyle(HCTheme.ink)
-
+        Section {
             if items.isEmpty {
                 Text("Pieces you save will appear here.")
                     .font(.callout)
                     .foregroundStyle(HCTheme.mutedInk)
+                    .profileListRow()
             } else {
                 ForEach(items) { item in
                     Button {
@@ -181,6 +174,14 @@ private struct SavedSection: View {
                         SavedItemCard(item: item)
                     }
                     .buttonStyle(.plain)
+                    .profileListRow(top: 6, bottom: 6)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            onUnsave(item)
+                        } label: {
+                            Label("Unsave", systemImage: "bookmark.slash")
+                        }
+                    }
                     .contextMenu {
                         Button(role: .destructive) {
                             onUnsave(item)
@@ -190,7 +191,38 @@ private struct SavedSection: View {
                     }
                 }
             }
+        } header: {
+            ProfileSectionHeader("Saved")
         }
+    }
+}
+
+private struct ProfileSectionHeader: View {
+    let title: String
+
+    init(_ title: String) {
+        self.title = title
+    }
+
+    var body: some View {
+        Text(title)
+            .font(.cultureTitle(24))
+            .foregroundStyle(HCTheme.ink)
+            .textCase(nil)
+            .padding(.top, 10)
+            .padding(.bottom, 4)
+    }
+}
+
+private extension View {
+    func profileListRow(
+        top: CGFloat = 5,
+        bottom: CGFloat = 5,
+        horizontal: CGFloat = HCTheme.pagePadding
+    ) -> some View {
+        listRowInsets(.init(top: top, leading: horizontal, bottom: bottom, trailing: horizontal))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
     }
 }
 

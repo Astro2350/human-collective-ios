@@ -20,7 +20,7 @@ struct CultureDetailView: View {
                     CultureItemArticleView(
                         item: item,
                         isSaved: viewModel.isSaved,
-                        showsSaveAction: false,
+                        showsSaveAction: true,
                         contentBottomPadding: relatedItems.isEmpty ? 42 : 22,
                         onToggleSaved: viewModel.toggleSaved
                     )
@@ -38,19 +38,6 @@ struct CultureDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(HCTheme.background, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) {
-                        viewModel.toggleSaved()
-                    }
-                } label: {
-                    Image(systemName: viewModel.isSaved ? "bookmark.fill" : "bookmark")
-                        .contentTransition(.symbolEffect(.replace))
-                }
-                .accessibilityLabel(viewModel.isSaved ? "Unsave" : "Save")
-            }
-        }
         .sensoryFeedback(.selection, trigger: viewModel.isSaved)
     }
 
