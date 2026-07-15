@@ -333,6 +333,12 @@ private struct CommunityArtworkCard: View {
 }
 
 private struct CommunitySubmissionView: View {
+    private enum FormField: Hashable {
+        case title
+        case creator
+        case significance
+    }
+
     private enum SubmissionState: Equatable {
         case idle
         case submitting
@@ -357,6 +363,7 @@ private struct CommunitySubmissionView: View {
     @State private var imageError: String?
     @State private var submissionState: SubmissionState = .idle
     @State private var hasAttemptedSubmission = false
+    @FocusState private var focusedField: FormField?
 
     init(
         repository: any CommunityRepository,
@@ -377,12 +384,22 @@ private struct CommunitySubmissionView: View {
                     submissionForm
                 }
             }
-            .navigationTitle("Share a Creation")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                         .disabled(submissionState == .submitting)
+                }
+
+                ToolbarItem(placement: .principal) {
+                    Text("Share YOUR creation!")
+                        .font(.headline)
+                }
+
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focusedField = nil }
                 }
             }
         }
@@ -393,8 +410,14 @@ private struct CommunitySubmissionView: View {
     }
 
     private var submissionForm: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+        GeometryReader { proxy in
+            let isKeyboardActive = focusedField != nil
+            let isCondensed = proxy.size.height < 700 || isKeyboardActive
+            let sectionSpacing: CGFloat = isKeyboardActive ? 5 : 10
+            let photoHeight: CGFloat = isKeyboardActive ? 54 : (isCondensed ? 88 : 200)
+            let significanceHeight: CGFloat = isKeyboardActive ? 54 : (isCondensed ? 72 : 105)
+
+            VStack(alignment: .leading, spacing: sectionSpacing) {
                 PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     ZStack {
                         HCTheme.surface
@@ -411,23 +434,27 @@ private struct CommunitySubmissionView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 200)
+                    .frame(height: photoHeight)
                     .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-                }
-                .disabled(isPreparingImage || submissionState == .submitting)
-
-                if isPreparingImage {
-                    HStack {
-                        ProgressView()
-                        Text("Preparing your photo…")
+                    .overlay(alignment: .bottomLeading) {
+                        if isPreparingImage {
+                            Label("Preparing your photo…", systemImage: "circle.dotted")
+                                .font(.footnote.weight(.medium))
+                                .padding(10)
+                                .background(.ultraThinMaterial, in: Capsule())
+                                .padding(10)
+                        } else if let imageError {
+                            Text(imageError)
+                                .font(.footnote.weight(.medium))
+                                .foregroundStyle(.red)
+                                .lineLimit(2)
+                                .padding(10)
+                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                                .padding(10)
+                        }
                     }
                 }
-
-                if let imageError {
-                    Text(imageError)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                }
+                .disabled(isPreparingImage || submissionState == .submitting)
 
                 HStack {
                     Text("Category")
@@ -450,6 +477,7 @@ private struct CommunitySubmissionView: View {
                         .font(.headline)
 
                     TextField("Artwork title", text: $artworkTitle)
+                        .focused($focusedField, equals: .title)
                         .disabled(submissionState == .submitting)
                     Divider()
                 }
@@ -460,6 +488,7 @@ private struct CommunitySubmissionView: View {
 
                     TextField("Your name", text: $creatorName)
                         .textContentType(.name)
+                        .focused($focusedField, equals: .creator)
                         .disabled(submissionState == .submitting)
                     Divider()
                 }
@@ -469,7 +498,7 @@ private struct CommunitySubmissionView: View {
                         .font(.headline)
 
                     TextEditor(text: $significance)
-                        .frame(minHeight: 120)
+                        .frame(height: significanceHeight)
                         .scrollContentBackground(.hidden)
                         .padding(10)
                         .background(HCTheme.surface)
@@ -483,6 +512,7 @@ private struct CommunitySubmissionView: View {
                                     .allowsHitTesting(false)
                             }
                         }
+                        .focused($focusedField, equals: .significance)
                         .disabled(submissionState == .submitting)
 
                     Text("\(significance.count)/600")
@@ -493,20 +523,19 @@ private struct CommunitySubmissionView: View {
 
                 Toggle(isOn: $rightsConfirmed) {
                     Text("I created this work and give Human Collective permission to display it.")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .disabled(submissionState == .submitting)
 
-                if case .failed(let message) = submissionState {
-                    Text(message)
+                if let formMessage {
+                    Text(formMessage)
                         .font(.footnote)
                         .foregroundStyle(.red)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
-                if hasAttemptedSubmission, let validationMessage {
-                    Text(validationMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                }
+                Spacer(minLength: sectionSpacing)
 
                 Button {
                     Task { await submit() }
@@ -526,10 +555,21 @@ private struct CommunitySubmissionView: View {
                 .tint(HCTheme.blueStone)
                 .disabled(submissionState == .submitting || isPreparingImage)
             }
-            .padding(HCTheme.pagePadding)
+            .padding(.horizontal, HCTheme.pagePadding)
+            .padding(.vertical, isKeyboardActive ? 5 : (isCondensed ? 8 : 12))
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
         }
         .background(HCTheme.background)
-        .scrollDismissesKeyboard(.interactively)
+    }
+
+    private var formMessage: String? {
+        if case .failed(let message) = submissionState {
+            return message
+        }
+        if hasAttemptedSubmission {
+            return validationMessage
+        }
+        return nil
     }
 
     private var submittedContent: some View {
