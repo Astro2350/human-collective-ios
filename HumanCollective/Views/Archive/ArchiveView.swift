@@ -1372,14 +1372,14 @@ private enum ArchiveItemDateParser {
     static func displayYear(_ year: Double) -> String {
         let roundedYear = Int(year.rounded())
         if roundedYear < 0 {
-            return "\(abs(roundedYear)) BCE"
+            return "\(abs(roundedYear)) BC"
         }
 
         if roundedYear == 0 {
-            return "1 CE"
+            return "1"
         }
 
-        return "\(roundedYear) CE"
+        return "\(roundedYear)"
     }
 
     private static func containsEra(in text: String, pattern: String) -> Bool {
