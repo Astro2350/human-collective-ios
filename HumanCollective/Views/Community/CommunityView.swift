@@ -161,10 +161,14 @@ private struct CommunityCategoryPicker: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Layout.pillSpacing) {
-                categoryButton(title: "All", category: nil)
+                categoryButton(title: "All", symbolName: "square.grid.2x2", category: nil)
 
                 ForEach(CultureCategory.collectiveCases) { category in
-                    categoryButton(title: category.title, category: category)
+                    categoryButton(
+                        title: category.title,
+                        symbolName: category.symbolName,
+                        category: category
+                    )
                 }
             }
             .padding(.trailing, HCTheme.pagePadding)
@@ -174,14 +178,26 @@ private struct CommunityCategoryPicker: View {
         .padding(.trailing, -HCTheme.pagePadding)
     }
 
-    private func categoryButton(title: String, category: CultureCategory?) -> some View {
+    private func categoryButton(
+        title: String,
+        symbolName: String,
+        category: CultureCategory?
+    ) -> some View {
         let isSelected = selection == category
 
-        return Button(title) {
+        return Button {
             selection = category
+        } label: {
+            HStack(spacing: 7) {
+                Image(systemName: symbolName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.white : accentColor(for: category))
+
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(isSelected ? Color.white : HCTheme.secondaryInk)
+            }
         }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(isSelected ? Color.white : HCTheme.secondaryInk)
         .padding(.horizontal, Layout.pillHorizontalPadding)
         .frame(minWidth: Layout.pillMinimumWidth)
         .frame(height: Layout.pillHeight)
@@ -193,7 +209,25 @@ private struct CommunityCategoryPicker: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func accentColor(for category: CultureCategory?) -> Color {
+        guard let category else { return HCTheme.blueStone }
+
+        return switch category {
+        case .meme, .film, .music, .game, .book, .poster, .writing:
+            HCTheme.editorGold
+        case .painting, .sculpture, .fashion, .food, .drink, .textile, .pottery, .jewelry, .art:
+            HCTheme.clay
+        case .architecture, .car, .watch, .furniture, .instrument, .photography, .design:
+            HCTheme.blueStone
+        case .invention, .machine, .tool, .monument, .publicSpace, .engineeringFeat, .artifact, .map, .craft:
+            HCTheme.moss
+        case .manuscript, .object, .mask, .other:
+            HCTheme.mutedInk
+        }
     }
 }
 

@@ -103,7 +103,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
         case .book: "books.vertical"
         case .monument: "building.columns.fill"
         case .publicSpace: "tree"
-        case .engineeringFeat: "bridge"
+        case .engineeringFeat: "ruler"
         case .artifact: "shippingbox"
         case .textile: "square.grid.3x3"
         case .manuscript: "book.closed"

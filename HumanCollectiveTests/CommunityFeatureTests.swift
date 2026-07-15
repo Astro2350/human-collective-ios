@@ -41,6 +41,15 @@ final class CommunityFeatureTests: XCTestCase {
         XCTAssertEqual(CultureCategory.engineeringFeat.title, "Engineering Feats")
     }
 
+    func testCollectiveCategoriesUseAvailableSystemSymbols() {
+        for category in CultureCategory.collectiveCases {
+            XCTAssertNotNil(
+                UIImage(systemName: category.symbolName),
+                "Missing system symbol for \(category.rawValue): \(category.symbolName)"
+            )
+        }
+    }
+
     func testSubmissionValidationExplainsTheFirstMissingRequirement() {
         XCTAssertEqual(
             CommunitySubmissionValidator.message(
