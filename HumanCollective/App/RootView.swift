@@ -71,6 +71,7 @@ private struct MainTabView: View {
                 NavigationStack {
                     CommunityView(
                         repository: communityRepository,
+                        savedStore: savedStore,
                         blockedStore: blockedCommunityStore
                     )
                 }

@@ -4,6 +4,31 @@ import XCTest
 @testable import Human_Collective
 
 final class CommunityFeatureTests: XCTestCase {
+    func testCommunityArtworkCreatesStableSavedSnapshot() {
+        let artworkID = UUID(uuidString: "BC4DCFB4-299D-46B0-8E06-320E54F893C3")!
+        let artwork = CommunityArtwork(
+            id: artworkID,
+            contributorID: UUID(),
+            title: "A New Chair",
+            creatorName: "Sam",
+            significance: "A clear explanation of why this chair matters to human culture.",
+            category: .furniture,
+            imageURL: "https://example.com/chair.jpg",
+            publishedAt: Date(timeIntervalSince1970: 1_783_987_200)
+        )
+
+        let savedItem = artwork.savedCultureItem
+
+        XCTAssertEqual(savedItem.id, "collective-bc4dcfb4-299d-46b0-8e06-320e54f893c3")
+        XCTAssertEqual(savedItem.title, artwork.title)
+        XCTAssertEqual(savedItem.creatorDisplay, artwork.creatorName)
+        XCTAssertEqual(savedItem.whyItMatters, artwork.significance)
+        XCTAssertEqual(savedItem.category, artwork.category)
+        XCTAssertEqual(savedItem.imageURL, artwork.imageURL)
+        XCTAssertEqual(savedItem.sourceName, "The Human Collective")
+        XCTAssertEqual(savedItem.weekKey, "collective")
+    }
+
     func testCommunityCategoriesHaveStablePublicValues() {
         let publicValues = Set(CultureCategory.allCases.map(\.rawValue))
         XCTAssertTrue([

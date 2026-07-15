@@ -4,14 +4,16 @@ import UIKit
 
 struct CommunityView: View {
     let repository: any CommunityRepository
+    let savedStore: SavedStore
     let blockedStore: BlockedCommunityStore
 
     @State private var viewModel: CommunityFeedViewModel
     @State private var presentedSheet: CommunitySheet?
     @State private var selectedCategory: CultureCategory?
 
-    init(repository: any CommunityRepository, blockedStore: BlockedCommunityStore) {
+    init(repository: any CommunityRepository, savedStore: SavedStore, blockedStore: BlockedCommunityStore) {
         self.repository = repository
+        self.savedStore = savedStore
         self.blockedStore = blockedStore
         _viewModel = State(initialValue: CommunityFeedViewModel(repository: repository))
     }
@@ -62,6 +64,7 @@ struct CommunityView: View {
                 guard viewModel.state != .idle else { return }
                 await viewModel.refresh(category: selectedCategory)
             }
+            .sensoryFeedback(.selection, trigger: savedStore.revision)
     }
 
     @ViewBuilder
@@ -103,8 +106,12 @@ struct CommunityView: View {
                             .padding(.top, 14)
                     } else {
                         ForEach(visibleArtworks) { artwork in
+                            let savedItem = artwork.savedCultureItem
+
                             CommunityArtworkCard(
                                 artwork: artwork,
+                                isSaved: savedStore.isSaved(savedItem),
+                                onToggleSaved: { savedStore.toggle(savedItem) },
                                 onReport: { presentedSheet = .report(artwork) },
                                 onHideContributor: { blockedStore.block(artwork.contributorID) }
                             )
@@ -192,6 +199,8 @@ private struct CommunityCategoryPicker: View {
 
 private struct CommunityArtworkCard: View {
     let artwork: CommunityArtwork
+    let isSaved: Bool
+    let onToggleSaved: () -> Void
     let onReport: () -> Void
     let onHideContributor: () -> Void
 
@@ -217,21 +226,33 @@ private struct CommunityArtworkCard: View {
 
                 Spacer(minLength: 8)
 
-                Menu {
-                    Button(action: onReport) {
-                        Label("Report artwork", systemImage: "exclamationmark.bubble")
+                HStack(spacing: 2) {
+                    Button(action: onToggleSaved) {
+                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                            .font(.headline)
+                            .foregroundStyle(isSaved ? HCTheme.blueStone : HCTheme.secondaryInk)
+                            .frame(width: 36, height: 36)
+                            .contentTransition(.symbolEffect(.replace))
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isSaved ? "Unsave artwork" : "Save artwork")
 
-                    Button(role: .destructive, action: onHideContributor) {
-                        Label("Hide this creator", systemImage: "eye.slash")
+                    Menu {
+                        Button(action: onReport) {
+                            Label("Report artwork", systemImage: "exclamationmark.bubble")
+                        }
+
+                        Button(role: .destructive, action: onHideContributor) {
+                            Label("Hide this creator", systemImage: "eye.slash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.headline)
+                            .foregroundStyle(HCTheme.secondaryInk)
+                            .frame(width: 36, height: 36)
                     }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.headline)
-                        .foregroundStyle(HCTheme.secondaryInk)
-                        .frame(width: 36, height: 36)
+                    .accessibilityLabel("Artwork options")
                 }
-                .accessibilityLabel("Artwork options")
             }
 
             Text(artwork.significance)

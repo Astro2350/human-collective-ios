@@ -9,6 +9,29 @@ struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
     let category: CultureCategory
     let imageURL: String
     let publishedAt: Date
+
+    var savedCultureItem: CultureItem {
+        CultureItem(
+            id: "collective-\(id.uuidString.lowercased())",
+            title: title,
+            maker: creatorName,
+            culture: nil,
+            country: nil,
+            region: nil,
+            dateDisplay: publishedAt.formatted(.dateTime.year()),
+            category: category,
+            imageURL: imageURL,
+            sourceName: "The Human Collective",
+            sourceURL: "",
+            license: "Shared by the creator for display in the Collective",
+            hook: "",
+            story: "",
+            whyItMatters: significance,
+            latitude: nil,
+            longitude: nil,
+            weekKey: "collective"
+        )
+    }
 }
 
 struct CommunitySubmissionDraft: Sendable {

@@ -138,7 +138,7 @@ private struct SavedItemCard: View {
                     .foregroundStyle(HCTheme.mutedInk)
                     .lineLimit(2)
 
-                Text(item.placeDisplay)
+                Text(item.placeDisplay.isEmpty ? item.category.title : item.placeDisplay)
                     .font(.caption)
                     .foregroundStyle(HCTheme.secondaryInk)
                     .lineLimit(2)
