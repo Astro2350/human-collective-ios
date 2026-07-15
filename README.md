@@ -41,7 +41,7 @@ The optional `SupabaseCultureRepository` uses the Supabase REST API against:
 - `culture_pack_items`
 - `culture_items`
 
-Anonymous community submissions use the `community-submit` and `community-report` Edge Functions. Images remain private until a moderator approves them for the public `community_artworks` feed. The phone never receives the service-role key and cannot write directly to moderation tables.
+Anonymous community submissions use the `community-submit`, `community-status`, and `community-report` Edge Functions. Images remain private until a moderator approves them for the public `community_artworks` feed. The status endpoint only returns receipts belonging to that anonymous installation. The phone never receives the service-role key and cannot write directly to moderation tables.
 
 Apply the suggested public read schema from:
 
@@ -87,14 +87,14 @@ Suggested price ladder: Access at $0.99, Standard at $2.99, and Patron at $4.99.
 - `HumanCollective/App` - app entry point, onboarding gate, tab shell
 - `HumanCollective/Models` - `CultureItem`, `CulturePack`, `CultureCategory`
 - `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST repository
-- `HumanCollective/Persistence` - local saved-item persistence using `UserDefaults`
+- `HumanCollective/Persistence` - local saved works, profile, exhibitions, and submission receipts using `UserDefaults`
 - `HumanCollective/ViewModels` - async loading and detail/saved state
-- `HumanCollective/Views` - onboarding, this week, archive, saved, and detail views
+- `HumanCollective/Views` - onboarding, today, archive, Collective, profile, and detail views
 - `HumanCollective/Components` - reusable images, cards, chips, state views, and image viewer
 
 ## Persistence
 
-Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`. On load, the Saved tab tries to refresh saved items by ID from the active repository, then falls back to the local snapshots when offline or unavailable.
+The Profile is private to the iPhone and requires no account. Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`; personal exhibitions and submission receipts are stored alongside them. On load, Profile refreshes saved items by ID from the active repository, falls back to local snapshots when offline, and checks the private status endpoint for moderation updates.
 
 ## Known Limitations
 

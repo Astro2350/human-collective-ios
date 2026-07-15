@@ -36,9 +36,11 @@
 		6741DB4894E505AB644859EB /* SupportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 827FC86A897CF783BB0F06FC /* SupportStore.swift */; };
 		676284443BC65B5608F11C2D /* CultureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4825C20CA2E3FAA2ECD25C /* CultureDetailView.swift */; };
 		6A574280739BAF8B2635E029 /* HCTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E68B9B33CB06EE385089F7 /* HCTheme.swift */; };
+		6C307335E6FD8327F11E3732 /* ShareCardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E6F82BEFAF2A96510C6F66 /* ShareCardButton.swift */; };
 		77225ACAA39C37D67FAAC81D /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F9FC95202D19531592AC725 /* CommunityView.swift */; };
 		7B723CFA5F40467D8D24C91E /* CultureItemArticleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3407568B7377C6267D451C2A /* CultureItemArticleView.swift */; };
 		906D3CA748FC9C4BAB4FD10B /* SavedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667C9E104DB831ED0F3FB74B /* SavedStore.swift */; };
+		927FB158B948544BF2CE3709 /* CultureCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28798B340F7EC811AEF1F586 /* CultureCatalogStore.swift */; };
 		9308FAE37B83FC4963E0AA6C /* CommunityFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06344E961531D81CE08ABB36 /* CommunityFeatureTests.swift */; };
 		9B0A6DA419A6091C63D2723D /* CultureCardPressStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12550C943A9C486A83367025 /* CultureCardPressStyle.swift */; };
 		9BFED04CEECFF22B087C0992 /* CultureRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89A8C720A860B1D112D4413 /* CultureRepository.swift */; };
@@ -51,6 +53,7 @@
 		B7EA5C6A4D7239278AFAD56D /* WallpaperAndWidgetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62D02E7698927A328C32E8D /* WallpaperAndWidgetsView.swift */; };
 		BEFE57A03AE5162564C4A73E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D7FFE3E95114CE2EEDF7703 /* Assets.xcassets */; };
 		BF26D4995AE6C14AB09659C3 /* DailyArtifactDaySelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8868F447FD8CFABF2974294 /* DailyArtifactDaySelector.swift */; };
+		C6E1BF3E6937D6C41874BABA /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE0CA5E10C73F8273D54A15 /* ProfileStore.swift */; };
 		CBD7C8FE53DCFF8DFFF6A444 /* ArchivePackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C937F3B666E3F6D47711596A /* ArchivePackView.swift */; };
 		CCE896E6FCA46E90F5E57A56 /* CultureImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 601C29F937484BF726EDB964 /* CultureImageCache.swift */; };
 		D11746FE49A534473E04859F /* AdminSeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5830EAF77E6B8E977013D391 /* AdminSeedData.swift */; };
@@ -108,6 +111,7 @@
 		1C883FD2FF0968818F32E392 /* CommunityFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedViewModel.swift; sourceTree = "<group>"; };
 		234FC0D4284F53B6FB9D6523 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		254A20B30D56E44198AE5D78 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		28798B340F7EC811AEF1F586 /* CultureCatalogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCatalogStore.swift; sourceTree = "<group>"; };
 		2983B48B5C1A90E15FD65D3E /* HumanCollectiveWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanCollectiveWidgetBundle.swift; sourceTree = "<group>"; };
 		2E408F81C428D0233F6C85B7 /* CulturePack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CulturePack.swift; sourceTree = "<group>"; };
 		3407568B7377C6267D451C2A /* CultureItemArticleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureItemArticleView.swift; sourceTree = "<group>"; };
@@ -119,6 +123,7 @@
 		47D0BD8977A86370E68E7CD1 /* HumanCollectiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HumanCollectiveApp.swift; sourceTree = "<group>"; };
 		4E96E4A0897F9C7601B89E71 /* MockCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCultureRepository.swift; sourceTree = "<group>"; };
 		4F229F23515E79F0F6B349FC /* ArtifactExperienceEdgeCaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactExperienceEdgeCaseTests.swift; sourceTree = "<group>"; };
+		52E6F82BEFAF2A96510C6F66 /* ShareCardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardButton.swift; sourceTree = "<group>"; };
 		544E2DF0E3ADDD0501118C9E /* CommunityArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityArtwork.swift; sourceTree = "<group>"; };
 		5830EAF77E6B8E977013D391 /* AdminSeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminSeedData.swift; sourceTree = "<group>"; };
 		5E671BD8C225B072164844DC /* CultureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CultureCard.swift; sourceTree = "<group>"; };
@@ -130,6 +135,7 @@
 		6D7FFE3E95114CE2EEDF7703 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6DD1566BEF51B4721C20DD57 /* DailyArtifactTitleFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyArtifactTitleFormatter.swift; sourceTree = "<group>"; };
 		6F9FC95202D19531592AC725 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		6FE0CA5E10C73F8273D54A15 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 		78F15F0BCA5F143F9C9DAEDA /* ScreenHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenHeader.swift; sourceTree = "<group>"; };
 		7902881242FEC9D27AB2ADCB /* SupabaseCultureRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseCultureRepository.swift; sourceTree = "<group>"; };
 		79C140890949B2FF3AC463D7 /* CommunityRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityRepository.swift; sourceTree = "<group>"; };
@@ -290,6 +296,7 @@
 				02CAD0648B9DE195E175A281 /* FeaturedCultureCard.swift */,
 				BE03FC3E3515C807DD20F426 /* PackStateViews.swift */,
 				78F15F0BCA5F143F9C9DAEDA /* ScreenHeader.swift */,
+				52E6F82BEFAF2A96510C6F66 /* ShareCardButton.swift */,
 				DA4B59E81572A9ED069653A6 /* ZoomableImageViewer.swift */,
 			);
 			path = Components;
@@ -318,6 +325,7 @@
 			isa = PBXGroup;
 			children = (
 				BE4F26715C070CB3B80DC6E9 /* BlockedCommunityStore.swift */,
+				6FE0CA5E10C73F8273D54A15 /* ProfileStore.swift */,
 				667C9E104DB831ED0F3FB74B /* SavedStore.swift */,
 			);
 			path = Persistence;
@@ -354,6 +362,7 @@
 			children = (
 				130069A13FCAD0CBC493D3C0 /* ArchiveViewModel.swift */,
 				1C883FD2FF0968818F32E392 /* CommunityFeedViewModel.swift */,
+				28798B340F7EC811AEF1F586 /* CultureCatalogStore.swift */,
 				E5C5E88F8B17AE03428C4824 /* CultureDetailViewModel.swift */,
 				889D9A9000397E54FEF42AFC /* SavedViewModel.swift */,
 				3EB148254B88B5F87EEED1FC /* ThisWeekViewModel.swift */,
@@ -568,6 +577,7 @@
 				26A610622BF3BA0A9E7194A2 /* CultureAsyncImage.swift in Sources */,
 				32C83D5BFCA2EE65C96DB580 /* CultureCard.swift in Sources */,
 				9B0A6DA419A6091C63D2723D /* CultureCardPressStyle.swift in Sources */,
+				927FB158B948544BF2CE3709 /* CultureCatalogStore.swift in Sources */,
 				9CDB9BFEB680C2D0F65BA9B0 /* CultureCategory.swift in Sources */,
 				676284443BC65B5608F11C2D /* CultureDetailView.swift in Sources */,
 				02C08223D03045E8485AAE46 /* CultureDetailViewModel.swift in Sources */,
@@ -589,11 +599,13 @@
 				2F4F8A16A121A0766541EC5E /* MockCultureRepository.swift in Sources */,
 				ED8E5E05F4C33FAC55CC0009 /* OnboardingView.swift in Sources */,
 				FC963A9761C25B2284D9607E /* PackStateViews.swift in Sources */,
+				C6E1BF3E6937D6C41874BABA /* ProfileStore.swift in Sources */,
 				0744DF8D9E3A4BA7C15BB159 /* RootView.swift in Sources */,
 				906D3CA748FC9C4BAB4FD10B /* SavedStore.swift in Sources */,
 				36FBE47AC1ABCD93ED419376 /* SavedView.swift in Sources */,
 				5C93E495827C6687B9E68DD7 /* SavedViewModel.swift in Sources */,
 				295BEEC0F90D99D5097626E1 /* ScreenHeader.swift in Sources */,
+				6C307335E6FD8327F11E3732 /* ShareCardButton.swift in Sources */,
 				2FC90265530DA8CC211FE2ED /* SupabaseCommunityRepository.swift in Sources */,
 				9FA383626626B38E1307749B /* SupabaseCultureRepository.swift in Sources */,
 				6741DB4894E505AB644859EB /* SupportStore.swift in Sources */,

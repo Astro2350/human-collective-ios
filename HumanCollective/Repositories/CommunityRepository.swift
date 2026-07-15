@@ -3,6 +3,7 @@ import Foundation
 protocol CommunityRepository {
     func fetchFeed(category: CultureCategory?) async throws -> [CommunityArtwork]
     func submit(_ draft: CommunitySubmissionDraft) async throws -> UUID
+    func fetchSubmissionStatuses(ids: [UUID]) async throws -> [CommunitySubmissionStatus]
     func report(artworkID: UUID, reason: CommunityReportReason, details: String) async throws
 }
 
@@ -47,6 +48,10 @@ private struct UnavailableCommunityRepository: CommunityRepository {
 
     func submit(_ draft: CommunitySubmissionDraft) async throws -> UUID {
         throw CommunityRepositoryError.notConfigured
+    }
+
+    func fetchSubmissionStatuses(ids: [UUID]) async throws -> [CommunitySubmissionStatus] {
+        []
     }
 
     func report(artworkID: UUID, reason: CommunityReportReason, details: String) async throws {

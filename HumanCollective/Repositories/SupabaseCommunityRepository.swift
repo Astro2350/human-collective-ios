@@ -78,6 +78,35 @@ struct SupabaseCommunityRepository: CommunityRepository {
         return receipt.id
     }
 
+    func fetchSubmissionStatuses(ids: [UUID]) async throws -> [CommunitySubmissionStatus] {
+        let uniqueIDs = Array(Set(ids)).prefix(20)
+        guard !uniqueIDs.isEmpty else { return [] }
+
+        let endpoint = configuration.url.appendingPathComponent("functions/v1/community-status")
+        var request = authorizedRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            SubmissionStatusRequestDTO(
+                installationID: CommunityInstallationIdentity.current(),
+                ids: Array(uniqueIDs)
+            )
+        )
+
+        let data = try await responseData(for: request)
+        let response = try decoder.decode(SubmissionStatusResponseDTO.self, from: data)
+        return response.submissions.map { row in
+            CommunitySubmissionStatus(
+                id: row.id,
+                status: row.status,
+                reviewedAt: row.reviewedAt.flatMap {
+                    Self.dateFormatter.date(from: $0) ?? Self.fallbackDateFormatter.date(from: $0)
+                }
+            )
+        }
+    }
+
     func report(artworkID: UUID, reason: CommunityReportReason, details: String) async throws {
         let endpoint = configuration.url.appendingPathComponent("functions/v1/community-report")
         var request = authorizedRequest(url: endpoint)
@@ -184,6 +213,32 @@ private struct CommunityArtworkDTO: Decodable {
 
 private struct SubmissionReceiptDTO: Decodable {
     let id: UUID
+}
+
+private struct SubmissionStatusRequestDTO: Encodable {
+    let installationID: UUID
+    let ids: [UUID]
+
+    enum CodingKeys: String, CodingKey {
+        case installationID = "installation_id"
+        case ids
+    }
+}
+
+private struct SubmissionStatusResponseDTO: Decodable {
+    let submissions: [SubmissionStatusDTO]
+}
+
+private struct SubmissionStatusDTO: Decodable {
+    let id: UUID
+    let status: CommunitySubmissionReviewStatus
+    let reviewedAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case status
+        case reviewedAt = "reviewed_at"
+    }
 }
 
 private struct FunctionErrorDTO: Decodable {

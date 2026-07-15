@@ -3,3 +3,6 @@ verify_jwt = true
 
 [functions.community-report]
 verify_jwt = true
+
+[functions.community-status]
+verify_jwt = true

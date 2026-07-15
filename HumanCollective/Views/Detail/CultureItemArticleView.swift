@@ -119,13 +119,7 @@ struct CultureItemArticleView: View {
 
     private func shareAndSourceRow(_ item: CultureItem) -> some View {
         HStack(spacing: 10) {
-            ShareLink(item: shareText(for: item)) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .tint(HCTheme.blueStone)
+            ArtifactShareButton(item: item)
 
             sourceButton(item)
         }
@@ -218,18 +212,6 @@ struct CultureItemArticleView: View {
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private func shareText(for item: CultureItem) -> String {
-        var parts = [item.title]
-        parts.append("Creator: \(item.creatorDisplay)")
-        if let place = cleanedText(item.placeDisplay) {
-            parts.append(place)
-        }
-        if let sourceURL = cleanedURLString(item.sourceURL) {
-            parts.append("Source: \(sourceURL)")
-        }
-        return parts.joined(separator: " - ")
     }
 
     private func storyParagraphs(for item: CultureItem) -> [String] {

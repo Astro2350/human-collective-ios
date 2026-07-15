@@ -5,18 +5,24 @@ import UIKit
 struct ArchiveView: View {
     private let pastWeekBatchSize = 5
 
+    @Environment(CultureCatalogStore.self) private var catalogStore
+
     let savedStore: SavedStore
+    let surpriseRequestID: UUID?
     @Binding private var rootTabBarHiddenDepth: Int
 
     @State private var visiblePastWeekCount = 5
     @State private var viewModel: ArchiveViewModel
+    @State private var surpriseItem: CultureItem?
 
     init(
         repository: any CultureRepository,
         savedStore: SavedStore,
-        rootTabBarHiddenDepth: Binding<Int>
+        rootTabBarHiddenDepth: Binding<Int>,
+        surpriseRequestID: UUID? = nil
     ) {
         self.savedStore = savedStore
+        self.surpriseRequestID = surpriseRequestID
         _rootTabBarHiddenDepth = rootTabBarHiddenDepth
         _viewModel = State(initialValue: ArchiveViewModel(repository: repository))
     }
@@ -27,6 +33,14 @@ struct ArchiveView: View {
             .background(HCTheme.background)
             .task {
                 await loadIfNeeded()
+            }
+            .navigationDestination(item: $surpriseItem) { item in
+                CultureDetailView(item: item, savedStore: savedStore)
+                    .rootTabBarHidden($rootTabBarHiddenDepth)
+            }
+            .onChange(of: surpriseRequestID) { _, requestID in
+                guard requestID != nil else { return }
+                openSurprise()
             }
     }
 
@@ -51,10 +65,22 @@ struct ArchiveView: View {
             let contentWidth = max(proxy.size.width - (HCTheme.pagePadding * 2), 0)
             let visiblePacks = packs
             let visiblePackSignature = ArchiveItemCollection.packIDSignature(visiblePacks)
+            let visibleItems = ArchiveItemCollection.uniqueItems(visiblePacks.flatMap(\.items))
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    ScreenHeader("Archive")
+                    ScreenHeader("Archive") {
+                        Button {
+                            openSurprise(fallback: visibleItems)
+                        } label: {
+                            Image(systemName: "die.face.5")
+                                .font(.system(size: 18, weight: .semibold))
+                                .frame(width: 42, height: 42)
+                                .background(HCTheme.surface, in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Surprise me")
+                    }
                     .zIndex(1)
 
                     if visiblePacks.isEmpty {
@@ -62,11 +88,20 @@ struct ArchiveView: View {
                             .frame(width: contentWidth, alignment: .leading)
                     } else {
                         ArchiveDiscoveryView(
-                            items: ArchiveItemCollection.uniqueItems(visiblePacks.flatMap(\.items)),
+                            items: visibleItems,
                             savedStore: savedStore,
                             rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                         )
                         .frame(width: contentWidth, alignment: .leading)
+
+                        if !catalogStore.newAndNowItems.isEmpty {
+                            ArchiveNewAndNowShelf(
+                                items: Array(catalogStore.newAndNowItems.prefix(5)),
+                                savedStore: savedStore,
+                                rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                            )
+                            .frame(width: contentWidth, alignment: .leading)
+                        }
 
                         if let featuredPack = visiblePacks.first {
                             archivePackLink(featuredPack) {
@@ -135,6 +170,10 @@ struct ArchiveView: View {
         .background(HCTheme.background)
     }
 
+    private func openSurprise(fallback: [CultureItem] = []) {
+        surpriseItem = catalogStore.randomItem(excluding: surpriseItem?.id, fallback: fallback)
+    }
+
     private func loadIfNeeded() async {
         if case .idle = viewModel.state {
             await viewModel.load()
@@ -185,6 +224,55 @@ private struct ArchiveInlineEmptyState: View {
             }
         }
         .padding(.vertical, 12)
+    }
+}
+
+private struct ArchiveNewAndNowShelf: View {
+    let items: [CultureItem]
+    let savedStore: SavedStore
+    @Binding var rootTabBarHiddenDepth: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ArchiveSectionHeader(title: "New & Now")
+
+            ForEach(items) { item in
+                NavigationLink {
+                    CultureDetailView(item: item, savedStore: savedStore)
+                        .rootTabBarHidden($rootTabBarHiddenDepth)
+                } label: {
+                    HStack(spacing: 12) {
+                        CultureAsyncImage(
+                            imageURL: item.imageURL,
+                            aspectRatio: 1,
+                            cornerRadius: 5,
+                            accessibilityLabel: item.title
+                        )
+                        .frame(width: 68)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.displayTitle)
+                                .font(.headline)
+                                .foregroundStyle(HCTheme.ink)
+                                .lineLimit(2)
+
+                            Text("\(item.creatorDisplay) · \(item.dateDisplay)")
+                                .font(.caption)
+                                .foregroundStyle(HCTheme.mutedInk)
+                                .lineLimit(1)
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, 2)
+                }
+                .buttonStyle(.plain)
+
+                if item.id != items.last?.id {
+                    Divider()
+                }
+            }
+        }
     }
 }
 

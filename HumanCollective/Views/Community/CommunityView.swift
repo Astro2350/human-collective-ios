@@ -6,16 +6,23 @@ struct CommunityView: View {
     let repository: any CommunityRepository
     let savedStore: SavedStore
     let blockedStore: BlockedCommunityStore
+    let profileStore: ProfileStore
 
     @State private var viewModel: CommunityFeedViewModel
     @State private var presentedSheet: CommunitySheet?
     @State private var expandedArtwork: CommunityArtwork?
     @State private var selectedCategory: CultureCategory?
 
-    init(repository: any CommunityRepository, savedStore: SavedStore, blockedStore: BlockedCommunityStore) {
+    init(
+        repository: any CommunityRepository,
+        savedStore: SavedStore,
+        blockedStore: BlockedCommunityStore,
+        profileStore: ProfileStore
+    ) {
         self.repository = repository
         self.savedStore = savedStore
         self.blockedStore = blockedStore
+        self.profileStore = profileStore
         _viewModel = State(initialValue: CommunityFeedViewModel(repository: repository))
     }
 
@@ -44,6 +51,7 @@ struct CommunityView: View {
                 case .contribute:
                     CommunitySubmissionView(
                         repository: repository,
+                        profileStore: profileStore,
                         initialCategory: selectedCategory ?? .painting
                     ) {
                         Task { await viewModel.refresh(category: selectedCategory) }
@@ -349,6 +357,7 @@ private struct CommunitySubmissionView: View {
     @Environment(\.dismiss) private var dismiss
 
     let repository: any CommunityRepository
+    let profileStore: ProfileStore
     let onSubmitted: () -> Void
 
     @State private var selectedPhoto: PhotosPickerItem?
@@ -367,12 +376,15 @@ private struct CommunitySubmissionView: View {
 
     init(
         repository: any CommunityRepository,
+        profileStore: ProfileStore,
         initialCategory: CultureCategory,
         onSubmitted: @escaping () -> Void
     ) {
         self.repository = repository
+        self.profileStore = profileStore
         self.onSubmitted = onSubmitted
         _category = State(initialValue: initialCategory)
+        _creatorName = State(initialValue: profileStore.displayName)
     }
 
     var body: some View {
@@ -645,16 +657,16 @@ private struct CommunitySubmissionView: View {
         submissionState = .submitting
 
         do {
-            _ = try await repository.submit(
-                CommunitySubmissionDraft(
-                    title: artworkTitle.trimmingCharacters(in: .whitespacesAndNewlines),
-                    creatorName: creatorName.trimmingCharacters(in: .whitespacesAndNewlines),
-                    significance: significance.trimmingCharacters(in: .whitespacesAndNewlines),
-                    category: category,
-                    jpegData: preparedJPEG,
-                    rightsConfirmed: rightsConfirmed
-                )
+            let draft = CommunitySubmissionDraft(
+                title: artworkTitle.trimmingCharacters(in: .whitespacesAndNewlines),
+                creatorName: creatorName.trimmingCharacters(in: .whitespacesAndNewlines),
+                significance: significance.trimmingCharacters(in: .whitespacesAndNewlines),
+                category: category,
+                jpegData: preparedJPEG,
+                rightsConfirmed: rightsConfirmed
             )
+            let receiptID = try await repository.submit(draft)
+            profileStore.recordSubmission(id: receiptID, draft: draft)
             submissionState = .submitted
             onSubmitted()
         } catch {

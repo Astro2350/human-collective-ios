@@ -11,6 +11,7 @@ struct HumanCollectiveApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var supportStore = SupportStore()
     @State private var savedStore = SavedStore()
+    @State private var profileStore = ProfileStore()
     @State private var blockedCommunityStore = BlockedCommunityStore()
     private let repository: any CultureRepository = CultureRepositoryFactory.make()
     private let communityRepository: any CommunityRepository = CommunityRepositoryFactory.make()
@@ -25,6 +26,7 @@ struct HumanCollectiveApp: App {
                 repository: repository,
                 communityRepository: communityRepository,
                 savedStore: savedStore,
+                profileStore: profileStore,
                 blockedCommunityStore: blockedCommunityStore,
                 supportStore: supportStore
             )

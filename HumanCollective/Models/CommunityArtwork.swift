@@ -43,6 +43,37 @@ struct CommunitySubmissionDraft: Sendable {
     let rightsConfirmed: Bool
 }
 
+enum CommunitySubmissionReviewStatus: String, Codable, Hashable, Sendable {
+    case pending
+    case approved
+    case rejected
+    case removed
+
+    var title: String {
+        switch self {
+        case .pending: "Under review"
+        case .approved: "Published"
+        case .rejected: "Not selected"
+        case .removed: "Removed"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .pending: "clock"
+        case .approved: "checkmark.circle.fill"
+        case .rejected: "minus.circle"
+        case .removed: "xmark.circle"
+        }
+    }
+}
+
+struct CommunitySubmissionStatus: Identifiable, Codable, Hashable, Sendable {
+    let id: UUID
+    let status: CommunitySubmissionReviewStatus
+    let reviewedAt: Date?
+}
+
 enum CommunitySubmissionValidator {
     static func message(
         jpegData: Data?,

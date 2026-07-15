@@ -1,14 +1,17 @@
 import SwiftUI
+import UIKit
 
 struct RootView: View {
     let repository: any CultureRepository
     let communityRepository: any CommunityRepository
     let savedStore: SavedStore
+    let profileStore: ProfileStore
     let blockedCommunityStore: BlockedCommunityStore
     let supportStore: SupportStore
 
     @AppStorage("humanCulture.hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var notificationManager = DailyNotificationManager()
+    @State private var catalogStore = CultureCatalogStore()
 
     var body: some View {
         Group {
@@ -17,6 +20,7 @@ struct RootView: View {
                     repository: repository,
                     communityRepository: communityRepository,
                     savedStore: savedStore,
+                    profileStore: profileStore,
                     blockedCommunityStore: blockedCommunityStore,
                     supportStore: supportStore
                 )
@@ -29,8 +33,10 @@ struct RootView: View {
         .tint(HCTheme.blueStone)
         .task(id: hasCompletedOnboarding) {
             guard hasCompletedOnboarding else { return }
+            await catalogStore.load(from: repository)
             await notificationManager.prepareDailyReminder()
         }
+        .environment(catalogStore)
     }
 }
 
@@ -38,11 +44,13 @@ private struct MainTabView: View {
     let repository: any CultureRepository
     let communityRepository: any CommunityRepository
     let savedStore: SavedStore
+    let profileStore: ProfileStore
     let blockedCommunityStore: BlockedCommunityStore
     let supportStore: SupportStore
 
     @State private var selectedTab: AppTab = .today
     @State private var rootTabBarHiddenDepth = 0
+    @State private var surpriseRequestID: UUID?
 
     var body: some View {
         ZStack {
@@ -62,7 +70,8 @@ private struct MainTabView: View {
                     ArchiveView(
                         repository: repository,
                         savedStore: savedStore,
-                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth
+                        rootTabBarHiddenDepth: $rootTabBarHiddenDepth,
+                        surpriseRequestID: surpriseRequestID
                     )
                 }
             }
@@ -72,16 +81,19 @@ private struct MainTabView: View {
                     CommunityView(
                         repository: communityRepository,
                         savedStore: savedStore,
-                        blockedStore: blockedCommunityStore
+                        blockedStore: blockedCommunityStore,
+                        profileStore: profileStore
                     )
                 }
             }
 
-            tabLayer(.saved) {
+            tabLayer(.profile) {
                 NavigationStack {
-                    SavedView(
+                    ProfileView(
                         repository: repository,
+                        communityRepository: communityRepository,
                         savedStore: savedStore,
+                        profileStore: profileStore,
                         rootTabBarHiddenDepth: $rootTabBarHiddenDepth
                     )
                 }
@@ -97,20 +109,32 @@ private struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .humanCultureOpenToday)) { _ in
             selectedTab = .today
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            handleSurpriseHandoff()
+        }
+        .task {
+            handleSurpriseHandoff()
+        }
         .onOpenURL { url in
             guard url.scheme == "humancollective" else { return }
 
             switch url.host {
             case "today":
                 selectedTab = .today
-            case "saved":
-                selectedTab = .saved
+            case "saved", "profile":
+                selectedTab = .profile
             default:
                 break
             }
         }
         .animation(.easeInOut(duration: 0.18), value: rootTabBarHiddenDepth)
         .sensoryFeedback(.selection, trigger: selectedTab)
+    }
+
+    private func handleSurpriseHandoff() {
+        guard SurpriseIntentHandoff.consumeRequest() else { return }
+        selectedTab = .archive
+        surpriseRequestID = UUID()
     }
 
     private func tabLayer<Content: View>(_ tab: AppTab, @ViewBuilder content: () -> Content) -> some View {
@@ -131,14 +155,14 @@ enum AppTab: CaseIterable {
     case today
     case archive
     case collective
-    case saved
+    case profile
 
     var title: String {
         switch self {
         case .today: "Today"
         case .archive: "Archive"
         case .collective: "Collective"
-        case .saved: "Saved"
+        case .profile: "Profile"
         }
     }
 
@@ -147,7 +171,7 @@ enum AppTab: CaseIterable {
         case .today: "calendar"
         case .archive: "books.vertical"
         case .collective: "person.3"
-        case .saved: "bookmark"
+        case .profile: "person.crop.circle"
         }
     }
 }

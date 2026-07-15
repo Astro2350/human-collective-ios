@@ -59,6 +59,31 @@ struct GetDailyArtifactWallpaperIntent: AppIntent {
     }
 }
 
+struct SurpriseMeIntent: AppIntent {
+    static let title: LocalizedStringResource = "Surprise Me"
+    static let description = IntentDescription("Opens a random Human Collective piece.")
+    static let openAppWhenRun = true
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        SurpriseIntentHandoff.requestSurprise()
+        return .result(dialog: "Opening a surprise from Human Collective.")
+    }
+}
+
+enum SurpriseIntentHandoff {
+    private static let requestKey = "humanCulture.intent.surpriseRequested"
+
+    static func requestSurprise(defaults: UserDefaults = .standard) {
+        defaults.set(true, forKey: requestKey)
+    }
+
+    static func consumeRequest(defaults: UserDefaults = .standard) -> Bool {
+        guard defaults.bool(forKey: requestKey) else { return false }
+        defaults.removeObject(forKey: requestKey)
+        return true
+    }
+}
+
 struct HumanCollectiveShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
@@ -69,6 +94,16 @@ struct HumanCollectiveShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Daily Artifact Wallpaper",
             systemImageName: "photo.on.rectangle.angled"
+        )
+
+        AppShortcut(
+            intent: SurpriseMeIntent(),
+            phrases: [
+                "Surprise me with \(.applicationName)",
+                "Show me something from \(.applicationName)"
+            ],
+            shortTitle: "Surprise Me",
+            systemImageName: "die.face.5"
         )
     }
 }
