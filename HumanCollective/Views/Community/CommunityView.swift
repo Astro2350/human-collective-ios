@@ -84,12 +84,17 @@ struct CommunityView: View {
                 (selectedCategory == nil || artwork.category == selectedCategory)
         }
 
-        return ScrollView {
+        return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 22) {
                 ScreenHeader("Collective")
 
                 CommunityCategoryPicker(selection: $selectedCategory)
+            }
+            .padding(.horizontal, HCTheme.pagePadding)
+            .padding(.top, HCTheme.pagePadding)
+            .padding(.bottom, 22)
 
+            ScrollView {
                 LazyVStack(alignment: .leading, spacing: 22) {
                     if visibleArtworks.isEmpty {
                         Text(emptyMessage)
@@ -106,14 +111,14 @@ struct CommunityView: View {
                         }
                     }
                 }
+                .padding(.horizontal, HCTheme.pagePadding)
+                .padding(.bottom, HCTheme.rootTabBarContentClearance)
             }
-            .padding(HCTheme.pagePadding)
-            .padding(.bottom, HCTheme.rootTabBarContentClearance)
+            .refreshable {
+                await viewModel.refresh(category: selectedCategory)
+            }
         }
         .background(HCTheme.background)
-        .refreshable {
-            await viewModel.refresh(category: selectedCategory)
-        }
     }
 
     private var emptyMessage: String {
