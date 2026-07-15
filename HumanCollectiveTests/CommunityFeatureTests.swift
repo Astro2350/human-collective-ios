@@ -32,10 +32,12 @@ final class CommunityFeatureTests: XCTestCase {
     func testCommunityCategoriesHaveStablePublicValues() {
         let publicValues = Set(CultureCategory.allCases.map(\.rawValue))
         XCTAssertTrue([
-            "painting", "sculpture", "architecture", "car", "watch", "furniture", "fashion",
+            "meme", "painting", "sculpture", "architecture", "car", "watch", "furniture", "fashion",
             "food", "drink", "instrument", "invention", "machine", "tool", "film", "music",
             "game", "book", "monument", "public_space", "engineering_feat"
         ].allSatisfy(publicValues.contains))
+        XCTAssertEqual(CultureCategory.collectiveCases.first, .meme)
+        XCTAssertEqual(CultureCategory.meme.title, "Memes")
         XCTAssertEqual(CultureCategory.engineeringFeat.title, "Engineering Feats")
     }
 

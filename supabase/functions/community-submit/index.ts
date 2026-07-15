@@ -13,6 +13,7 @@ const maximumImageBytes = 5 * 1024 * 1024;
 const maximumRequestBytes = maximumImageBytes + 64 * 1024;
 const termsVersion = "2026-07-14";
 const allowedCategories = new Set([
+  "meme",
   "painting",
   "sculpture",
   "architecture",

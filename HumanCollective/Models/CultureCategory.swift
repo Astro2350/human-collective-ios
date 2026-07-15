@@ -1,6 +1,7 @@
 import Foundation
 
 enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
+    case meme
     case painting
     case sculpture
     case architecture
@@ -41,6 +42,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
 
     var displayName: String {
         switch self {
+        case .meme: "Meme"
         case .painting: "Painting"
         case .sculpture: "Sculpture"
         case .architecture: "Architecture"
@@ -81,6 +83,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
 
     var symbolName: String {
         switch self {
+        case .meme: "face.smiling"
         case .painting: "paintpalette"
         case .sculpture: "person.crop.square"
         case .architecture: "building.columns"
@@ -121,6 +124,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
 
     var title: String {
         switch self {
+        case .meme: "Memes"
         case .painting: "Paintings"
         case .sculpture: "Sculptures"
         case .car: "Cars"
@@ -141,6 +145,7 @@ enum CultureCategory: String, CaseIterable, Codable, Hashable, Identifiable, Sen
     }
 
     static let collectiveCases: [CultureCategory] = [
+        .meme,
         .painting, .sculpture, .architecture,
         .car, .watch, .furniture, .fashion,
         .food, .drink, .instrument,

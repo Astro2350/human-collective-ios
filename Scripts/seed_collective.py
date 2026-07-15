@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import time
 import unicodedata
+import urllib.parse
 import urllib.request
 import uuid
 from collections import Counter, defaultdict
@@ -26,7 +27,7 @@ from PIL import Image, ImageOps
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "Content" / "collective_seed.json"
 CATEGORIES = [
-    "painting", "sculpture", "architecture", "car", "watch", "furniture", "fashion",
+    "meme", "painting", "sculpture", "architecture", "car", "watch", "furniture", "fashion",
     "food", "drink", "instrument", "invention", "machine", "tool", "film", "music",
     "game", "book", "monument", "public_space", "engineering_feat",
 ]
@@ -163,6 +164,35 @@ def resolve_item(raw: dict) -> ResolvedItem:
         image_creator = data.get("creator") or "Unknown photographer"
         rights_label = f"{license_label} {license_version} / image by {image_creator} / Openverse"
         source_title = data.get("title")
+    elif provider == "wikimedia":
+        file_title = source_id if source_id.startswith("File:") else f"File:{source_id}"
+        query = urllib.parse.urlencode({
+            "action": "query",
+            "prop": "imageinfo",
+            "inprop": "url",
+            "iiprop": "url|size|extmetadata",
+            "iiurlwidth": "2400",
+            "titles": file_title,
+            "format": "json",
+            "formatversion": "2",
+            "origin": "*",
+        })
+        pages = (get_json(f"https://commons.wikimedia.org/w/api.php?{query}").get("query") or {}).get("pages") or []
+        if not pages or pages[0].get("missing"):
+            raise RuntimeError(f"Wikimedia Commons file not found: {file_title}.")
+        page = pages[0]
+        image_info = (page.get("imageinfo") or [{}])[0]
+        metadata = image_info.get("extmetadata") or {}
+        license_name = str((metadata.get("LicenseShortName") or {}).get("value") or "").strip()
+        if license_name.casefold() not in {"cc0", "public domain"}:
+            raise RuntimeError(f"Wikimedia Commons file {file_title} is not CC0 or public domain.")
+        image_url = image_info.get("thumburl") or image_info.get("url")
+        source_name = "Wikimedia Commons"
+        source_url = "https://commons.wikimedia.org/wiki/" + urllib.parse.quote(
+            page.get("title", file_title).replace(" ", "_"), safe="():,_"
+        )
+        rights_label = f"{license_name} / Wikimedia Commons"
+        source_title = (metadata.get("ObjectName") or {}).get("value") or page.get("title", "").removeprefix("File:")
     else:
         raise RuntimeError(f"Unsupported provider: {provider}")
 
@@ -253,6 +283,20 @@ def download_image(item: ResolvedItem, seed_directory: pathlib.Path) -> dict:
     }
 
 
+def prepare_image(item: ResolvedItem, seed_directory: pathlib.Path, reuse_images: bool) -> dict:
+    output = seed_directory / f"{item.artwork_id}.jpg"
+    if reuse_images and output.exists():
+        with Image.open(output) as image:
+            size = list(image.size)
+        return {
+            "seed_key": item.seed_key,
+            "source_size": size,
+            "published_size": size,
+            "bytes": output.stat().st_size,
+        }
+    return download_image(item, seed_directory)
+
+
 def sql_literal(value: str | None) -> str:
     if value is None:
         return "null"
@@ -266,7 +310,7 @@ def round_robin(items: list[ResolvedItem]) -> list[ResolvedItem]:
     return [grouped[category][round_index] for round_index in range(3) for category in CATEGORIES]
 
 
-def build_sql(items: list[ResolvedItem]) -> str:
+def build_sql(items: list[ResolvedItem], deactivate_missing: bool = True) -> str:
     creators = {}
     for item in items:
         creators[item.contributor_id] = item.creator_name
@@ -277,7 +321,8 @@ def build_sql(items: list[ResolvedItem]) -> str:
         contributor_values.append(f"('{contributor_id}'::uuid, '{installation_hash}')")
 
     artwork_values = []
-    for position, item in enumerate(round_robin(items)):
+    ordered_items = round_robin(items) if deactivate_missing else items
+    for position, item in enumerate(ordered_items):
         artwork_values.append(
             "(" + ", ".join([
                 f"'{item.artwork_id}'::uuid",
@@ -299,6 +344,11 @@ def build_sql(items: list[ResolvedItem]) -> str:
     contributor_rows = ",\n  ".join(contributor_values)
     artwork_rows = ",\n  ".join(artwork_values)
     active_seed_keys = ", ".join(sql_literal(item.seed_key) for item in items)
+    deactivate_sql = f"""update public.community_artworks
+set is_active = false
+where seed_key is not null
+  and seed_key not in ({active_seed_keys});
+""" if deactivate_missing else ""
     return f"""begin;
 
 insert into public.community_contributors (id, installation_hash)
@@ -307,10 +357,7 @@ values
 on conflict (id) do update
 set installation_hash = excluded.installation_hash;
 
-update public.community_artworks
-set is_active = false
-where seed_key is not null
-  and seed_key not in ({active_seed_keys});
+{deactivate_sql}
 
 insert into public.community_artworks (
   id, contributor_id, title, creator_name, significance, category, image_path,
@@ -343,25 +390,29 @@ def run(*arguments: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--publish", action="store_true", help="Upload images and upsert the live seed records")
+    parser.add_argument("--category", choices=CATEGORIES, help="Prepare or publish only one category without changing other seed records")
+    parser.add_argument("--reuse-images", action="store_true", help="Reuse already prepared JPEGs in the work directory")
     parser.add_argument("--workdir", type=pathlib.Path, default=pathlib.Path(tempfile.gettempdir()) / "human-collective-seed")
     args = parser.parse_args()
 
     manifest = json.loads(MANIFEST_PATH.read_text())
     raw_items = validate_manifest(manifest)
+    if args.category:
+        raw_items = [item for item in raw_items if item["category"] == args.category]
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         items = list(executor.map(resolve_item, raw_items))
 
-    if args.workdir.exists():
+    if args.workdir.exists() and not args.reuse_images:
         shutil.rmtree(args.workdir)
     seed_directory = args.workdir / "seed"
-    seed_directory.mkdir(parents=True)
+    seed_directory.mkdir(parents=True, exist_ok=True)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
-        image_results = list(executor.map(lambda item: download_image(item, seed_directory), items))
+        image_results = list(executor.map(lambda item: prepare_image(item, seed_directory, args.reuse_images), items))
 
     sql_path = args.workdir / "seed.sql"
-    sql_path.write_text(build_sql(items))
+    sql_path.write_text(build_sql(items, deactivate_missing=not bool(args.category)))
     report = {
         "items": len(items),
         "categories": dict(Counter(item.category for item in items)),
