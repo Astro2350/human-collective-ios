@@ -1038,36 +1038,25 @@ private struct ArchiveTimelineWheel: View {
                     endPoint: .bottom
                 )
 
-                Picker("Time", selection: selectedYearBinding) {
-                    ForEach(yearOptions, id: \.self) { year in
-                        Text(ArchiveItemDateParser.displayYear(Double(year)))
-                            .font(.system(size: 21, weight: .semibold, design: .serif))
-                            .monospacedDigit()
-                            .foregroundStyle(HCTheme.ink)
-                            .tag(year)
-                    }
+                ArchiveYearWheelScroller(
+                    years: yearOptions,
+                    selection: selectedYearBinding,
+                    height: Layout.wheelHeight,
+                    rowHeight: Layout.selectionHeight
+                )
+
+                VStack {
+                    Rectangle()
+                        .fill(HCTheme.clay.opacity(0.5))
+                        .frame(height: HCTheme.hairline)
+
+                    Spacer()
+
+                    Rectangle()
+                        .fill(HCTheme.clay.opacity(0.5))
+                        .frame(height: HCTheme.hairline)
                 }
-                .pickerStyle(.wheel)
-                .labelsHidden()
-                .frame(height: Layout.wheelHeight)
-                .clipped()
-
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(HCTheme.surface.opacity(0.2))
                     .frame(height: Layout.selectionHeight)
-                    .overlay {
-                        VStack {
-                            Rectangle()
-                                .fill(HCTheme.clay.opacity(0.5))
-                                .frame(height: HCTheme.hairline)
-
-                            Spacer()
-
-                            Rectangle()
-                                .fill(HCTheme.clay.opacity(0.5))
-                                .frame(height: HCTheme.hairline)
-                        }
-                    }
                     .padding(.horizontal, 14)
                     .allowsHitTesting(false)
 
@@ -1107,8 +1096,6 @@ private struct ArchiveTimelineWheel: View {
                     .stroke(HCTheme.line.opacity(0.72), lineWidth: HCTheme.hairline)
             }
             .shadow(color: HCTheme.ink.opacity(0.08), radius: 8, y: 4)
-            .accessibilityLabel("Time")
-            .accessibilityValue("\(ArchiveItemDateParser.displayYear(selectedYear)), \(ArchiveHistoricalPeriod.title(for: selectedYear))")
 
             HStack(alignment: .firstTextBaseline) {
                 ArchiveTimelineEndpointLabel(
@@ -1147,6 +1134,80 @@ private struct ArchiveTimelineWheel: View {
         let clampedYear = ArchiveTimelineScale.clampedYear(selectedYear, to: bounds)
         guard clampedYear != selectedYear else { return }
         selectedYear = clampedYear
+    }
+}
+
+private struct ArchiveYearWheelScroller: View {
+    let years: [Int]
+    @Binding var selection: Int
+    let height: CGFloat
+    let rowHeight: CGFloat
+
+    @State private var scrollPosition: Int?
+
+    var body: some View {
+        ScrollView(.vertical) {
+            LazyVStack(spacing: 0) {
+                ForEach(years, id: \.self) { year in
+                    Text(ArchiveItemDateParser.displayYear(Double(year)))
+                        .font(.system(size: 21, weight: .semibold, design: .serif))
+                        .monospacedDigit()
+                        .foregroundStyle(HCTheme.ink)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: rowHeight)
+                        .id(year)
+                        .scrollTransition(.interactive, axis: .vertical) { content, phase in
+                            content
+                                .opacity(phase.isIdentity ? 1 : 0.38)
+                                .scaleEffect(phase.isIdentity ? 1 : 0.9)
+                        }
+                }
+            }
+            .scrollTargetLayout()
+            .padding(.vertical, max((height - rowHeight) / 2, 0))
+        }
+        .scrollIndicators(.hidden)
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $scrollPosition, anchor: .center)
+        .frame(height: height)
+        .onAppear {
+            scrollPosition = selection
+        }
+        .onChange(of: scrollPosition) { _, year in
+            guard let year, selection != year else { return }
+            selection = year
+        }
+        .onChange(of: selection) { _, year in
+            guard scrollPosition != year else { return }
+            withAnimation(.easeInOut(duration: 0.16)) {
+                scrollPosition = year
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Time")
+        .accessibilityValue(
+            "\(ArchiveItemDateParser.displayYear(Double(selection))), \(ArchiveHistoricalPeriod.title(for: Double(selection)))"
+        )
+        .accessibilityAdjustableAction { direction in
+            adjustSelection(direction)
+        }
+    }
+
+    private func adjustSelection(_ direction: AccessibilityAdjustmentDirection) {
+        guard let currentIndex = years.firstIndex(of: selection) else { return }
+
+        let nextIndex: Int
+        switch direction {
+        case .increment:
+            nextIndex = min(currentIndex + 1, years.index(before: years.endIndex))
+        case .decrement:
+            nextIndex = max(currentIndex - 1, years.startIndex)
+        @unknown default:
+            return
+        }
+
+        guard nextIndex != currentIndex else { return }
+        selection = years[nextIndex]
     }
 }
 

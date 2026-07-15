@@ -208,8 +208,11 @@ def validate_manifest(data: dict) -> list[dict]:
     if len(keys) != len(set(keys)):
         raise RuntimeError("Seed source records must be unique.")
     for item in items:
+        title_count = len(item.get("title", "").strip())
         creator_count = len(item.get("creator_name", "").strip())
         significance_count = len(item.get("significance", "").strip())
+        if not 2 <= title_count <= 120:
+            raise RuntimeError(f"Invalid title length for {item.get('title')}")
         if not 2 <= creator_count <= 60:
             raise RuntimeError(f"Invalid creator length for {item.get('title')}")
         if not 40 <= significance_count <= 600:

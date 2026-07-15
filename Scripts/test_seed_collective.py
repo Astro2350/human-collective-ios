@@ -1,3 +1,4 @@
+import copy
 import json
 import unittest
 
@@ -21,6 +22,14 @@ class SeedCollectiveTests(unittest.TestCase):
         actual = seed_collective.title_keywords("Automobiles. Automobiles in full parking lot")
 
         self.assertTrue(expected.issubset(actual))
+
+    def test_manifest_rejects_titles_outside_database_limits(self):
+        manifest = json.loads(seed_collective.MANIFEST_PATH.read_text())
+        invalid_manifest = copy.deepcopy(manifest)
+        invalid_manifest["items"][0]["title"] = " "
+
+        with self.assertRaisesRegex(RuntimeError, "Invalid title length"):
+            seed_collective.validate_manifest(invalid_manifest)
 
 
 if __name__ == "__main__":

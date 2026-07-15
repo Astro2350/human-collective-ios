@@ -1,0 +1,5 @@
+[functions.community-submit]
+verify_jwt = true
+
+[functions.community-report]
+verify_jwt = true

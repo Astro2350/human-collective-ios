@@ -46,7 +46,9 @@ class CommunityAdminClient:
 
     def approve(self, submission_id: uuid.UUID) -> None:
         submission = self.submission(submission_id)
-        if submission["status"] not in {"pending", "approved"}:
+        if submission["status"] == "approved":
+            return
+        if submission["status"] != "pending":
             raise RuntimeError(f"Submission is {submission['status']}, not pending.")
 
         public_path = f"{submission_id}.jpg"
