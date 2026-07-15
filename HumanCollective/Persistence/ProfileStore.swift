@@ -11,47 +11,22 @@ struct ProfileSubmissionReceipt: Identifiable, Codable, Hashable, Sendable {
     var reviewedAt: Date?
 }
 
-struct PersonalExhibition: Identifiable, Codable, Hashable, Sendable {
-    let id: UUID
-    var title: String
-    var items: [CultureItem]
-    let createdAt: Date
-}
-
 @MainActor
 @Observable
 final class ProfileStore {
-    private(set) var displayName: String
     private(set) var submissions: [ProfileSubmissionReceipt]
-    private(set) var exhibitions: [PersonalExhibition]
     private(set) var revision = 0
 
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private let nameKey = "humanCulture.profile.displayName"
     @ObservationIgnored private let submissionsKey = "humanCulture.profile.submissions"
-    @ObservationIgnored private let exhibitionsKey = "humanCulture.profile.exhibitions"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.displayName = defaults.string(forKey: nameKey) ?? ""
-        self.submissions = Self.decode([ProfileSubmissionReceipt].self, key: submissionsKey, defaults: defaults) ?? []
-        self.exhibitions = Self.decode([PersonalExhibition].self, key: exhibitionsKey, defaults: defaults) ?? []
-    }
-
-    var displayNameOrFallback: String {
-        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Your Profile" : trimmed
-    }
-
-    func updateDisplayName(_ value: String) {
-        let normalized = value
-            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let clipped = String(normalized.prefix(60))
-        guard clipped != displayName else { return }
-        displayName = clipped
-        defaults.set(clipped, forKey: nameKey)
-        revision += 1
+        self.submissions = Self.decode(
+            [ProfileSubmissionReceipt].self,
+            key: submissionsKey,
+            defaults: defaults
+        ) ?? []
     }
 
     func recordSubmission(id: UUID, draft: CommunitySubmissionDraft) {
@@ -70,11 +45,6 @@ final class ProfileStore {
             at: 0
         )
         persistSubmissions()
-
-        if displayName.isEmpty,
-           draft.creatorName.localizedCaseInsensitiveCompare("Unknown") != .orderedSame {
-            updateDisplayName(draft.creatorName)
-        }
     }
 
     func mergeSubmissionStatuses(_ statuses: [CommunitySubmissionStatus]) {
@@ -98,46 +68,9 @@ final class ProfileStore {
         persistSubmissions()
     }
 
-    func createExhibition(title: String, items: [CultureItem]) {
-        let normalizedTitle = title
-            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        let uniqueItems = items.reduce(into: [CultureItem]()) { result, item in
-            guard !result.contains(where: { $0.id == item.id }) else { return }
-            result.append(item)
-        }
-        guard normalizedTitle.count >= 2, uniqueItems.count >= 2 else { return }
-
-        exhibitions.insert(
-            PersonalExhibition(
-                id: UUID(),
-                title: String(normalizedTitle.prefix(80)),
-                items: Array(uniqueItems.prefix(12)),
-                createdAt: Date()
-            ),
-            at: 0
-        )
-        persistExhibitions()
-    }
-
-    func deleteExhibition(_ exhibition: PersonalExhibition) {
-        let previousCount = exhibitions.count
-        exhibitions.removeAll { $0.id == exhibition.id }
-        guard exhibitions.count != previousCount else { return }
-        persistExhibitions()
-    }
-
     private func persistSubmissions() {
-        persist(submissions, key: submissionsKey)
-    }
-
-    private func persistExhibitions() {
-        persist(exhibitions, key: exhibitionsKey)
-    }
-
-    private func persist<T: Encodable>(_ value: T, key: String) {
-        if let data = try? JSONEncoder().encode(value) {
-            defaults.set(data, forKey: key)
+        if let data = try? JSONEncoder().encode(submissions) {
+            defaults.set(data, forKey: submissionsKey)
         }
         revision += 1
     }

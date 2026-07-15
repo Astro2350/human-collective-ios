@@ -384,7 +384,6 @@ private struct CommunitySubmissionView: View {
         self.profileStore = profileStore
         self.onSubmitted = onSubmitted
         _category = State(initialValue: initialCategory)
-        _creatorName = State(initialValue: profileStore.displayName)
     }
 
     var body: some View {

@@ -87,18 +87,18 @@ Suggested price ladder: Access at $0.99, Standard at $2.99, and Patron at $4.99.
 - `HumanCollective/App` - app entry point, onboarding gate, tab shell
 - `HumanCollective/Models` - `CultureItem`, `CulturePack`, `CultureCategory`
 - `HumanCollective/Repositories` - repository protocol, mock data, Supabase REST repository
-- `HumanCollective/Persistence` - local saved works, profile, exhibitions, and submission receipts using `UserDefaults`
+- `HumanCollective/Persistence` - local saved works and submission receipts using `UserDefaults`
 - `HumanCollective/ViewModels` - async loading and detail/saved state
 - `HumanCollective/Views` - onboarding, today, archive, Collective, profile, and detail views
 - `HumanCollective/Components` - reusable images, cards, chips, state views, and image viewer
 
 ## Persistence
 
-The Profile is private to the iPhone and requires no account. Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`; personal exhibitions and submission receipts are stored alongside them. On load, Profile refreshes saved items by ID from the active repository, falls back to local snapshots when offline, and checks the private status endpoint for moderation updates.
+The Profile requires no account and contains two things: submission receipts and saved pieces. Saved pieces persist locally as encoded `CultureItem` snapshots in `UserDefaults`; submission receipts store the creator name and category entered on the submission form. On load, Profile refreshes saved items by ID from the active repository, falls back to local snapshots when offline, and checks the private status endpoint for moderation updates.
 
 ## Known Limitations
 
-- Community submissions require the two Edge Functions, private/public Storage buckets, and a trusted moderation environment.
+- Community submissions require the submission Edge Functions, private/public Storage buckets, and a trusted moderation environment.
 - A full 365-piece archive still requires the remaining curated content to be written, rights-checked, and imported.
 - Full real-device gesture QA should still be repeated on signed TestFlight builds, especially pinch zoom, double tap zoom, and memory behavior with very large source images.
 - The app currently targets portrait-first iPhone usage.
