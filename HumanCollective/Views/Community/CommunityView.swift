@@ -9,6 +9,7 @@ struct CommunityView: View {
 
     @State private var viewModel: CommunityFeedViewModel
     @State private var presentedSheet: CommunitySheet?
+    @State private var expandedArtwork: CommunityArtwork?
     @State private var selectedCategory: CultureCategory?
 
     init(repository: any CommunityRepository, savedStore: SavedStore, blockedStore: BlockedCommunityStore) {
@@ -50,6 +51,14 @@ struct CommunityView: View {
                 case .report(let artwork):
                     CommunityReportView(artwork: artwork, repository: repository)
                 }
+            }
+            .fullScreenCover(item: $expandedArtwork) { artwork in
+                ZoomableImageViewer(imageURL: artwork.imageURL, title: artwork.title) {
+                    expandedArtwork = nil
+                }
+                .ignoresSafeArea()
+                .presentationBackground(.black)
+                .statusBarHidden(true)
             }
             .task {
                 await viewModel.loadIfNeeded(category: selectedCategory)
@@ -111,6 +120,7 @@ struct CommunityView: View {
                             CommunityArtworkCard(
                                 artwork: artwork,
                                 isSaved: savedStore.isSaved(savedItem),
+                                onOpenImage: { expandedArtwork = artwork },
                                 onToggleSaved: { savedStore.toggle(savedItem) },
                                 onReport: { presentedSheet = .report(artwork) },
                                 onHideContributor: { blockedStore.block(artwork.contributorID) }
@@ -234,18 +244,32 @@ private struct CommunityCategoryPicker: View {
 private struct CommunityArtworkCard: View {
     let artwork: CommunityArtwork
     let isSaved: Bool
+    let onOpenImage: () -> Void
     let onToggleSaved: () -> Void
     let onReport: () -> Void
     let onHideContributor: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            CultureAsyncImage(
-                imageURL: artwork.imageURL,
-                aspectRatio: 1.04,
-                cornerRadius: HCTheme.cardRadius,
-                accessibilityLabel: "\(artwork.title), by \(artwork.creatorName)"
-            )
+            Button(action: onOpenImage) {
+                CultureAsyncImage(
+                    imageURL: artwork.imageURL,
+                    aspectRatio: 1.04,
+                    cornerRadius: HCTheme.cardRadius,
+                    accessibilityLabel: "\(artwork.title), by \(artwork.creatorName)"
+                )
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 34, height: 34)
+                        .background(.black.opacity(0.38), in: Circle())
+                        .padding(14)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open \(artwork.title) image")
+            .accessibilityHint("Opens a full screen viewer with zoom controls")
 
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
