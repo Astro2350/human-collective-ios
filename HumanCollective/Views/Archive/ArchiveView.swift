@@ -772,7 +772,7 @@ private struct ArchiveDiscoveryView: View {
                         selectedLongitude = coordinate.longitude
                     }
                 }
-                .aspectRatio(1.58, contentMode: .fit)
+                .aspectRatio(1.25, contentMode: .fit)
 
                 ArchiveInlineResultList(
                     items: nearbyItems,
@@ -985,6 +985,11 @@ private struct ArchiveTimelineView: View {
 }
 
 private struct ArchiveTimelineWheel: View {
+    private enum Layout {
+        static let wheelHeight: CGFloat = 124
+        static let selectionHeight: CGFloat = 40
+    }
+
     @Binding var selectedYear: Double
     let bounds: ClosedRange<Double>
 
@@ -1021,31 +1026,87 @@ private struct ArchiveTimelineWheel: View {
                 .accessibilityLabel("Period")
                 .accessibilityValue(ArchiveHistoricalPeriod.title(for: selectedYear))
 
-            Picker("Time", selection: selectedYearBinding) {
-                ForEach(yearOptions, id: \.self) { year in
-                    Text(ArchiveItemDateParser.displayYear(Double(year)))
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(HCTheme.ink)
-                        .tag(year)
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        HCTheme.surfaceDeep.opacity(0.72),
+                        HCTheme.surfaceRaised,
+                        HCTheme.surfaceRaised,
+                        HCTheme.surfaceDeep.opacity(0.72),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                Picker("Time", selection: selectedYearBinding) {
+                    ForEach(yearOptions, id: \.self) { year in
+                        Text(ArchiveItemDateParser.displayYear(Double(year)))
+                            .font(.system(size: 21, weight: .semibold, design: .serif))
+                            .monospacedDigit()
+                            .foregroundStyle(HCTheme.ink)
+                            .tag(year)
+                    }
                 }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-            .frame(height: 74)
-            .clipped()
-            .background(HCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
-            .overlay(alignment: .center) {
-                VStack(spacing: 27) {
-                    Rectangle()
-                        .fill(HCTheme.line.opacity(0.55))
-                        .frame(height: HCTheme.hairline)
-                    Rectangle()
-                        .fill(HCTheme.line.opacity(0.55))
-                        .frame(height: HCTheme.hairline)
+                .pickerStyle(.wheel)
+                .labelsHidden()
+                .frame(height: Layout.wheelHeight)
+                .clipped()
+
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(HCTheme.surface.opacity(0.2))
+                    .frame(height: Layout.selectionHeight)
+                    .overlay {
+                        VStack {
+                            Rectangle()
+                                .fill(HCTheme.clay.opacity(0.5))
+                                .frame(height: HCTheme.hairline)
+
+                            Spacer()
+
+                            Rectangle()
+                                .fill(HCTheme.clay.opacity(0.5))
+                                .frame(height: HCTheme.hairline)
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .allowsHitTesting(false)
+
+                HStack {
+                    ArchiveCalendarWheelSpindle()
+
+                    Spacer()
+
+                    ArchiveCalendarWheelSpindle()
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 8)
+                .allowsHitTesting(false)
+
+                VStack {
+                    LinearGradient(
+                        colors: [HCTheme.surfaceDeep.opacity(0.45), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 22)
+
+                    Spacer()
+
+                    LinearGradient(
+                        colors: [.clear, HCTheme.surfaceDeep.opacity(0.45)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 22)
+                }
                 .allowsHitTesting(false)
             }
+            .frame(height: Layout.wheelHeight)
+            .clipShape(RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: HCTheme.cardRadius, style: .continuous)
+                    .stroke(HCTheme.line.opacity(0.72), lineWidth: HCTheme.hairline)
+            }
+            .shadow(color: HCTheme.ink.opacity(0.08), radius: 8, y: 4)
             .accessibilityLabel("Time")
             .accessibilityValue("\(ArchiveItemDateParser.displayYear(selectedYear)), \(ArchiveHistoricalPeriod.title(for: selectedYear))")
 
@@ -1086,6 +1147,25 @@ private struct ArchiveTimelineWheel: View {
         let clampedYear = ArchiveTimelineScale.clampedYear(selectedYear, to: bounds)
         guard clampedYear != selectedYear else { return }
         selectedYear = clampedYear
+    }
+}
+
+private struct ArchiveCalendarWheelSpindle: View {
+    var body: some View {
+        VStack(spacing: 5) {
+            Circle()
+                .fill(HCTheme.editorGold.opacity(0.78))
+                .frame(width: 5, height: 5)
+
+            Rectangle()
+                .fill(HCTheme.clay.opacity(0.26))
+                .frame(width: 2, height: 56)
+
+            Circle()
+                .fill(HCTheme.editorGold.opacity(0.78))
+                .frame(width: 5, height: 5)
+        }
+        .shadow(color: HCTheme.ink.opacity(0.08), radius: 1, y: 1)
     }
 }
 
