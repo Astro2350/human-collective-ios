@@ -34,20 +34,27 @@ struct CommunityView: View {
                 Button {
                     presentedSheet = .contribute
                 } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 56, height: 56)
-                        .background(HCTheme.blueStone, in: Circle())
-                        .shadow(color: .black.opacity(0.16), radius: 10, y: 5)
+                    FloatingCircleLabel(
+                        systemName: "plus",
+                        foregroundColor: .white,
+                        backgroundColor: HCTheme.blueStone
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Share a creation")
                 .padding(.trailing, HCTheme.pagePadding)
-                .padding(.bottom, HCTheme.rootTabBarContentClearance - 18)
+                .padding(.bottom, HCTheme.floatingControlBottomPadding)
             }
             .sheet(item: $presentedSheet) { destination in
                 switch destination {
+                case .search:
+                    CommunitySearchView(
+                        repository: repository,
+                        initialArtworks: viewModel.artworks,
+                        savedStore: savedStore,
+                        blockedStore: blockedStore
+                    )
+                    .presentationDetents([.large])
                 case .contribute:
                     CommunitySubmissionView(
                         repository: repository,
@@ -106,7 +113,18 @@ struct CommunityView: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 22) {
-                ScreenHeader("Collective")
+                ScreenHeader("Collective") {
+                    Button {
+                        presentedSheet = .search
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(width: 42, height: 42)
+                            .background(HCTheme.surface, in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Search Collective")
+                }
 
                 CommunityCategoryPicker(selection: $selectedCategory)
             }
@@ -155,13 +173,154 @@ struct CommunityView: View {
 }
 
 private enum CommunitySheet: Identifiable {
+    case search
     case contribute
     case report(CommunityArtwork)
 
     var id: String {
         switch self {
+        case .search: "search"
         case .contribute: "contribute"
         case .report(let artwork): "report-\(artwork.id.uuidString)"
+        }
+    }
+}
+
+private struct CommunitySearchView: View {
+    private enum LoadState: Equatable {
+        case idle
+        case loading
+        case ready
+        case failed(String)
+    }
+
+    @Environment(\.dismiss) private var dismiss
+
+    let repository: any CommunityRepository
+    let savedStore: SavedStore
+    let blockedStore: BlockedCommunityStore
+
+    @State private var artworks: [CommunityArtwork]
+    @State private var expandedArtwork: CommunityArtwork?
+    @State private var loadState: LoadState = .idle
+    @State private var query = ""
+    @State private var reportArtwork: CommunityArtwork?
+
+    init(
+        repository: any CommunityRepository,
+        initialArtworks: [CommunityArtwork],
+        savedStore: SavedStore,
+        blockedStore: BlockedCommunityStore
+    ) {
+        self.repository = repository
+        self.savedStore = savedStore
+        self.blockedStore = blockedStore
+        _artworks = State(initialValue: initialArtworks)
+    }
+
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var results: [CommunityArtwork] {
+        guard !trimmedQuery.isEmpty else { return [] }
+        return artworks.filter { artwork in
+            !blockedStore.contains(artwork.contributorID) && artwork.matchesSearch(trimmedQuery)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if case .failed(let message) = loadState, artworks.isEmpty {
+                    CultureErrorView(message: message) {
+                        Task { await loadAllArtwork() }
+                    }
+                } else if trimmedQuery.isEmpty {
+                    ContentUnavailableView {
+                        Label("Search the Collective", systemImage: "magnifyingglass")
+                    } description: {
+                        Text("Find a title, creator, category, or idea.")
+                    }
+                } else if loadState == .loading, artworks.isEmpty {
+                    ProgressView()
+                } else if results.isEmpty {
+                    ContentUnavailableView.search(text: trimmedQuery)
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 22) {
+                            ForEach(results) { artwork in
+                                let savedItem = artwork.savedCultureItem
+
+                                CommunityArtworkCard(
+                                    artwork: artwork,
+                                    isSaved: savedStore.isSaved(savedItem),
+                                    onOpenImage: { expandedArtwork = artwork },
+                                    onToggleSaved: { savedStore.toggle(savedItem) },
+                                    onReport: { reportArtwork = artwork },
+                                    onHideContributor: { blockedStore.block(artwork.contributorID) }
+                                )
+                            }
+                        }
+                        .padding(.horizontal, HCTheme.pagePadding)
+                        .padding(.bottom, 28)
+                    }
+                }
+            }
+            .background(HCTheme.background)
+            .navigationTitle("Collective Search")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Title, creator, category, or idea"
+            )
+            .toolbarBackground(HCTheme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(HCTheme.ink)
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close Collective search")
+                }
+            }
+        }
+        .sheet(item: $reportArtwork) { artwork in
+            CommunityReportView(artwork: artwork, repository: repository)
+        }
+        .fullScreenCover(item: $expandedArtwork) { artwork in
+            ZoomableImageViewer(imageURL: artwork.imageURL, title: artwork.title) {
+                expandedArtwork = nil
+            }
+            .ignoresSafeArea()
+            .presentationBackground(.black)
+            .statusBarHidden(true)
+        }
+        .task {
+            await loadAllArtwork()
+        }
+        .sensoryFeedback(.selection, trigger: savedStore.revision)
+    }
+
+    @MainActor
+    private func loadAllArtwork() async {
+        loadState = .loading
+
+        do {
+            artworks = try await repository.fetchFeed(category: nil)
+            loadState = .ready
+        } catch is CancellationError {
+            return
+        } catch {
+            loadState = artworks.isEmpty ? .failed(error.localizedDescription) : .ready
         }
     }
 }
@@ -340,7 +499,7 @@ private struct CommunityArtworkCard: View {
     }
 }
 
-private struct CommunitySubmissionView: View {
+struct CommunitySubmissionView: View {
     private enum FormField: Hashable {
         case title
         case creator
@@ -399,8 +558,18 @@ private struct CommunitySubmissionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                        .disabled(submissionState == .submitting)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(HCTheme.ink)
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(submissionState == .submitting)
+                    .accessibilityLabel("Close submission form")
                 }
 
                 ToolbarItem(placement: .principal) {
@@ -436,12 +605,19 @@ private struct CommunitySubmissionView: View {
                         if let previewImage {
                             Image(uiImage: previewImage)
                                 .resizable()
-                                .scaledToFit()
-                                .padding(8)
+                                .scaledToFill()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .clipped()
                                 .accessibilityLabel("Selected creation")
                         } else {
-                            Label("Choose a photo", systemImage: "photo.badge.plus")
-                                .font(.headline)
+                            VStack(spacing: 7) {
+                                Label("Choose any photo", systemImage: "photo.badge.plus")
+                                    .font(.headline)
+
+                                Text("Portrait, landscape, and screenshots all work")
+                                    .font(.caption)
+                                    .foregroundStyle(HCTheme.mutedInk)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -594,10 +770,15 @@ private struct CommunitySubmissionView: View {
                 .foregroundStyle(HCTheme.ink)
                 .multilineTextAlignment(.center)
 
-            Text("If selected, it will appear in Collective.")
+            Text("If approved, it will appear in the Collective.")
                 .font(.body)
                 .foregroundStyle(HCTheme.secondaryInk)
                 .lineSpacing(4)
+                .multilineTextAlignment(.center)
+
+            Text("Track it, preview its Collective card, or cancel it from Profile while it is under review.")
+                .font(.callout)
+                .foregroundStyle(HCTheme.mutedInk)
                 .multilineTextAlignment(.center)
 
             Button("Done") { dismiss() }
@@ -664,8 +845,8 @@ private struct CommunitySubmissionView: View {
                 jpegData: preparedJPEG,
                 rightsConfirmed: rightsConfirmed
             )
-            let receiptID = try await repository.submit(draft)
-            profileStore.recordSubmission(id: receiptID, draft: draft)
+            let receipt = try await repository.submit(draft)
+            profileStore.recordSubmission(receipt: receipt, draft: draft)
             submissionState = .submitted
             onSubmitted()
         } catch {

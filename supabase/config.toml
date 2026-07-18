@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.community-status]
 verify_jwt = true
+
+[functions.community-cancel]
+verify_jwt = true

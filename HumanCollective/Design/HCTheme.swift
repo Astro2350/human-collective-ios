@@ -25,6 +25,8 @@ enum HCTheme {
     static let feedImageAspectRatio: CGFloat = 1.18
     static let featuredImageAspectRatio: CGFloat = 1.02
     static let detailImageAspectRatio: CGFloat = 1.03
+    static let floatingControlSize: CGFloat = 54
+    static let floatingControlBottomPadding: CGFloat = 74
 }
 
 extension Font {

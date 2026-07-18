@@ -59,7 +59,7 @@ final class CommunityFeatureTests: XCTestCase {
                 significance: String(repeating: "a", count: 40),
                 rightsConfirmed: true
             ),
-            "Choose a clear, high-resolution photo."
+            "Choose a photo of the creation."
         )
 
         XCTAssertEqual(
@@ -115,11 +115,21 @@ final class CommunityFeatureTests: XCTestCase {
         XCTAssertNil(properties[kCGImagePropertyGPSDictionary])
     }
 
-    func testImageProcessorRejectsLowResolutionPhoto() throws {
-        let source = try XCTUnwrap(makeJPEG(size: CGSize(width: 640, height: 640)))
+    func testImageProcessorAcceptsSmallPortraitLandscapeAndSquarePhotos() throws {
+        let sourceSizes = [
+            CGSize(width: 420, height: 900),
+            CGSize(width: 900, height: 420),
+            CGSize(width: 640, height: 640),
+        ]
 
-        XCTAssertThrowsError(try CommunityImageProcessor.prepareJPEG(from: source)) { error in
-            XCTAssertEqual(error as? CommunityImageProcessingError, .resolutionTooLow)
+        for sourceSize in sourceSizes {
+            let source = try XCTUnwrap(makeJPEG(size: sourceSize))
+            let output = try CommunityImageProcessor.prepareJPEG(from: source)
+            let image = try XCTUnwrap(UIImage(data: output))
+
+            XCTAssertGreaterThan(image.size.width, 0)
+            XCTAssertGreaterThan(image.size.height, 0)
+            XCTAssertLessThanOrEqual(output.count, CommunityImageProcessor.maximumUploadBytes)
         }
     }
 
@@ -144,9 +154,16 @@ final class CommunityFeatureTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let submissionID = UUID()
-        let store = ProfileStore(defaults: defaults)
+        let imageDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ProfileStoreTests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: imageDirectory) }
+
+        let store = ProfileStore(defaults: defaults, imagesDirectory: imageDirectory)
         store.recordSubmission(
-            id: submissionID,
+            receipt: CommunitySubmissionReceipt(
+                id: submissionID,
+                imageURL: "https://example.com/submission.jpg"
+            ),
             draft: CommunitySubmissionDraft(
                 title: "A Useful Object",
                 creatorName: "Sam Beyzer",
@@ -157,15 +174,86 @@ final class CommunityFeatureTests: XCTestCase {
             )
         )
         store.mergeSubmissionStatuses([
-            CommunitySubmissionStatus(id: submissionID, status: .approved, reviewedAt: Date(timeIntervalSince1970: 100))
+            CommunitySubmissionStatus(
+                id: submissionID,
+                status: .approved,
+                reviewedAt: Date(timeIntervalSince1970: 100),
+                imageURL: "https://example.com/published.jpg"
+            )
         ])
 
-        let reloaded = ProfileStore(defaults: defaults)
+        let reloaded = ProfileStore(defaults: defaults, imagesDirectory: imageDirectory)
         XCTAssertEqual(reloaded.submissions.first?.id, submissionID)
         XCTAssertEqual(reloaded.submissions.first?.creatorName, "Sam Beyzer")
         XCTAssertEqual(reloaded.submissions.first?.category, .design)
         XCTAssertEqual(reloaded.submissions.first?.status, .approved)
         XCTAssertEqual(reloaded.submissions.first?.reviewedAt, Date(timeIntervalSince1970: 100))
+        XCTAssertEqual(reloaded.submissions.first?.imageURL, "https://example.com/published.jpg")
+        XCTAssertEqual(reloaded.submissions.first?.significance, "A thoughtful explanation of why this object matters to human culture.")
+    }
+
+    @MainActor
+    func testProfileKeepsReceiptsCreatedBeforeImagePreviewsWereAdded() throws {
+        let suiteName = "LegacyProfileStoreTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let id = UUID()
+        let legacyReceipt: [[String: Any]] = [[
+            "id": id.uuidString,
+            "title": "Earlier Submission",
+            "creatorName": "Sam Beyzer",
+            "category": "sculpture",
+            "submittedAt": 100.0,
+            "status": "pending",
+        ]]
+        defaults.set(try JSONSerialization.data(withJSONObject: legacyReceipt), forKey: "humanCulture.profile.submissions")
+
+        let store = ProfileStore(defaults: defaults)
+
+        XCTAssertEqual(store.submissions.first?.id, id)
+        XCTAssertEqual(store.submissions.first?.title, "Earlier Submission")
+        XCTAssertNil(store.submissions.first?.significance)
+        XCTAssertNil(store.submissions.first?.imageURL)
+        XCTAssertNil(store.submissions.first?.imageFileName)
+    }
+
+    @MainActor
+    func testCancellingSubmissionRemovesReceiptAndCachedPreview() throws {
+        let suiteName = "CancellationProfileStoreTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let imageDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CancellationProfileStoreTests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: imageDirectory) }
+
+        let submissionID = UUID()
+        let jpegData = try XCTUnwrap(makeJPEG(size: CGSize(width: 900, height: 420)))
+        let store = ProfileStore(defaults: defaults, imagesDirectory: imageDirectory)
+        store.recordSubmission(
+            receipt: CommunitySubmissionReceipt(
+                id: submissionID,
+                imageURL: "https://example.com/submission.jpg"
+            ),
+            draft: CommunitySubmissionDraft(
+                title: "A Wide Handmade Object",
+                creatorName: "Sam Beyzer",
+                significance: "A thoughtful explanation of why this handmade object matters.",
+                category: .design,
+                jpegData: jpegData,
+                rightsConfirmed: true
+            )
+        )
+
+        let receipt = try XCTUnwrap(store.submissions.first)
+        XCTAssertNotNil(store.previewImage(for: receipt))
+
+        store.removeSubmission(id: submissionID)
+
+        XCTAssertTrue(store.submissions.isEmpty)
+        XCTAssertNil(store.previewImage(for: receipt))
+        XCTAssertTrue(ProfileStore(defaults: defaults, imagesDirectory: imageDirectory).submissions.isEmpty)
     }
 
     func testNewAndNowYearParsingHandlesModernBCEAndCenturies() {
@@ -181,6 +269,52 @@ final class CommunityFeatureTests: XCTestCase {
         SurpriseIntentHandoff.requestSurprise()
         XCTAssertTrue(SurpriseIntentHandoff.consumeRequest())
         XCTAssertFalse(SurpriseIntentHandoff.consumeRequest())
+    }
+
+    func testArchiveSearchMatchesAcrossFieldsAndIgnoresDiacritics() {
+        let item = CultureItem(
+            id: "search-chair",
+            title: "Café Chair",
+            maker: "José Álvarez",
+            culture: "Mexican",
+            country: "Mexico",
+            region: "Oaxaca",
+            dateDisplay: "2026",
+            category: .furniture,
+            imageURL: "https://example.com/chair.jpg",
+            sourceName: "Open Collection",
+            sourceURL: "https://example.com/chair",
+            license: "CC0",
+            hook: "A compact chair for shared spaces.",
+            story: "The chair brings local materials into a contemporary form.",
+            whyItMatters: "It shows how furniture can carry regional craft into daily life.",
+            latitude: nil,
+            longitude: nil,
+            weekKey: "2026-W29"
+        )
+
+        XCTAssertTrue(item.matchesSearch("cafe jose"))
+        XCTAssertTrue(item.matchesSearch("furniture 2026"))
+        XCTAssertTrue(item.matchesSearch("oaxaca craft"))
+        XCTAssertFalse(item.matchesSearch("sculpture"))
+        XCTAssertFalse(item.matchesSearch("   "))
+    }
+
+    func testCollectiveSearchMatchesCreatorCategoryAndSignificance() {
+        let artwork = CommunityArtwork(
+            id: UUID(),
+            contributorID: UUID(),
+            title: "Signal Chair",
+            creatorName: "Sam Beyzer",
+            significance: "A flat-pack experiment designed for repair and repeated use.",
+            category: .furniture,
+            imageURL: "https://example.com/signal-chair.jpg",
+            publishedAt: Date(timeIntervalSince1970: 1_783_987_200)
+        )
+
+        XCTAssertTrue(artwork.matchesSearch("sam furniture"))
+        XCTAssertTrue(artwork.matchesSearch("repair experiment"))
+        XCTAssertFalse(artwork.matchesSearch("architecture"))
     }
 
     private func makeJPEG(size: CGSize) -> Data? {

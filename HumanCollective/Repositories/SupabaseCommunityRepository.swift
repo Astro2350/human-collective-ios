@@ -44,7 +44,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         return rows.compactMap(makeArtwork)
     }
 
-    func submit(_ draft: CommunitySubmissionDraft) async throws -> UUID {
+    func submit(_ draft: CommunitySubmissionDraft) async throws -> CommunitySubmissionReceipt {
         let endpoint = configuration.url.appendingPathComponent("functions/v1/community-submit")
         let boundary = "HumanCollective-\(UUID().uuidString)"
         var request = authorizedRequest(url: endpoint)
@@ -75,7 +75,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
             throw CommunityRepositoryError.invalidResponse
         }
 
-        return receipt.id
+        return CommunitySubmissionReceipt(id: receipt.id, imageURL: receipt.imageURL)
     }
 
     func fetchSubmissionStatuses(ids: [UUID]) async throws -> [CommunitySubmissionStatus] {
@@ -102,9 +102,26 @@ struct SupabaseCommunityRepository: CommunityRepository {
                 status: row.status,
                 reviewedAt: row.reviewedAt.flatMap {
                     Self.dateFormatter.date(from: $0) ?? Self.fallbackDateFormatter.date(from: $0)
-                }
+                },
+                imageURL: row.imageURL
             )
         }
+    }
+
+    func cancelSubmission(id: UUID) async throws {
+        let endpoint = configuration.url.appendingPathComponent("functions/v1/community-cancel")
+        var request = authorizedRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            CancelSubmissionRequestDTO(
+                installationID: CommunityInstallationIdentity.current(),
+                submissionID: id
+            )
+        )
+
+        _ = try await responseData(for: request)
     }
 
     func report(artworkID: UUID, reason: CommunityReportReason, details: String) async throws {
@@ -149,6 +166,7 @@ struct SupabaseCommunityRepository: CommunityRepository {
         switch code {
         case "rate_limited": throw CommunityRepositoryError.rateLimited
         case "submissions_unavailable": throw CommunityRepositoryError.submissionsUnavailable
+        case "submission_not_cancellable": throw CommunityRepositoryError.submissionCannotBeCancelled
         case "artwork_unavailable": throw CommunityRepositoryError.artworkUnavailable
         default: throw CommunityRepositoryError.requestFailed
         }
@@ -213,6 +231,12 @@ private struct CommunityArtworkDTO: Decodable {
 
 private struct SubmissionReceiptDTO: Decodable {
     let id: UUID
+    let imageURL: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case imageURL = "image_url"
+    }
 }
 
 private struct SubmissionStatusRequestDTO: Encodable {
@@ -233,11 +257,23 @@ private struct SubmissionStatusDTO: Decodable {
     let id: UUID
     let status: CommunitySubmissionReviewStatus
     let reviewedAt: String?
+    let imageURL: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case status
         case reviewedAt = "reviewed_at"
+        case imageURL = "image_url"
+    }
+}
+
+private struct CancelSubmissionRequestDTO: Encodable {
+    let installationID: UUID
+    let submissionID: UUID
+
+    enum CodingKeys: String, CodingKey {
+        case installationID = "installation_id"
+        case submissionID = "submission_id"
     }
 }
 

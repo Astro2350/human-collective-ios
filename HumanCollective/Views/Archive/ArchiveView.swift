@@ -13,6 +13,7 @@ struct ArchiveView: View {
 
     @State private var visiblePastWeekCount = 5
     @State private var viewModel: ArchiveViewModel
+    @State private var presentedSheet: ArchiveSheet?
     @State private var surpriseItem: CultureItem?
 
     init(
@@ -37,6 +38,13 @@ struct ArchiveView: View {
             .navigationDestination(item: $surpriseItem) { item in
                 CultureDetailView(item: item, savedStore: savedStore)
                     .rootTabBarHidden($rootTabBarHiddenDepth)
+            }
+            .sheet(item: $presentedSheet) { destination in
+                switch destination {
+                case .search:
+                    ArchiveSearchView(items: searchableItems, savedStore: savedStore)
+                        .presentationDetents([.large])
+                }
             }
             .onChange(of: surpriseRequestID) { _, requestID in
                 guard requestID != nil else { return }
@@ -70,16 +78,29 @@ struct ArchiveView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
                     ScreenHeader("Archive") {
-                        Button {
-                            openSurprise(fallback: visibleItems)
-                        } label: {
-                            Image(systemName: "die.face.5")
-                                .font(.system(size: 18, weight: .semibold))
-                                .frame(width: 42, height: 42)
-                                .background(HCTheme.surface, in: Circle())
+                        HStack(spacing: 8) {
+                            Button {
+                                presentedSheet = .search
+                            } label: {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .frame(width: 42, height: 42)
+                                    .background(HCTheme.surface, in: Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Search Archive")
+
+                            Button {
+                                openSurprise(fallback: visibleItems)
+                            } label: {
+                                Image(systemName: "die.face.5")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .frame(width: 42, height: 42)
+                                    .background(HCTheme.surface, in: Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Surprise me")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Surprise me")
                     }
                     .zIndex(1)
 
@@ -180,6 +201,11 @@ struct ArchiveView: View {
         }
     }
 
+    private var searchableItems: [CultureItem] {
+        guard case .loaded(let packs) = viewModel.state else { return [] }
+        return ArchiveItemCollection.uniqueItems(packs.flatMap(\.items))
+    }
+
     private func archivePackLink<Label: View>(
         _ pack: CulturePack,
         @ViewBuilder label: () -> Label
@@ -195,6 +221,119 @@ struct ArchiveView: View {
             label()
         }
         .buttonStyle(.cultureCard)
+    }
+}
+
+private enum ArchiveSheet: Identifiable {
+    case search
+
+    var id: String { "search" }
+}
+
+private struct ArchiveSearchView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let items: [CultureItem]
+    let savedStore: SavedStore
+
+    @State private var query = ""
+
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var results: [CultureItem] {
+        guard !trimmedQuery.isEmpty else { return [] }
+        return items.filter { $0.matchesSearch(trimmedQuery) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if trimmedQuery.isEmpty {
+                    ContentUnavailableView {
+                        Label("Search the Archive", systemImage: "magnifyingglass")
+                    } description: {
+                        Text("Find a title, creator, category, place, or year.")
+                    }
+                } else if results.isEmpty {
+                    ContentUnavailableView.search(text: trimmedQuery)
+                } else {
+                    List(results) { item in
+                        NavigationLink {
+                            CultureDetailView(item: item, savedStore: savedStore)
+                        } label: {
+                            ArchiveSearchResultRow(item: item)
+                        }
+                        .listRowBackground(HCTheme.background)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .background(HCTheme.background)
+            .navigationTitle("Archive Search")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Title, creator, place, or year"
+            )
+            .toolbarBackground(HCTheme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(HCTheme.ink)
+                            .frame(width: 32, height: 32)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close Archive search")
+                }
+            }
+        }
+    }
+}
+
+private struct ArchiveSearchResultRow: View {
+    let item: CultureItem
+
+    var body: some View {
+        HStack(spacing: 12) {
+            CultureAsyncImage(
+                imageURL: item.imageURL,
+                aspectRatio: 1,
+                cornerRadius: 6,
+                accessibilityLabel: item.title
+            )
+            .frame(width: 68)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(item.displayTitle)
+                    .font(.cultureTitle(20))
+                    .foregroundStyle(HCTheme.ink)
+                    .lineLimit(2)
+
+                Text(item.creatorDisplay)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(HCTheme.mutedInk)
+                    .lineLimit(1)
+
+                Text(item.cardMetadataDisplay.isEmpty ? item.category.title : item.cardMetadataDisplay)
+                    .font(.caption)
+                    .foregroundStyle(HCTheme.secondaryInk)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 
