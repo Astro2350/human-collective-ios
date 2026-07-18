@@ -17,9 +17,9 @@ struct OnboardingView: View {
             symbolName: "globe.europe.africa"
         ),
         OnboardingPage(
-            title: "No feed. No likes.",
-            subtitle: "Just one thing worth looking at.",
-            symbolName: "book.closed"
+            title: "Save what stays with you.",
+            subtitle: "Return to it anytime from your profile.",
+            symbolName: "bookmark"
         )
     ]
 

@@ -65,7 +65,7 @@ Deno.serve(async (request) => {
 
   const { data: submissions, error: submissionsError } = await client
     .from("community_submissions")
-    .select("id,status,reviewed_at")
+    .select("id,status,reviewed_at,image_path")
     .eq("contributor_id", contributor.id)
     .in("id", ids)
     .order("created_at", { ascending: false });
@@ -75,5 +75,29 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: "status_lookup_failed" }, 500);
   }
 
-  return jsonResponse({ submissions: submissions ?? [] });
+  const submissionsWithImages = await Promise.all(
+    (submissions ?? []).map(async (submission) => {
+      let imageURL: string | null = null;
+
+      if (submission.status === "approved") {
+        imageURL = client.storage
+          .from("community-artworks")
+          .getPublicUrl(`${submission.id}.jpg`).data.publicUrl;
+      } else {
+        const { data } = await client.storage
+          .from("community-submissions")
+          .createSignedUrl(submission.image_path, 60 * 60);
+        imageURL = data?.signedUrl ?? null;
+      }
+
+      return {
+        id: submission.id,
+        status: submission.status,
+        reviewed_at: submission.reviewed_at,
+        image_url: imageURL,
+      };
+    }),
+  );
+
+  return jsonResponse({ submissions: submissionsWithImages });
 });

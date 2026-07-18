@@ -1,0 +1,39 @@
+{
+  "project": "human-collective-moche-reel",
+  "route": {
+    "valid": true,
+    "kind": "video",
+    "intent": "final",
+    "control_layer": "reference",
+    "model": "v6",
+    "quality": "720p",
+    "detail_level": "",
+    "aspect_ratio": "9:16",
+    "duration": 8.0,
+    "reference_count": 1,
+    "membership_tier": "basic",
+    "reasons": [
+      "Basic/Free membership detected, so video generation uses PixVerse v6 instead of a premium video model."
+    ],
+    "issues": [],
+    "chain": [
+      {
+        "role": "final motion render",
+        "mode": "create reference",
+        "model": "v6",
+        "quality": "720p",
+        "command_template": "pixverse create reference --model v6 --quality 720p --duration 8 --aspect-ratio 9:16 --images <reference-image> --prompt <prompt>"
+      }
+    ],
+    "alternatives": [],
+    "command_template": "pixverse create reference --model v6 --quality 720p --duration 8 --aspect-ratio 9:16 --images <reference-image> --prompt <prompt>",
+    "capability_source": "PixVerse CLI video/reference help and supported-model table"
+  },
+  "tasks": [
+    {
+      "id": "film",
+      "label": "final motion render",
+      "cmd": "pixverse create reference --model v6 --quality 720p --duration 8 --aspect-ratio 9:16 --images /tmp/hc_moche_head_vessel_source.jpg --no-audio --prompt 'Use the reference image as the exact Moche Head Vessel. Make an 8-second vertical social media motion clip: a slow, deliberate push-in from the full ceramic face toward the eyes, with subtle parallax and a gentle light pass revealing clay texture. Preserve the black-and-white museum-photo look and the vessel'\"'\"'s identity. The object remains fired clay, still and sculptural. No blinking, no mouth movement, no facial expression change, no extra objects, no hands, no text, no logo, no captions, no colorization, no morphing, no warping. End on a close, watchful crop of the eyes.'"
+    }
+  ]
+}

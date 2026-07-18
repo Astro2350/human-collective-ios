@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 
 enum CommunityImageProcessingError: LocalizedError, Equatable {
     case unreadable
-    case resolutionTooLow
     case couldNotEncode
     case fileTooLarge
 
@@ -12,8 +11,6 @@ enum CommunityImageProcessingError: LocalizedError, Equatable {
         switch self {
         case .unreadable:
             "This photo could not be read. Please choose another image."
-        case .resolutionTooLow:
-            "Please choose a clearer, higher-resolution photo."
         case .couldNotEncode:
             "This photo could not be prepared for upload."
         case .fileTooLarge:
@@ -25,20 +22,10 @@ enum CommunityImageProcessingError: LocalizedError, Equatable {
 enum CommunityImageProcessor {
     static let maximumUploadBytes = 5 * 1024 * 1024
     static let maximumDimension = 3_000
-    static let minimumShortEdge = 700
-    static let minimumPixelCount = 1_000_000
-
     static func prepareJPEG(from sourceData: Data) throws -> Data {
         guard let source = CGImageSourceCreateWithData(sourceData as CFData, nil),
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
-              let width = properties[kCGImagePropertyPixelWidth] as? Int,
-              let height = properties[kCGImagePropertyPixelHeight] as? Int else {
+              CGImageSourceGetCount(source) > 0 else {
             throw CommunityImageProcessingError.unreadable
-        }
-
-        guard min(width, height) >= minimumShortEdge,
-              width * height >= minimumPixelCount else {
-            throw CommunityImageProcessingError.resolutionTooLow
         }
 
         let thumbnailOptions: [CFString: Any] = [

@@ -103,8 +103,6 @@ Deno.serve(async (request) => {
   const dimensions = jpegDimensions(imageBytes);
   if (
     !dimensions ||
-    Math.min(dimensions.width, dimensions.height) < 700 ||
-    dimensions.width * dimensions.height < 1_000_000 ||
     imageBytes[imageBytes.length - 2] !== 0xff ||
     imageBytes[imageBytes.length - 1] !== 0xd9
   ) {
@@ -162,5 +160,16 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: "submission_failed" }, 500);
   }
 
-  return jsonResponse({ id: submissionID, status: "pending" }, 201);
+  const { data: signedImage } = await client.storage
+    .from("community-submissions")
+    .createSignedUrl(imagePath, 60 * 60);
+
+  return jsonResponse(
+    {
+      id: submissionID,
+      status: "pending",
+      image_url: signedImage?.signedUrl ?? null,
+    },
+    201,
+  );
 });

@@ -101,6 +101,27 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
             .joined(separator: " - ")
     }
 
+    func matchesSearch(_ query: String) -> Bool {
+        CultureSearchMatcher.matches(
+            query,
+            values: [
+                title,
+                maker,
+                culture,
+                country,
+                region,
+                dateDisplay,
+                category.title,
+                category.displayName,
+                category.rawValue,
+                hook,
+                story,
+                whyItMatters,
+                sourceName,
+            ]
+        )
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case title
@@ -145,6 +166,33 @@ struct CultureItem: Identifiable, Codable, Hashable, Sendable {
             longitude: try container.decodeIfPresent(Double.self, forKey: .longitude),
             weekKey: try container.decode(String.self, forKey: .weekKey)
         )
+    }
+}
+
+enum CultureSearchMatcher {
+    static func matches(_ query: String, values: [String?]) -> Bool {
+        let terms = normalized(query)
+            .split(whereSeparator: \.isWhitespace)
+            .map(String.init)
+
+        guard !terms.isEmpty else { return false }
+
+        let searchableText = normalized(
+            values
+                .compactMap { $0 }
+                .joined(separator: " ")
+        )
+
+        return terms.allSatisfy(searchableText.contains)
+    }
+
+    private static func normalized(_ value: String) -> String {
+        value
+            .folding(
+                options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+                locale: .current
+            )
+            .lowercased()
     }
 }
 

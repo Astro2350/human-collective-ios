@@ -10,6 +10,21 @@ struct CommunityArtwork: Identifiable, Codable, Hashable, Sendable {
     let imageURL: String
     let publishedAt: Date
 
+    func matchesSearch(_ query: String) -> Bool {
+        CultureSearchMatcher.matches(
+            query,
+            values: [
+                title,
+                creatorName,
+                significance,
+                category.title,
+                category.displayName,
+                category.rawValue,
+                publishedAt.formatted(.dateTime.year()),
+            ]
+        )
+    }
+
     var savedCultureItem: CultureItem {
         CultureItem(
             id: "collective-\(id.uuidString.lowercased())",
@@ -43,6 +58,11 @@ struct CommunitySubmissionDraft: Sendable {
     let rightsConfirmed: Bool
 }
 
+struct CommunitySubmissionReceipt: Sendable {
+    let id: UUID
+    let imageURL: String?
+}
+
 enum CommunitySubmissionReviewStatus: String, Codable, Hashable, Sendable {
     case pending
     case approved
@@ -52,18 +72,17 @@ enum CommunitySubmissionReviewStatus: String, Codable, Hashable, Sendable {
     var title: String {
         switch self {
         case .pending: "Under review"
-        case .approved: "Published"
-        case .rejected: "Not selected"
+        case .approved: "Approved"
+        case .rejected: "Not approved"
         case .removed: "Removed"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .pending: "clock"
+        case .pending: "clock.fill"
         case .approved: "checkmark.circle.fill"
-        case .rejected: "minus.circle"
-        case .removed: "xmark.circle"
+        case .rejected, .removed: "xmark.circle.fill"
         }
     }
 }
@@ -72,6 +91,7 @@ struct CommunitySubmissionStatus: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     let status: CommunitySubmissionReviewStatus
     let reviewedAt: Date?
+    let imageURL: String?
 }
 
 enum CommunitySubmissionValidator {
@@ -83,7 +103,7 @@ enum CommunitySubmissionValidator {
         rightsConfirmed: Bool
     ) -> String? {
         guard jpegData != nil else {
-            return "Choose a clear, high-resolution photo."
+            return "Choose a photo of the creation."
         }
 
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)

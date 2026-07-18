@@ -36,3 +36,25 @@ struct ScreenHeader<Trailing: View>: View {
         .padding(.top, HCTheme.screenTopPadding)
     }
 }
+
+struct FloatingCircleLabel: View {
+    let systemName: String
+    let foregroundColor: Color
+    let backgroundColor: Color
+    var showsBorder = false
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 21, weight: .semibold))
+            .foregroundStyle(foregroundColor)
+            .frame(width: HCTheme.floatingControlSize, height: HCTheme.floatingControlSize)
+            .background(backgroundColor, in: Circle())
+            .overlay {
+                if showsBorder {
+                    Circle()
+                        .stroke(HCTheme.line.opacity(0.7), lineWidth: HCTheme.hairline)
+                }
+            }
+            .shadow(color: Color.black.opacity(0.14), radius: 10, y: 4)
+    }
+}
